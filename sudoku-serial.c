@@ -24,18 +24,10 @@ void print_grid(int **, int);
 
 
 int main(int argc, char *argv[]) {
-  int n_matrix_size, i, j; //size of matrix
+  int n_matrix_size; //size of matrix
   int rooted_matrix_size;//size of Sudoku box
 
-    /*int grid[N][N] = {{4,0,0, 0,0,1, 0,0,5},
-                      {0,0,1, 0,3,0, 0,0,0},
-                      {3,0,0, 2,9,0, 0,0,0},
-                      {0,9,3, 0,0,7, 8,4,0},
-                      {0,0,0, 0,5,0, 0,7,0},
-                      {0,6,0, 1,0,0, 0,0,0},
-                      {0,8,5, 0,0,0, 9,0,0},
-                      {7,0,0, 5,0,0, 0,0,0},
-                      {0,0,0, 0,4,2, 0,0,0}};*/
+
     t_array grid1;
     rooted_matrix_size = read_matrix(&grid1, argc, argv);
     n_matrix_size = rooted_matrix_size*rooted_matrix_size;
@@ -55,8 +47,9 @@ int main(int argc, char *argv[]) {
     printf("%f",(double) (end-start)/CLOCKS_PER_SEC);*/
     return 0;
 }
+
 /*
-*
+* Reads a matrix from file
 */
 int read_matrix(t_array *grid, int argc, char *argv[]){
   FILE *fp;
