@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define N 9
 #define UNASSIGNED 0
@@ -46,6 +47,8 @@ int find_unassigned(int grid[N][N], int *row, int *col) {
 
 int solve(int grid[N][N]) {
 
+    double result;
+
     int row = 0, col = 0, num;
 
     if (!find_unassigned(grid, &row, &col))
@@ -54,12 +57,13 @@ int solve(int grid[N][N]) {
     for (num = 1; num <= N; num++ )
         if (is_safe_num(grid, row, col, num)) {
             grid[row][col] = num;
-            
+
             if (solve(grid))
                 return 1;
-            
+
             grid[row][col] = UNASSIGNED;
         }
+
 
     return 0;
 }
@@ -67,28 +71,47 @@ int solve(int grid[N][N]) {
 void print_grid(int grid[N][N]) {
     int row, col;
 
+    printf("\n+-------+-------+-------+\n");
+
     for (row = 0; row < N; row++) {
-        for (col = 0; col < N; col++)
+
+        if(row == 3 || row == 6)
+            printf("+-------+-------+-------+\n|");
+        else
+            printf("|");
+
+        for (col = 0; col < N; col++){
+            if(col == 3 || col == 6)
+                printf(" |");
             printf("%2d", grid[row][col]);
+        }
+        printf(" |");
         printf("\n");
     }
+    printf("+-------+-------+-------+\n\n");
 }
 
 int main() {
-    
-    int grid[N][N] = {{0,0,0, 0,0,3, 2,9,0},
-                      {0,8,6, 5,0,0, 0,0,0},
-                      {0,2,0, 0,0,1, 0,0,0},
-                      {0,0,3, 7,0,5, 1,0,0},
-                      {9,0,0, 0,0,0, 0,0,8},
-                      {0,0,2, 9,0,8, 3,0,0},
-                      {0,0,0, 4,0,0, 0,8,0},
-                      {0,4,7, 1,0,0, 0,0,0}};
 
-    if (solve(grid))
+    int grid[N][N] = {{4,0,0, 0,0,1, 0,0,5},
+                      {0,0,1, 0,3,0, 0,0,0},
+                      {3,0,0, 2,9,0, 0,0,0},
+                      {0,9,3, 0,0,7, 8,4,0},
+                      {0,0,0, 0,5,0, 0,7,0},
+                      {0,6,0, 1,0,0, 0,0,0},
+                      {0,8,5, 0,0,0, 9,0,0},
+                      {7,0,0, 5,0,0, 0,0,0},
+                      {0,0,0, 0,4,2, 0,0,0}};
+    clock_t start, end;
+    start = clock();
+    if (solve(grid)){
+        end = clock();
         print_grid(grid);
-    else
+    }else{
+        end = clock();
         printf("no solution");
+      }
 
+    printf("%f",(double) (end-start)/CLOCKS_PER_SEC);
     return 0;
 }
