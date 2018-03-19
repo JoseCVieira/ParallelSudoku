@@ -4,7 +4,7 @@
 
 #define N 9
 #define UNASSIGNED 0
-//TESTE
+//TESTE 2
 int is_exist_row(int grid[N][N], int row, int num){
     int col;
 
