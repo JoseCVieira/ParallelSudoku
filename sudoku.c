@@ -4,7 +4,7 @@
 
 #define N 9
 #define UNASSIGNED 0
-
+//TESTE
 int is_exist_row(int grid[N][N], int row, int num){
     int col;
 
@@ -72,9 +72,7 @@ void print_grid(int grid[N][N]) {
     int row, col;
 
     printf("\n+-------+-------+-------+\n");
-
     for (row = 0; row < N; row++) {
-
         if(row == 3 || row == 6)
             printf("+-------+-------+-------+\n|");
         else
@@ -92,7 +90,6 @@ void print_grid(int grid[N][N]) {
 }
 
 int main() {
-
     int grid[N][N] = {{4,0,0, 0,0,1, 0,0,5},
                       {0,0,1, 0,3,0, 0,0,0},
                       {3,0,0, 2,9,0, 0,0,0},
@@ -102,6 +99,7 @@ int main() {
                       {0,8,5, 0,0,0, 9,0,0},
                       {7,0,0, 5,0,0, 0,0,0},
                       {0,0,0, 0,4,2, 0,0,0}};
+
     clock_t start, end;
     start = clock();
     if (solve(grid)){
