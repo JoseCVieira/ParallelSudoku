@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     rooted_matrix_size = read_matrix(&grid1, argc, argv);
     n_matrix_size = rooted_matrix_size*rooted_matrix_size;
     printf("N = %d \t Rooted N = %d\n",n_matrix_size, rooted_matrix_size);
-    print_grid(grid1.arr, n_matrix_size);
+    //print_grid(grid1.arr, n_matrix_size);
 
     /*clock_t start, end;
     start = clock();
@@ -96,6 +96,7 @@ int read_matrix(t_array *grid, int argc, char *argv[]){
        printf("%2d ", grid->arr[i][k]);
        l = 0;
        k++;
+
        }else{
 
        aux[l] = line[j];
