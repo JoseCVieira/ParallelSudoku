@@ -125,28 +125,36 @@ int solve(int **grid) {
     return 0;
 }
 
-int check_row_box(int **grid, int row, int num) {
-    int i, cont = 0, startRow = row - (row % r_size);
+void check_row_box(int **grid, int row, int num, int* v_aux) {
+    int i, startRow = row - (row % r_size);
 
     for(i = startRow; i < (startRow + r_size); i++)
-        if(i != row)
-            cont += is_exist_row(grid, i, num);
-        
-    return cont;
+        if(i != row){
+            if(is_exist_row(grid, i, num))
+                v_aux[i] = i;
+            else
+                v_aux[i] = 0;
+        }else
+            v_aux[i] = 0;
 }
 
-int check_col_box(int **grid, int col, int num) {
-    int i, cont = 0, startCol = col - (col % r_size);
+void check_col_box(int **grid, int col, int num, int* v_aux) {
+    int i, startCol = col - (col % r_size);
     
     for(i = startCol; i < (startCol + r_size); i++)
-        if(i != col)
-            cont += is_exist_col(grid, i, num);
-        
-    return cont;
-}
+        if(i != col){
+            if(is_exist_col(grid, i, num))
+                v_aux[i] = i;
+            else
+                v_aux[i] = 0;
+        }else
+            v_aux[i] = 0;
+}                
 
 void certain_elements(int **grid) {
-    int i, j, k, changed = 1;
+    int i, j, k, changed = 1, cont;
+    int v_aux_c [r_size];
+    int v_aux_r [r_size];
     
     while(changed){
         changed = 0;
@@ -154,13 +162,21 @@ void certain_elements(int **grid) {
         for(i = 0; i < m_size; i++)
             for(j = 0; j < m_size; j++)
                 if(!grid[i][j])
-                    for(k = 0; k < m_size; k++)
-                        if(is_safe_num(grid, i, j, k))
+                    for(k = 0; k < m_size; k++){
+                        check_row_box(grid, i, k, v_aux_r);
+                        check_col_box(grid, j, k, v_aux_c);
+                        
+                         
+                    }
+                        
+                        
+                        
+                        /*if(is_safe_num(grid, i, j, k))
                             if(check_row_box(grid, i, k) + check_col_box(grid, j, k) == r_size + 1){
                                 grid[i][j] = k;
                                 changed = 1;
                                 printf("\nchanged => row:%d col:%d, val:%d", i, j, k);
-                            }
+                            }*/
     }
 }
 
@@ -215,49 +231,3 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
-
-
-
-/*else if(check_row + check_col == 3){
-if(check_row == 2){
-    if(((j+1) % 3) == 0){
-        if(grid[i][j-1] && grid[i][j-2]){
-            grid[i][j] = k;
-            changed = 1;
-            printf("changed [100%%] i:%d j:%d, k:%d\n", i, j, k);
-        }
-    }else if(((j+1) % 2) == 0){
-        if(grid[i][j-1] && grid[i][j+1]){
-            grid[i][j] = k;
-            changed = 1;
-            printf("changed [100%%] i:%d j:%d, k:%d\n", i, j, k);
-        }
-    }else{
-        if(grid[i][j+1] && grid[i][j+2]){
-            grid[i][j] = k;
-            changed = 1;
-            printf("changed [100%%] i:%d j:%d, k:%d\n", i, j, k);
-        }
-    }
-}else{
-    if(((i+1) % 3) == 0){
-        if(grid[i-1][j] && grid[i-2][j]){
-            grid[i][j] = k;
-            changed = 1;
-            printf("changed [100%%] i:%d j:%d, k:%d\n", i, j, k);
-        }
-    }else if(((i+1) % 2) == 0){
-        if(grid[i-1][j] && grid[i+1][j]){
-            grid[i][j] = k;
-            changed = 1;
-            printf("changed [100%%] i:%d j:%d, k:%d\n", i, j, k);
-        }
-    }else{
-        if(grid[i+1][j] && grid[i+2][j]){
-            grid[i][j] = k;
-            changed = 1;
-            printf("changed [100%%] i:%d j:%d, k:%d\n", i, j, k);
-        }
-    }
-}
-}*/
