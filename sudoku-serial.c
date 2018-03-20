@@ -11,13 +11,13 @@ typedef struct{
 
 int r_size, m_size;
 
-int read_matrix(t_array *grid, int argc, char *argv[]) {
+int read_matrix(t_array *grid, int argc, char *argv[]){
     FILE *fp;
     size_t len = 0;
     ssize_t read;
-    int i, j, k;
+    int i, j, k, l, aux2;
     int rooted_matrix_size, n_matrix_size;
-    char *line = NULL;
+    char *line = NULL, aux[3];
 
     //verifies if the program calling has at least one argument
     if (argc<1) {
@@ -33,9 +33,8 @@ int read_matrix(t_array *grid, int argc, char *argv[]) {
         if ((fp = fopen(argv[1], "r+")) == NULL) {
             fprintf(stderr, "unable to open file %s\n", argv[1]);
             exit(1);
-        }else{
+        }else
             fprintf(stderr, "%s opened\n",argv[1]);
-        }
     }
     
     if(read = getline(&line, &len, fp) != -1)
@@ -50,16 +49,20 @@ int read_matrix(t_array *grid, int argc, char *argv[]) {
 
     for(i = 0; getline(&line, &len, fp) != -1; i++){
         k = 0;
+        l = 0;
         for (j = 0; line[j] != '\n'; j++) {
-
-            if(line[j] == ' '){
-                line[j] = '\0';
+            if(line[j] == ' ' || line[j] == '\n'){
+                aux[l] = '\0';
+                grid->arr[i][k] = atoi(aux);
+                l = 0;
                 k++;
-            }else
-                grid->arr[i][k] = (int)line[j]-'0';
+            }else{
+                aux[l] = line[j];
+                l++;
+            }
         }
     }
-    
+
     fclose(fp);
     return rooted_matrix_size;
 }
@@ -93,7 +96,7 @@ int is_exist_box(int **grid, int startRow, int startCol, int num) {
 }
 
 int is_safe_num(int **grid, int row, int col, int num) {
-    return !is_exist_row(grid, row, num) && !is_exist_col(grid, col, num) && !is_exist_box(grid, row - (row % 3), col - (col %3), num);
+    return !is_exist_row(grid, row, num) && !is_exist_col(grid, col, num) && !is_exist_box(grid, row - (row % r_size), col - (col %r_size), num);
 }
 
 int find_unassigned(int **grid, int *row, int *col) {
@@ -195,7 +198,6 @@ void certain_elements(int **grid) {
                             if(cont == 1){
                                 grid[row][col] = k;
                                 changed = 1;
-                                //printf("\nchanged => row:%d col:%d, val:%d", row, col, k);
                                 break;
                             }
                         }
@@ -229,7 +231,8 @@ int main(int argc, char *argv[]) {
     //start measurement
     start = clock();
     
-    //certain_elements(grid1.arr);
+    certain_elements(grid1.arr);
+    //print_grid(grid1.arr, r_size, m_size);
     result = solve(grid1.arr);
     
     // end measurement
@@ -238,7 +241,7 @@ int main(int argc, char *argv[]) {
     print_grid(grid1.arr, r_size, m_size);
     
     // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
-    verify_sudoku(grid1.arr, m_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
+    verify_sudoku(grid1.arr, m_size, r_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
     
     // verifica se tem solucao ou nao
     result == 1 ? printf("solved!\n") : printf("no solution!\n");
