@@ -149,7 +149,7 @@ void check_col_box(int **grid, int col, int num, int *v_aux) {
                 v_aux[i-startCol] = 0;
         }else
             v_aux[i-startCol] = 0;
-}                
+}
 
 void certain_elements(int **grid) {
     int i, j, k, x, y, changed = 1, cont, start_x, start_y, row, col;
@@ -218,7 +218,7 @@ void certain_elements(int **grid) {
 }*/
 
 int main(int argc, char *argv[]) {
-    clock_t start, end;
+    clock_t start, end, result;
     t_array grid1;
     
     printf("\n");
@@ -233,29 +233,20 @@ int main(int argc, char *argv[]) {
     start = clock();
     
     certain_elements(grid1.arr);
-    solve(grid1.arr);
+    result = solve(grid1.arr);
     
     // end measurement
     end = clock();
     
     print_grid(grid1.arr, r_size, m_size);
     
+    // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
     verify_sudoku(grid1.arr, m_size) == 1 ? printf("\nRigth!\n\n") : printf("\nWrong!\n\n");
     
-    printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
+    // verifica se tem solucao ou nao
+    result == 1 ? printf("\nSolved!") : printf("\nNo solution!")
     
-    /*if (solve(grid1.arr)){
-        end = clock(); // end measurement
-        print_grid(grid1.arr, r_size, m_size);
-        
-        verify_sudoku(grid1.arr, m_size) == 1 ? printf("\nRigth!\n\n") : printf("\nWrong!\n\n");
-    }else{
-        
-        
-        print_grid(grid1.arr, r_size, m_size);
-        
-        printf("\nNo solution => ");
-    }*/
+    printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
     
     return 0;
 }
