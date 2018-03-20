@@ -67,7 +67,7 @@ int read_matrix(t_array *grid, int argc, char *argv[]) {
 int is_exist_row(int **grid, int row, int num){
     int col;
 
-    for (col = 0; col < 9; col++)
+    for (col = 0; col < m_size; col++)
         if (grid[row][col] == num)
             return 1;
     return 0;
@@ -76,7 +76,7 @@ int is_exist_row(int **grid, int row, int num){
 int is_exist_col(int **grid, int col, int num) {
     int row;
 
-    for (row = 0; row < 9; row++)
+    for (row = 0; row < m_size; row++)
         if (grid[row][col] == num)
             return 1;
     return 0;
@@ -85,8 +85,8 @@ int is_exist_col(int **grid, int col, int num) {
 int is_exist_box(int **grid, int startRow, int startCol, int num) {
     int row, col;
 
-    for (row = 0; row < 3; row++)
-        for (col = 0; col < 3; col++)
+    for (row = 0; row < r_size; row++)
+        for (col = 0; col < r_size; col++)
             if (grid[row + startRow][col + startCol] == num)
                 return 1;
     return 0;
@@ -125,58 +125,83 @@ int solve(int **grid) {
     return 0;
 }
 
-void check_row_box(int **grid, int row, int num, int* v_aux) {
+void check_row_box(int **grid, int row, int num, int *v_aux) {
     int i, startRow = row - (row % r_size);
 
     for(i = startRow; i < (startRow + r_size); i++)
         if(i != row){
             if(is_exist_row(grid, i, num))
-                v_aux[i] = i;
+                v_aux[i-startRow] = 1;
             else
-                v_aux[i] = 0;
+                v_aux[i-startRow] = 0;
         }else
-            v_aux[i] = 0;
+            v_aux[i-startRow] = 0;
 }
 
-void check_col_box(int **grid, int col, int num, int* v_aux) {
+void check_col_box(int **grid, int col, int num, int *v_aux) {
     int i, startCol = col - (col % r_size);
     
     for(i = startCol; i < (startCol + r_size); i++)
         if(i != col){
             if(is_exist_col(grid, i, num))
-                v_aux[i] = i;
+                v_aux[i-startCol] = 1;
             else
-                v_aux[i] = 0;
+                v_aux[i-startCol] = 0;
         }else
-            v_aux[i] = 0;
+            v_aux[i-startCol] = 0;
 }                
 
 void certain_elements(int **grid) {
-    int i, j, k, changed = 1, cont;
+    int i, j, k, x, y, changed = 1, cont, start_x, start_y, row, col;
     int v_aux_c [r_size];
     int v_aux_r [r_size];
     
     while(changed){
         changed = 0;
         
-        for(i = 0; i < m_size; i++)
-            for(j = 0; j < m_size; j++)
-                if(!grid[i][j])
-                    for(k = 0; k < m_size; k++){
-                        check_row_box(grid, i, k, v_aux_r);
-                        check_col_box(grid, j, k, v_aux_c);
-                        
-                         
-                    }
-                        
-                        
-                        
-                        /*if(is_safe_num(grid, i, j, k))
-                            if(check_row_box(grid, i, k) + check_col_box(grid, j, k) == r_size + 1){
-                                grid[i][j] = k;
+        for(i = 0; i < m_size; i++){
+            for(j = 0; j < m_size; j++){
+                if(!grid[i][j]){
+                    for(k = 1; k <= m_size; k++){
+                        if(is_safe_num(grid, i, j, k)){
+                            check_row_box(grid, i, k, v_aux_r);
+                            check_col_box(grid, j, k, v_aux_c);
+
+                            start_x = i - (i % r_size);
+                            start_y = j - (j % r_size);
+                            
+                            cont = 0;
+                            for(x = start_x; x < (start_x + r_size); x++){
+                                if(!v_aux_r[x-start_x]){
+                                    for(y = start_y; y < (start_y + r_size); y++){
+                                        if(!v_aux_c[y-start_y]){
+                                        
+                                            if(!grid[x][y]){
+                                                cont ++;
+                                                row = i;
+                                                col = j;
+                                            }
+                                            
+                                            if(cont > 1)
+                                                break;
+                                        }
+                                    }
+                                if(cont > 1)
+                                    break;
+                                }
+                            }
+                            
+                            if(cont == 1){
+                                grid[row][col] = k;
                                 changed = 1;
-                                printf("\nchanged => row:%d col:%d, val:%d", i, j, k);
-                            }*/
+                                //printf("\nchanged => row:%d col:%d, val:%d", row, col, k);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -208,11 +233,14 @@ int main(int argc, char *argv[]) {
     start = clock();
     
     certain_elements(grid1.arr);
+    solve(grid1.arr);
     
     // end measurement
     end = clock();
     
     print_grid(grid1.arr, r_size, m_size);
+    
+    verify_sudoku(grid1.arr, m_size) == 1 ? printf("\nRigth!\n\n") : printf("\nWrong!\n\n");
     
     printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
     
