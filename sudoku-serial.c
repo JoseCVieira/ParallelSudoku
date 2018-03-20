@@ -3,6 +3,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -55,9 +56,9 @@ int read_matrix(t_array *grid, int argc, char *argv[]){
   FILE *fp;
   size_t len = 0;
   ssize_t read;
-  int i, j, k;
+  int i, j, k, l, aux2;
   int rooted_matrix_size, n_matrix_size;
-  char *line = NULL;
+  char *line = NULL, aux[3];
 
   //verifies if the program calling has at least one argument
   if (argc<1) {
@@ -86,15 +87,23 @@ int read_matrix(t_array *grid, int argc, char *argv[]){
 
   for(i = 0; getline(&line, &len, fp) != -1; i++){
     k = 0;
+    l = 0;
     for (j = 0; line[j] != '\n'; j++) {
 
-     if(line[j] == ' '){
-       line[j] = '\0';
+     if(line[j] == ' ' || line[j] == '\n'){
+       aux[l] = '\0';
+       grid->arr[i][k] = atoi(aux);
+       printf("%2d ", grid->arr[i][k]);
+       l = 0;
        k++;
-     }else{
-       grid->arr[i][k] = (int)line[j]-'0';
-       printf("%d ", grid->arr[i][k]);
+       }else{
+
+       aux[l] = line[j];
+
+       l++;
      }
+
+
    }
     printf("\n" );
   }
@@ -174,7 +183,7 @@ void print_grid(int **grid, int n_size) {
 
     for(row = 0; row < n_size; row++){
       for(col = 0; col < n_size; col++)
-        printf("%d ",grid[row][col] );
+        printf("%2d ",grid[row][col] );
       printf("\n");
     }
 }
