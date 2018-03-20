@@ -125,8 +125,8 @@ int solve(int **grid) {
     return 0;
 }
 
-void check_row_box(int **grid, int row, int num, int *v_aux) {
-    int i, startRow = row - (row % r_size);
+void check_row_box(int **grid, int row, int num, int *v_aux, int startRow) {
+    int i;
 
     for(i = startRow; i < (startRow + r_size); i++)
         if(i != row){
@@ -138,8 +138,8 @@ void check_row_box(int **grid, int row, int num, int *v_aux) {
             v_aux[i-startRow] = 0;
 }
 
-void check_col_box(int **grid, int col, int num, int *v_aux) {
-    int i, startCol = col - (col % r_size);
+void check_col_box(int **grid, int col, int num, int *v_aux, int startCol) {
+    int i;
     
     for(i = startCol; i < (startCol + r_size); i++)
         if(i != col){
@@ -159,16 +159,17 @@ void certain_elements(int **grid) {
     while(changed){
         changed = 0;
         
-        for(i = 0; i < m_size; i++){
-            for(j = 0; j < m_size; j++){
-                if(!grid[i][j]){
-                    for(k = 1; k <= m_size; k++){
+        for(i = 0; i < m_size; i++)
+            for(j = 0; j < m_size; j++)
+                if(!grid[i][j])
+                    for(k = 1; k <= m_size; k++)
                         if(is_safe_num(grid, i, j, k)){
-                            check_row_box(grid, i, k, v_aux_r);
-                            check_col_box(grid, j, k, v_aux_c);
 
                             start_x = i - (i % r_size);
                             start_y = j - (j % r_size);
+                            
+                            check_row_box(grid, i, k, v_aux_r, start_x);
+                            check_col_box(grid, j, k, v_aux_c, start_y);
                             
                             cont = 0;
                             for(x = start_x; x < (start_x + r_size); x++){
@@ -198,10 +199,6 @@ void certain_elements(int **grid) {
                                 break;
                             }
                         }
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -227,12 +224,12 @@ int main(int argc, char *argv[]) {
 
     printf("\ninitial sudoku:");
     print_grid(grid1.arr, r_size, m_size);
-    printf("solved sudoku:");
+    printf("result sudoku:");
     
     //start measurement
     start = clock();
     
-    certain_elements(grid1.arr);
+    //certain_elements(grid1.arr);
     result = solve(grid1.arr);
     
     // end measurement
@@ -241,10 +238,10 @@ int main(int argc, char *argv[]) {
     print_grid(grid1.arr, r_size, m_size);
     
     // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
-    verify_sudoku(grid1.arr, m_size) == 1 ? printf("\nRigth!\n\n") : printf("\nWrong!\n\n");
+    verify_sudoku(grid1.arr, m_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
     
     // verifica se tem solucao ou nao
-    result == 1 ? printf("\nSolved!") : printf("\nNo solution!")
+    result == 1 ? printf("solved!\n") : printf("no solution!\n");
     
     printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
     
