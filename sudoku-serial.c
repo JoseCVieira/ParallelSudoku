@@ -10,6 +10,7 @@ typedef struct{
 } t_array;
 
 int r_size, m_size;
+int cont_test = 0;
 
 int read_matrix(t_array *grid, int argc, char *argv[]){
     FILE *fp;
@@ -198,6 +199,8 @@ void certain_elements(int **grid) {
                             if(cont == 1){
                                 grid[row][col] = k;
                                 changed = 1;
+                                cont_test++;
+                                printf("changed grid[%d][%d]=%d, cont=%d\n", row, col, k, cont_test);
                                 break;
                             }
                         }
@@ -232,12 +235,14 @@ int main(int argc, char *argv[]) {
     start = clock();
     
     certain_elements(grid1.arr);
-    //print_grid(grid1.arr, r_size, m_size);
+    printf("\n\n\nnumber of zeros:%d\n\n", nr_zeros(grid1.arr, m_size));
+    print_grid(grid1.arr, r_size, m_size);
     result = solve(grid1.arr);
     
     // end measurement
     end = clock();
     
+    printf("result sudoku:");
     print_grid(grid1.arr, r_size, m_size);
     
     // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
