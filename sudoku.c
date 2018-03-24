@@ -129,32 +129,6 @@ int solve(int **grid) {
     return 0;
 }
 
-void check_row_box(int **grid, int row, int num, int *v_aux, int startRow) {
-    int i;
-
-    for(i = startRow; i < (startRow + r_size); i++)
-        if(i != row){
-            if(is_exist_row(grid, i, num))
-                v_aux[i-startRow] = 1;
-            else
-                v_aux[i-startRow] = 0;
-        }else
-            v_aux[i-startRow] = 0;
-}
-
-void check_col_box(int **grid, int col, int num, int *v_aux, int startCol) {
-    int i;
-    
-    for(i = startCol; i < (startCol + r_size); i++)
-        if(i != col){
-            if(is_exist_col(grid, i, num))
-                v_aux[i-startCol] = 1;
-            else
-                v_aux[i-startCol] = 0;
-        }else
-            v_aux[i-startCol] = 0;
-}
-
 /* final print function */
 
 /*void print_grid(int **grid) {
@@ -171,32 +145,35 @@ int main(int argc, char *argv[]) {
     clock_t start, end, result;
     t_array grid1;
     
-    printf("\n");
-    r_size = read_matrix(&grid1, argc, argv);
-    m_size = r_size * r_size;
+    if(argc == 2){
+        printf("\n");
+        r_size = read_matrix(&grid1, argc, argv);
+        m_size = r_size * r_size;
 
-    printf("\ninitial sudoku:");
-    print_grid(grid1.arr, r_size, m_size);
-    printf("\n\n\nnumber of zeros:%d\n\n", nr_zeros(grid1.arr, m_size));
-    printf("result sudoku:");
-    
-    //start measurement
-    start = clock();
-    
-    result = solve(grid1.arr);
-    
-    // end measurement
-    end = clock();
-    
-    print_grid(grid1.arr, r_size, m_size);
-    
-    // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
-    verify_sudoku(grid1.arr, m_size, r_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
-    
-    // verifica se tem solucao ou nao
-    result == 1 ? printf("solved!\n") : printf("no solution!\n");
-    
-    printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
+        printf("\ninitial sudoku:");
+        print_grid(grid1.arr, r_size, m_size);
+        printf("\n\n\nnumber of zeros:%d\n\n", nr_zeros(grid1.arr, m_size));
+        printf("result sudoku:");
+        
+        //start measurement
+        start = clock();
+        
+        result = solve(grid1.arr);
+        
+        // end measurement
+        end = clock();
+        
+        print_grid(grid1.arr, r_size, m_size);
+        
+        // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
+        verify_sudoku(grid1.arr, m_size, r_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
+        
+        // verifica se tem solucao ou nao
+        result == 1 ? printf("solved!\n") : printf("no solution!\n");
+        
+        printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
+    }else
+        printf("invalid input arguments.\n");
     
     return 0;
 }
