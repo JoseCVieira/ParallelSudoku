@@ -1,4 +1,4 @@
-#include "sudoku-serial.h"
+#include "sudoku-aux.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
