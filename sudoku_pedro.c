@@ -2,8 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #define UNASSIGNED 0
+#define S_INIT 0
+#define S_FINAL 1
+#define S_INV 2
+#define S_FULL 3
 
 typedef struct{
     int **arr;
@@ -100,34 +105,78 @@ int is_safe_num(int **grid, int row, int col, int num) {
     return !is_exist_row(grid, row, num) && !is_exist_col(grid, col, num) && !is_exist_box(grid, row - (row % r_size), col - (col %r_size), num);
 }
 
-int find_unassigned(int **grid, int *row, int *col) {
+/*int find_unassigned(int **grid, int *row, int *col) {
     for (*row = 0; *row < m_size; (*row)++)
         for (*col = 0; *col < m_size; (*col)++)
             if (grid[*row][*col] == 0)
                 return 1;
     return 0;
-}
+}*/
 
 int solve(int **grid) {
-    int row = 0, col = 0, num;
+    int r= 0, c= 0, last_r = 0, last_c = 0, i  =1, inv_val = 0, j;
+    int count;
     double result;
+    int temp_matrix[10];
+    int **row_stack;
 
-    if (!find_unassigned(grid,  row, &col))
-        return 1;
 
-    for (num = 1; num <= m_size; num++ ){
-        if (is_safe_num(grid, row, col, num)) {
-            grid[row][col] = num;
 
-            if (solve(grid))
-                return 1;
-
-            grid[row][col] = UNASSIGNED;
-        }
+    row_stack = (int **) malloc(m_size*sizeof(int*));
+    for (i = 0; i < m_size; i++) {
+      row_stack[i] = (int *) malloc((S_FULL+1)*sizeof(int*));
+      for(j = 0; j < m_size; j++)
+        row_stack[i][j] = 0;
+        row_stack[i][S_FINAL] = m_size;
+        row_stack[i][S_INIT] = -1;
+        row_stack[i][S_INV] = 0;
     }
+    r = 0;
+    while(r < m_size){
+      //is row full?
+      if(1){
+        c = 0;
+        while(c < m_size){
+          //is box empty?
+          if(grid[r][c] == 0){
+            i = 1;
+            while(i <=m_size){
+              if(!is_exist_row(grid, r, i) &&  !is_exist_col(grid, c, i)){
+                grid[r][c] = i;
+                last_c = c;
+                last_r = r;
+                break;
+              }else{
+                i++;
+              }
 
-    return 0;
+              for(j = 0; j < m_size; j++){
+                if(grid[r][j] == 0){
+                  grid[r][j] = 0;
+                  last_c--;
+                  break;
+                }
+
+              }
+
+            }//val loop
+          }//if grid
+          print_grid(grid, r_size, m_size);
+          printf("%d---------------------------------------------\n", c );
+          c++;
+        }//col loop
+      }//row full?
+      r++;
+    }//row loop
+      /*print_grid(grid, r_size, m_size);
+      printf("---------------------------------------------\n" );*/
+  //  printf("%d to %d\n", row_stack[i][S_INIT], row_stack[i][S_FINAL]);
+
+
+
+
 }
+
 
 /* final print function */
 

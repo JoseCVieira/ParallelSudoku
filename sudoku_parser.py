@@ -17,17 +17,10 @@ for row in table:
 		text+=c.text + "#"
 	text+="\n"
 
-<<<<<<< HEAD
-new_text1 = str(int(math.sqrt(count))) + "\n"+text.replace(" ","0")
-new_text_f = new_text1.replace("#", " ")
-
-with open('result', 'w') as file:
-=======
 new_text1 = str(int(math.sqrt(count))) + "\n"+text.replace(" ","0")
 new_text_f = new_text1.replace("#", " ")
 
 with open('input_file', 'w') as file:
->>>>>>> 4c5e6fcda61aa99c439230ef8a2dd09852364779
     file.write(new_text_f)
 
 file.close()
