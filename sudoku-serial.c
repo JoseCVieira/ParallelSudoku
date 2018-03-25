@@ -102,18 +102,20 @@ int is_safe_num(int **grid, int row, int col, int num) {
     return !is_exist_row(grid, row, num) && !is_exist_col(grid, col, num) && !is_exist_box(grid, row - (row % r_size), col - (col %r_size), num);
 }
 
-int find_unassigned(int **grid, int *row, int *col) {
-    for (*row = 0; *row < m_size; (*row)++)
-        for (*col = 0; *col < m_size; (*col)++)
-            if (grid[*row][*col] == 0)
-                return 1;
-    return 0;
+int nr_zeros(int **grid) {
+    int i, j, cont = 0;
+    
+    for (i = 0; i < m_size; i++)
+        for (j = 0; j < m_size; j++)
+            if (!grid[i][j])
+                cont++;
+    return cont;
 }
 
-int solve(int **grid) {
-    int back_values[200][3];
+int solve(int **grid, int m_zeros) {
+    int back_values[m_zeros][3];
     int row, col, val;
-    int zeros = 1, flag_back = 0, cont_back = 0, flag_break = 0;
+    int zeros = 1, flag_back = 0, cont_back = 0;
     
     while(zeros){
         zeros = 0;
@@ -197,13 +199,13 @@ int main(int argc, char *argv[]) {
 
         printf("\ninitial sudoku:");
         print_grid(grid1.arr, r_size, m_size);
-        printf("number of zeros:%d\n\n", nr_zeros(grid1.arr, m_size));
+        printf("number of zeros:%d\n\n", nr_zeros(grid1.arr));
         printf("result sudoku:");
         
         //start measurement
         start = clock();
         
-        result = solve(grid1.arr);
+        result = solve(grid1.arr, nr_zeros(grid1.arr));
         
         // end measurement
         end = clock();
