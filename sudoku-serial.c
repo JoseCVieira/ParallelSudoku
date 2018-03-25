@@ -95,14 +95,20 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
         
         row = 0;
         if(flag_back){
-            grid[back_values[cont_back-1][ROW]][back_values[cont_back-1][COL]] = 0;
-            row = back_values[cont_back-1][ROW];
+            
+            if(cont_back > 0)                            
+                cont_back --;
+            else
+                return 0; //impossible
+                            
+            grid[back_values[cont_back][ROW]][back_values[cont_back][COL]] = 0;
+            row = back_values[cont_back][ROW];
         }
         
         for(; row < m_size; row++){
             col = 0;
             if(flag_back)
-                col = back_values[cont_back-1][COL];
+                col = back_values[cont_back][COL];
             for(; col < m_size; col++){
                 if(!grid[row][col]){
                     zeros ++;
@@ -110,36 +116,41 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                     val = 1;
                     if(flag_back){
                         flag_back = 0;
-                        val = back_values[cont_back-1][VAL] + 1;
+                        
                         rows_mask[row] = rows_mask_copy;
-                        cols_mask[col] = cols_mask_copy;
+                        cols_mask[col] = cols_mask_copy;                        
                         boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask_copy;
-                        if(back_values[cont_back-1][VAL] == m_size){
-                            if(cont_back > 0){
-                                flag_back = 1;
-                                row = m_size; //break
-                                col = m_size;
-                                val = m_size + 1;
-                            }else
-                                return 0; //impossible
+                        
+                        if(back_values[cont_back][VAL] == m_size){
+                            flag_back = 1;
+                            row = m_size; //break
+                            col = m_size;
+                            val = m_size + 1;
                         }
-                        cont_back --;
+                        
+                        val = back_values[cont_back][VAL] + 1;
                     }
                     
                     for(; val <= m_size; val++){
                         if(is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val)){
+                            
                             back_values[cont_back][ROW]=row;
                             back_values[cont_back][COL]=col;
                             back_values[cont_back][VAL]=val;
+                            
                             rows_mask_copy = rows_mask[row];
                             cols_mask_copy = cols_mask[col];
                             boxes_mask_copy = boxes_mask[r_size*(row/r_size)+col/r_size];
+                            
+                            update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
+                            
                             grid[row][col] = val;
                             cont_back ++;
                             row = m_size; //break
                             col = m_size;
                             
                             break;
+                            
                         }else if(val == m_size){
                             flag_back = 1;
                             row = m_size; //break
@@ -165,16 +176,16 @@ int int_to_mask(int num){
 
 void init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask){
 
-    int mask;
+    int mask, i, row, col;
 
-    for(int i = 0; i < m_size; i++){
+    for(i = 0; i < m_size; i++){
         rows_mask[i] = 0; 
         cols_mask[i] = 0; 
         boxes_mask[i] = 0; 
     }
 
-    for( int row = 0; row < m_size; row++){
-        for(int col = 0; col < m_size; col++){
+    for(row = 0; row < m_size; row++){
+        for(col = 0; col < m_size; col++){
 
             //if the cell has a number add that number to the current row, col and box mask
             if(grid[row][col] !=0 ){
@@ -185,7 +196,7 @@ void init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask){
             }
         }        
     }
-} 
+}
 
 void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask){
     int new_mask = int_to_mask(num);
