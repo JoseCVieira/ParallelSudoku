@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
     //start measurement
     start = clock();
 
-
     init_masks(grid1.arr, rows_mask, cols_mask, boxes_mask);
     result = solve(grid1.arr, rows_mask, cols_mask, boxes_mask);
     

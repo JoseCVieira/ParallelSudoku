@@ -88,6 +88,7 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
     int back_values[m_zeros][3];
     int row, col, val;
     int zeros = 1, flag_back = 0, cont_back = 0;
+    int rows_mask_copy = 0, cols_mask_copy = 0, boxes_mask_copy = 0;
     
     while(zeros){
         zeros = 0;
@@ -110,7 +111,9 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                     if(flag_back){
                         flag_back = 0;
                         val = back_values[cont_back-1][VAL] + 1;
-                        
+                        rows_mask[row] = rows_mask_copy;
+                        cols_mask[col] = cols_mask_copy;
+                        boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask_copy;
                         if(back_values[cont_back-1][VAL] == m_size){
                             if(cont_back > 0){
                                 flag_back = 1;
@@ -128,6 +131,9 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                             back_values[cont_back][ROW]=row;
                             back_values[cont_back][COL]=col;
                             back_values[cont_back][VAL]=val;
+                            rows_mask_copy = rows_mask[row];
+                            cols_mask_copy = cols_mask[col];
+                            boxes_mask_copy = boxes_mask[r_size*(row/r_size)+col/r_size];
                             grid[row][col] = val;
                             cont_back ++;
                             row = m_size; //break
