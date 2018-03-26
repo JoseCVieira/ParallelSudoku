@@ -129,20 +129,49 @@ int solve(int **grid) {
     return 0;
 }
 
-void check_row_box(int **grid, int row, int num, int *v_aux, int startRow) {
-    int i;
+void check_box(int **grid, int row, int col, int num, int startRow, int startCol) {
+    int i, j, row_aux, col_aux, flag_row, flag_col, cont = 0;
 
-    for(i = startRow; i < (startRow + r_size); i++)
+    for(i = startRow; i < (startRow + r_size); i++){
+        flag_row = 1;
         if(i != row){
-            if(is_exist_row(grid, i, num))
-                v_aux[i-startRow] = 1;
-            else
-                v_aux[i-startRow] = 0;
+            if(!is_exist_row(grid, i, num))
+                flag_row = 0;
         }else
-            v_aux[i-startRow] = 0;
+            flag_row = 0;
+        
+        if(!flag_row){
+            for(j = startCol; j < (startCol + r_size); j++){
+                flag_col = 1;
+                if(j != col){
+                    if(!is_exist_col(grid, j, num))
+                        flag_col = 0;
+                }else
+                    flag_col = 0;
+                
+                if(!flag_col){
+                    if(!grid[i][j]){
+                        cont ++;
+                        if(cont > 1)
+                            break;
+                        row_aux = i;
+                        col_aux = j;
+                    }
+                }
+            }
+        }
+        if(cont > 1)
+            break;
+    }
+    
+    if(cont == 1){
+        grid[row_aux][col_aux] = num;
+        return 1;
+    }
+    return 0;
 }
 
-void check_col_box(int **grid, int col, int num, int *v_aux, int startCol) {
+/*void check_col_box(int **grid, int col, int num, int *v_aux, int startCol, ) {
     int i;
     
     for(i = startCol; i < (startCol + r_size); i++)
@@ -153,12 +182,12 @@ void check_col_box(int **grid, int col, int num, int *v_aux, int startCol) {
                 v_aux[i-startCol] = 0;
         }else
             v_aux[i-startCol] = 0;
-}
+}*/
 
 void certain_elements(int **grid) {
-    int i, j, k, x, y, changed = 1, cont, start_x, start_y, row, col;
-    int v_aux_c [r_size];
-    int v_aux_r [r_size];
+    int i, j, k, x, y, changed = 1;//, cont, start_x, start_y, row, col;
+    //int v_aux_c [r_size];
+    //int v_aux_r [r_size];
     
     while(changed){
         changed = 0;
@@ -169,13 +198,15 @@ void certain_elements(int **grid) {
                     for(k = 1; k <= m_size; k++)
                         if(is_safe_num(grid, i, j, k)){
 
-                            start_x = i - (i % r_size);
-                            start_y = j - (j % r_size);
+                            //start_x = i - (i % r_size);
+                            //start_y = j - (j % r_size);
                             
-                            check_row_box(grid, i, k, v_aux_r, start_x);
-                            check_col_box(grid, j, k, v_aux_c, start_y);
+                            changed = check_box(grid, i, j, k, i - (i % r_size), j - (j % r_size));
                             
-                            cont = 0;
+                            //check_row_box(grid, i, k, v_aux_r, start_x);
+                            //check_col_box(grid, j, k, v_aux_c, start_y);
+                            
+                            /*cont = 0;
                             for(x = start_x; x < (start_x + r_size); x++){
                                 if(!v_aux_r[x-start_x]){
                                     for(y = start_y; y < (start_y + r_size); y++){
@@ -194,15 +225,15 @@ void certain_elements(int **grid) {
                                 if(cont > 1)
                                     break;
                                 }
-                            }
+                            }*/
                             
-                            if(cont == 1){
+                            /*if(cont == 1){
                                 grid[row][col] = k;
                                 changed = 1;
                                 cont_test++;
                                 printf("changed grid[%d][%d]=%d, cont=%d\n", row, col, k, cont_test);
                                 break;
-                            }
+                            }*/
                         }
     }
 }

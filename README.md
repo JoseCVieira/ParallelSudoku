@@ -10,8 +10,7 @@
   - ./sudoku-recursive input_file<br/><br/><br/>
 
 - sudoku-seria-loop.c         => loop de verificacao de erros<br/>
-  - ./sudoku-seria-loop<br/><br/>
-                            
+  - ./sudoku-seria-loop<br/><br/>                            
 
 - sudoku-serial.c             => versao iterativa
   - ./sudoku-serial input_file<br/>
