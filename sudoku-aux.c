@@ -65,13 +65,3 @@ char verify_sudoku(int **grid, int m_size, int r_size){
     
     return 1;
 }
-
-int nr_zeros(int **grid, int m_size){
-    int i, j, nr_zeros = 0;
-    
-    for(i = 0; i < m_size; i++)
-        for(j = 0; j < m_size; j++)
-            if(!grid[i][j])
-                nr_zeros++;
-    return nr_zeros;
-}

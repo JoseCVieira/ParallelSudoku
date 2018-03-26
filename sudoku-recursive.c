@@ -1,7 +1,7 @@
-#include "sudoku-serial.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "sudoku-aux.h"
 
 #define UNASSIGNED 0
 
@@ -11,6 +11,148 @@ typedef struct{
 
 int r_size, m_size;
 int cont_test = 0;
+
+int read_matrix(t_array *grid, int argc, char *argv[]);
+int exists_in( int index, int* mask, int num);
+int is_safe_num( int* rows_mask, int* cols_mask, int* boxes_mask, int row, int col, int num);
+int find_unassigned(int **grid, int *row, int *col);
+int solve(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask);
+int new_mask( int size);
+int int_to_mask(int num);
+void init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask);
+void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask);
+
+int main(int argc, char *argv[]) {
+    clock_t start, end, result;
+    t_array grid1;
+    
+    printf("\n");
+    r_size = read_matrix(&grid1, argc, argv);
+    m_size = r_size * r_size;
+
+    int* rows_mask = (int*) malloc(m_size * sizeof(int));
+    int* cols_mask = (int*) malloc(m_size * sizeof(int));
+    int* boxes_mask = (int*) malloc(m_size * sizeof(int));
+
+    printf("\ninitial sudoku:");
+    print_grid(grid1.arr, r_size, m_size);
+    printf("result sudoku:");
+    
+    //start measurement
+    start = clock();
+
+    init_masks(grid1.arr, rows_mask, cols_mask, boxes_mask);
+    result = solve(grid1.arr, rows_mask, cols_mask, boxes_mask);
+    
+    // end measurement
+    end = clock();
+    
+    printf("result sudoku:");
+    print_grid(grid1.arr, r_size, m_size);
+    
+    // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
+    verify_sudoku(grid1.arr, m_size, r_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
+    
+    // verifica se tem solucao ou nao
+    result == 1 ? printf("solved!\n") : printf("no solution!\n");
+    
+    printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
+    
+    return 0;
+}
+
+int exists_in( int index, int* mask, int num){
+
+    int res;
+    int masked_num = int_to_mask(num);
+
+    res = mask[index] | masked_num; 
+    if( res != mask[index]) return 0;
+    
+    return 1;
+}
+
+int is_safe_num( int* rows_mask, int* cols_mask, int* boxes_mask, int row, int col, int num) {
+
+    return !exists_in( row, rows_mask, num) && !exists_in( col, cols_mask, num) && !exists_in( r_size*(row/r_size)+col/r_size, boxes_mask, num);
+} 
+
+int find_unassigned(int **grid, int *row, int *col) {
+    for (*row = 0; *row < m_size; (*row)++)
+        for (*col = 0; *col < m_size; (*col)++)
+            if (grid[*row][*col] == 0)
+                return 1;
+    return 0;
+}
+
+int solve(int **grid, int* rows_mask, int* cols_mask, int* boxes_mask) {
+
+    int row = 0, col = 0, num, aux_row_mask, aux_col_mask, aux_boxes_mask;
+
+    if (!find_unassigned(grid, &row, &col))
+        return 1;
+
+    for (num = 1; num <= m_size; num++ )
+        if (is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, num)) {
+            
+            grid[row][col] = num;
+
+            //copy mask values to recover in case the next hypothesis is wrong
+            aux_row_mask = rows_mask[row];  aux_col_mask = cols_mask[col];  aux_boxes_mask = boxes_mask[r_size*(row/r_size)+col/r_size];
+            
+            update_masks(num, row, col, rows_mask, cols_mask, boxes_mask);
+            
+            if (solve(grid, rows_mask, cols_mask, boxes_mask))
+                return 1;
+
+            //hypothesis was wrong, recover previous mask values
+            rows_mask[row] = aux_row_mask;  cols_mask[col] = aux_col_mask;  boxes_mask[r_size*(row/r_size)+col/r_size] = aux_boxes_mask;
+            grid[row][col] = UNASSIGNED;
+        }
+
+    return 0;
+}
+
+int new_mask(int size){
+    int mask = 0 << (size-1);
+    return mask;
+}
+
+int int_to_mask(int num){
+    int mask = 1 << (num-1);
+    return mask;
+}
+
+void init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask){
+
+    int mask;
+
+    for(int i = 0; i < m_size; i++){
+        rows_mask[i] = 0; 
+        cols_mask[i] = 0; 
+        boxes_mask[i] = 0; 
+    }
+
+    for( int row = 0; row < m_size; row++){
+        for(int col = 0; col < m_size; col++){
+
+            //if the cell has a number add that number to the current row, col and box mask
+            if(grid[row][col] !=0 ){
+                mask = int_to_mask( grid[row][col] ); //convert number found to mask ex: if dim=4x4, 3 = 0010 
+                rows_mask[row] = rows_mask[row] | mask; //to add the new number to the current row's mask use bitwise OR 
+                cols_mask[col] = cols_mask[col] | mask;    
+                boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask[r_size*(row/r_size)+col/r_size] | mask;    
+            }
+        }        
+    }
+} 
+
+void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask){
+    int new_mask = int_to_mask(num);
+    rows_mask[row] = rows_mask[row] | new_mask;
+    cols_mask[col] = cols_mask[col] | new_mask;
+    boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask[r_size*(row/r_size)+col/r_size] | new_mask;
+}
 
 int read_matrix(t_array *grid, int argc, char *argv[]){
     FILE *fp;
@@ -38,7 +180,7 @@ int read_matrix(t_array *grid, int argc, char *argv[]){
             fprintf(stderr, "%s opened\n",argv[1]);
     }
     
-    if(read = getline(&line, &len, fp) != -1)
+    if( (read = getline(&line, &len, fp)) != -1)
         rooted_matrix_size = atoi(line);
     
     n_matrix_size = rooted_matrix_size *rooted_matrix_size;
@@ -68,190 +210,3 @@ int read_matrix(t_array *grid, int argc, char *argv[]){
     return rooted_matrix_size;
 }
 
-int is_exist_row(int **grid, int row, int num){
-    int col;
-
-    for (col = 0; col < m_size; col++)
-        if (grid[row][col] == num)
-            return 1;
-    return 0;
-}
-
-int is_exist_col(int **grid, int col, int num) {
-    int row;
-
-    for (row = 0; row < m_size; row++)
-        if (grid[row][col] == num)
-            return 1;
-    return 0;
-}
-
-int is_exist_box(int **grid, int startRow, int startCol, int num) {
-    int row, col;
-
-    for (row = 0; row < r_size; row++)
-        for (col = 0; col < r_size; col++)
-            if (grid[row + startRow][col + startCol] == num)
-                return 1;
-    return 0;
-}
-
-int is_safe_num(int **grid, int row, int col, int num) {
-    return !is_exist_row(grid, row, num) && !is_exist_col(grid, col, num) && !is_exist_box(grid, row - (row % r_size), col - (col %r_size), num);
-}
-
-int find_unassigned(int **grid, int *row, int *col) {
-    for (*row = 0; *row < m_size; (*row)++)
-        for (*col = 0; *col < m_size; (*col)++)
-            if (grid[*row][*col] == 0)
-                return 1;
-    return 0;
-}
-
-int solve(int **grid) {
-    int row = 0, col = 0, num;
-    double result;
-    
-    if (!find_unassigned(grid, &row, &col))
-        return 1;
-
-    for (num = 1; num <= m_size; num++ ){
-        if (is_safe_num(grid, row, col, num)) {
-            grid[row][col] = num;
-
-            if (solve(grid))
-                return 1;
-
-            grid[row][col] = UNASSIGNED;
-        }
-    }
-        
-    return 0;
-}
-
-void check_row_box(int **grid, int row, int num, int *v_aux, int startRow) {
-    int i;
-
-    for(i = startRow; i < (startRow + r_size); i++)
-        if(i != row){
-            if(is_exist_row(grid, i, num))
-                v_aux[i-startRow] = 1;
-            else
-                v_aux[i-startRow] = 0;
-        }else
-            v_aux[i-startRow] = 0;
-}
-
-void check_col_box(int **grid, int col, int num, int *v_aux, int startCol) {
-    int i;
-    
-    for(i = startCol; i < (startCol + r_size); i++)
-        if(i != col){
-            if(is_exist_col(grid, i, num))
-                v_aux[i-startCol] = 1;
-            else
-                v_aux[i-startCol] = 0;
-        }else
-            v_aux[i-startCol] = 0;
-}
-
-void certain_elements(int **grid) {
-    int i, j, k, x, y, changed = 1, cont, start_x, start_y, row, col;
-    int v_aux_c [r_size];
-    int v_aux_r [r_size];
-    
-    while(changed){
-        changed = 0;
-        
-        for(i = 0; i < m_size; i++)
-            for(j = 0; j < m_size; j++)
-                if(!grid[i][j])
-                    for(k = 1; k <= m_size; k++)
-                        if(is_safe_num(grid, i, j, k)){
-
-                            start_x = i - (i % r_size);
-                            start_y = j - (j % r_size);
-                            
-                            check_row_box(grid, i, k, v_aux_r, start_x);
-                            check_col_box(grid, j, k, v_aux_c, start_y);
-                            
-                            cont = 0;
-                            for(x = start_x; x < (start_x + r_size); x++){
-                                if(!v_aux_r[x-start_x]){
-                                    for(y = start_y; y < (start_y + r_size); y++){
-                                        if(!v_aux_c[y-start_y]){
-                                        
-                                            if(!grid[x][y]){
-                                                cont ++;
-                                                row = i;
-                                                col = j;
-                                            }
-                                            
-                                            if(cont > 1)
-                                                break;
-                                        }
-                                    }
-                                if(cont > 1)
-                                    break;
-                                }
-                            }
-                            
-                            if(cont == 1){
-                                grid[row][col] = k;
-                                changed = 1;
-                                cont_test++;
-                                printf("changed grid[%d][%d]=%d, cont=%d\n", row, col, k, cont_test);
-                                break;
-                            }
-                        }
-    }
-}
-
-/* final print function */
-
-/*void print_grid(int **grid) {
-    int row, col;
-
-    for (row = 0; row < m_size; row++) {
-        for (col = 0; col < m_size; col++)
-            printf("%d ", grid[row][col]);
-        printf("\n");
-    }
-}*/
-
-int main(int argc, char *argv[]) {
-    clock_t start, end, result;
-    t_array grid1;
-    
-    printf("\n");
-    r_size = read_matrix(&grid1, argc, argv);
-    m_size = r_size * r_size;
-
-    printf("\ninitial sudoku:");
-    print_grid(grid1.arr, r_size, m_size);
-    printf("result sudoku:");
-    
-    //start measurement
-    start = clock();
-    
-    //certain_elements(grid1.arr);
-    //printf("\n\n\nnumber of zeros:%d\n\n", nr_zeros(grid1.arr, m_size));
-    //print_grid(grid1.arr, r_size, m_size);
-    result = solve(grid1.arr);
-    
-    // end measurement
-    end = clock();
-    
-    printf("result sudoku:");
-    print_grid(grid1.arr, r_size, m_size);
-    
-    // mesmo que nao esteja completo verifica se esta correto (apenas para testes)
-    verify_sudoku(grid1.arr, m_size, r_size) == 1 ? printf("rigth!\n") : printf("wrong!\n");
-    
-    // verifica se tem solucao ou nao
-    result == 1 ? printf("solved!\n") : printf("no solution!\n");
-    
-    printf("it took %lf sec.\n\n",(double) (end-start)/CLOCKS_PER_SEC);
-    
-    return 0;
-}
