@@ -6,6 +6,7 @@
 #define UNASSIGNED 0
 #define ROW 0
 #define COL 1
+#define BOX 2
 #define VAL 2
 
 typedef struct{
@@ -26,9 +27,9 @@ int nr_zeros(int **grid);
 
 
 int main(int argc, char *argv[]) {
-    clock_t start, end, result;
+    clock_t start, end;
     t_array grid1;
-    int i, j;
+    int i, j, result;
     
     if(argc == 2){
         printf("\n");
@@ -85,10 +86,11 @@ int is_safe_num( int* rows_mask, int* cols_mask, int* boxes_mask, int row, int c
 } 
 
 int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_mask) {
-    int back_values[m_zeros][3];
-    int row, col, val;
     int zeros = 1, flag_back = 0, cont_back = 0;
-    int rows_mask_copy = 0, cols_mask_copy = 0, boxes_mask_copy = 0;
+    int row, col, val;
+    
+    int back_values[m_zeros][3];
+    int mask_copy[m_zeros][3];
     
     while(zeros){
         zeros = 0;
@@ -117,9 +119,11 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                     if(flag_back){
                         flag_back = 0;
                         
-                        rows_mask[row] = rows_mask_copy;
-                        cols_mask[col] = cols_mask_copy;                        
-                        boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask_copy;
+                        rows_mask[row] = mask_copy[cont_back][ROW];
+                        cols_mask[col] = mask_copy[cont_back][COL];                       
+                        boxes_mask[r_size*(row/r_size)+col/r_size] = mask_copy[cont_back][BOX];
+                        
+                        val = back_values[cont_back][VAL] + 1;
                         
                         if(back_values[cont_back][VAL] == m_size){
                             flag_back = 1;
@@ -127,8 +131,6 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                             col = m_size;
                             val = m_size + 1;
                         }
-                        
-                        val = back_values[cont_back][VAL] + 1;
                     }
                     
                     for(; val <= m_size; val++){
@@ -138,9 +140,9 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                             back_values[cont_back][COL]=col;
                             back_values[cont_back][VAL]=val;
                             
-                            rows_mask_copy = rows_mask[row];
-                            cols_mask_copy = cols_mask[col];
-                            boxes_mask_copy = boxes_mask[r_size*(row/r_size)+col/r_size];
+                            mask_copy[cont_back][ROW] = rows_mask[row];
+                            mask_copy[cont_back][COL] = cols_mask[col];
+                            mask_copy[cont_back][BOX] = boxes_mask[r_size*(row/r_size)+col/r_size];
                             
                             update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
                             
