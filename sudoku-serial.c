@@ -89,9 +89,9 @@ int is_exist_col(int **grid, int col, int num) {
 }
 
 int is_exist_box(int **grid, int startRow, int startCol, int num) {
-    int row, col;
+    int row=  0, col = 0;
 
-    for (row = 0; row < r_size; row++)
+   for (row = 0; row < r_size; row++)
         for (col = 0; col < r_size; col++)
             if (grid[row + startRow][col + startCol] == num)
                 return 1;
@@ -142,7 +142,7 @@ int solve(int **grid) {
                                 flag_back = 1;
                                 row = m_size; //break
                                 col = m_size;
-                                val = m_size + 1;
+                              //  val = m_size + 1;
                             }else
                                 return 0; //impossible
                         }
@@ -150,7 +150,7 @@ int solve(int **grid) {
                     }
 
                     for(; val <= m_size; val++){
-                        if(is_safe_num(grid, row, col, val)){
+                        if(is_safe_num(grid, row, col, val)/*!is_exist_col(grid, col, val) && !is_exist_row(grid, row,val) */){
                             back_values[cont_back][ROW]=row;
                             back_values[cont_back][COL]=col;
                             back_values[cont_back][VAL]=val;
@@ -160,12 +160,15 @@ int solve(int **grid) {
                             col = m_size;
 
                             break;
+
                         }else if(val == m_size){
                             flag_back = 1;
                             row = m_size; //break
                             col = m_size;
                         }
+
                     }
+
                 }
             }
         }
