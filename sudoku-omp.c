@@ -98,7 +98,7 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
 
             if(cont_back > 0){
 
-                cont_back --;
+                //cont_back --;
             }
             else
                 return 0; //impossible*/
@@ -110,7 +110,7 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
         #pragma omp parallel
         {
 
-          #pragma omp for private( col, cont_back, back_values)
+          #pragma omp for private( col,val, back_values)
           for(row=row; row < m_size; row++){
               col = 0;
               if(flag_back)
@@ -155,10 +155,13 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                                 mask_copy[cont_back][ROW] = rows_mask[row];
                                 mask_copy[cont_back][COL] = cols_mask[col];
                                 mask_copy[cont_back][BOX] = boxes_mask[r_size*(row/r_size)+col/r_size];
+
                                 update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
                                 grid[row][col] = val;
+                                cont_back ++;
                               }
-                              cont_back ++;
+
+
 
                             /*  row = m_size; //break
                               col = m_size;*/
@@ -173,6 +176,7 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                               col = m_size;
                           }
                       }
+
                   }
               }
 
@@ -212,8 +216,10 @@ int init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask) {
               if(grid[row][col]){
                   mask = int_to_mask( grid[row][col] ); //convert number found to mask ex: if dim=4x4, 3 = 0010
                   rows_mask[row] = rows_mask[row] | mask; //to add the new number to the current row's mask use bitwise OR
+                  #pragma omp atomic
                   cols_mask[col] = cols_mask[col] | mask;
                   boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask[r_size*(row/r_size)+col/r_size] | mask;
+
               }else
                   zeros++;
           }
