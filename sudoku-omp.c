@@ -86,7 +86,7 @@ int is_safe_num( int* rows_mask, int* cols_mask, int* boxes_mask, int row, int c
 int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_mask) {
     int tid;
     int zeros = 1, flag_back = 0, cont_back = 0;
-    int row, col, val;
+    int row =0, col, val;
     int back_values[m_zeros][3];
     int mask_copy[m_zeros][3];
 
@@ -109,11 +109,11 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
 
         #pragma omp parallel
         {
-          tid = omp_get_thread_num();
-          #pragma omp for private(tid)
+
+          #pragma omp for private( col, cont_back, back_values)
           for(row=row; row < m_size; row++){
               col = 0;
-              /*if(flag_back)
+              if(flag_back)
                   col = back_values[cont_back][COL];
               for(col=col; col < m_size; col++){
                   if(!grid[row][col]){
@@ -121,18 +121,22 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
 
                       val = 1;
                       if(flag_back){
-                          flag_back = 0;
+                          #pragma omp critical
+                          {
+                          flag_back  = 0;
 
                           rows_mask[row] = mask_copy[cont_back][ROW];
 
                           cols_mask[col] = mask_copy[cont_back][COL];
                           boxes_mask[r_size*(row/r_size)+col/r_size] = mask_copy[cont_back][BOX];
-
+                        }
 
                           val = back_values[cont_back][VAL] + 1;
 
                           if(back_values[cont_back][VAL] == m_size){
-                              flag_back = 1;
+                              #pragma omp critical
+                                flag_back = 1;
+
                               row = m_size; //break
                               col = m_size;
                               val = m_size + 1;
@@ -146,31 +150,32 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
 
                               back_values[cont_back][COL]=col;
                               back_values[cont_back][VAL]=val;
-
-                              mask_copy[cont_back][ROW] = rows_mask[row];
-                              mask_copy[cont_back][COL] = cols_mask[col];
-                              mask_copy[cont_back][BOX] = boxes_mask[r_size*(row/r_size)+col/r_size];
-
-                              update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
-
-                              grid[row][col] = val;
-
+                              #pragma omp critical
+                              {
+                                mask_copy[cont_back][ROW] = rows_mask[row];
+                                mask_copy[cont_back][COL] = cols_mask[col];
+                                mask_copy[cont_back][BOX] = boxes_mask[r_size*(row/r_size)+col/r_size];
+                                update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
+                                grid[row][col] = val;
+                              }
                               cont_back ++;
 
-                              row = m_size; //break
-                              col = m_size;
+                            /*  row = m_size; //break
+                              col = m_size;*/
 
                               break;
 
                           }else if(val == m_size){
+                              #pragma omp critical
                               flag_back = 1;
+
                               row = m_size; //break
                               col = m_size;
                           }
                       }
                   }
               }
-              */
+
         }
 
       }
