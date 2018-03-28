@@ -23,6 +23,8 @@ int new_mask( int size);
 int int_to_mask(int num);
 int init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask);
 void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask);
+int is_safe_num( int* rows_mask, int* cols_mask, int* boxes_mask, int row, int col, int num);
+void rm_num_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask);
 
 int main(int argc, char *argv[]) {
     clock_t start, end;
@@ -69,9 +71,8 @@ int main(int argc, char *argv[]) {
 
 
 int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_mask) {
-    int i, j, val, max, zeros = 1, flag_back = 0, i_aux, index=0, row, col;
+    int i, j, val, max, zeros = 1, flag_back = 0, i_aux, row, col, val_aux;
     int vector[m_size * m_size];
-    int mask_copy[m_zeros][3];
     
     // init vector
     for(i = 0; i < m_size; i++){
@@ -86,47 +87,27 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
     max = m_size * m_size;
 
     while(zeros){
-        zeros = 1;
-        
+        zeros = 0;
+
+        i = 0;
         if(flag_back){
-            flag_back = 0;
             
-            // clear element
-            vector[i_aux] = 0;
-            
-            // search and increment nearest element(on their left)
+            // search nearest element(on their left)
             for(i = i_aux - 1; i >= 0; i--){
                 row = i/m_size;
                 col = i%m_size;
                 
-                
                 if((vector[i] > 0) && (vector[i] < m_size)){
-                    vector[i]++;
-                    grid[row][col]++;
-                    
-                    printf("index=%d, row=%d, col=%d, val=%d\n", index, row, col, vector[i]);
-                    
-                    print_grid(grid, r_size, m_size);
-                    
-                    mask_copy[index][ROW] = rows_mask[row];
-                    mask_copy[index][COL] = cols_mask[col];
-                    mask_copy[index][BOX] = boxes_mask[r_size*(row/r_size)+col/r_size];
-                    
-                    i=-2;
-                    
-                    update_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
-                    
+                  //  printf("row=%d, col=%d, val=%d\n", row, col, vector[i]);
+                    rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
+                    val_aux = vector[i] + 1;
                     break;
                 }else if(vector[i] == m_size){
+                   // printf("row=%d, col=%d, val=%d\n", row, col, vector[i]);
+                    
                     vector[i] = 0;
                     grid[row][col] = 0;
-                    
-                    index --;
-                    
-                    rows_mask[row] = mask_copy[index][ROW];
-                    cols_mask[col] = mask_copy[index][COL];
-                    boxes_mask[r_size*(row/r_size)+col/r_size] = mask_copy[index][BOX];
-                    
+                    rm_num_masks(0, row, col, rows_mask, cols_mask, boxes_mask);
                     zeros ++;
                 }
             }
@@ -135,49 +116,32 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                 return 0; //impossible
         }
         
-        printf("\nsaiu\n");
-        
-        for(i = 0; i < max; i++){
+        for(; i < max; i++){
             row = i/m_size;
             col = i%m_size;
                 
-            if(!vector[i]){
-                zeros ++;
-                for(val = 1; val <= m_size; val++){
-                    
-                    if(is_safe_num( rows_mask, cols_mask, boxes_mask, i/m_size, i%m_size, val)){
+            if(!vector[i] || flag_back){
+                
+                val = 1;
+                if(flag_back){
+                    val = val_aux;
+                    flag_back = 0;
+                }
+                zeros++;
+                
+                for(; val <= m_size; val++){
+                    if(is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val)){
                         vector[i] = val;
                         grid[row][col] = val;
                         
-                        //printf("index=%d, row=%d, col=%d, val=%d\n", index, row, col, val);
-                        
-                        for(j = 0; j < m_size; j++)
-                        printf("%d ", rows_mask[j]);
-                        printf("\n");
-                        
-                        for(j = 0; j < m_size; j++)
-                            printf("%d ", cols_mask[j]);
-                        printf("\n");
-                        
-                        for(j = 0; j < m_size; j++)
-                            printf("%d ", boxes_mask[j]);
-                        printf("\n");
-                        
-                        mask_copy[index][ROW] = rows_mask[row];
-                        mask_copy[index][COL] = cols_mask[col];
-                        mask_copy[index][BOX] = boxes_mask[r_size*(row/r_size)+col/r_size];
-                        
-                        index ++;
-                        
                         update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
                         
-                        print_grid(grid, r_size, m_size);
-                        
-                        sleep(1);
+                        //print_grid(grid, r_size, m_size);
                         
                         break;
                     }else if(val == m_size){
-                        printf("index=%d, row=%d, col=%d, val=%d\n", index, row, col, val);
+                        //printf("** IMP** , row=%d, col=%d, val=%d, i=%d\n", row, col, val, i);
+                        
                         flag_back = 1;
                         i_aux = i;
                         i = max; //break
@@ -243,6 +207,13 @@ int init_masks(int** grid, int* rows_mask, int* cols_mask, int* boxes_mask) {
 
     }
     return zeros;
+}
+
+void rm_num_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask) {
+    int num_mask = int_to_mask(num);
+    rows_mask[row] = rows_mask[row] ^ num_mask;
+    cols_mask[col] = cols_mask[col] ^ num_mask;
+    boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask[r_size*(row/r_size)+col/r_size] ^ num_mask;
 }
 
 void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask) {
