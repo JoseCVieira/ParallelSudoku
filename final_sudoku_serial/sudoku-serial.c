@@ -95,18 +95,18 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                 row = i/m_size;
                 col = i%m_size;
                 
-                if((vector[i] > 0) && (vector[i] < m_size)){
+                if(vector[i] > 0 && vector[i] <= m_size){
                     val_aux = vector[i] + 1;
                     rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
-                    vector[i] = UNASSIGNED;
-                    grid[row][col] = UNASSIGNED;
-                    break;
-                }else if((vector[i] > 0) && vector[i] == m_size){
-                    rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
-                    vector[i] = UNASSIGNED;
                     grid[row][col] = UNASSIGNED;
                     
-                    zeros ++;
+                    if(vector[i] < m_size){
+                        vector[i] = UNASSIGNED;
+                        break;
+                    }else{
+                        vector[i] = UNASSIGNED;
+                        zeros ++;
+                    }
                 }
             }
             
