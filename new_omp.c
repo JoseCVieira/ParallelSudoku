@@ -91,23 +91,22 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
 
         i = 0;
         if(flag_back){
-            
             // search nearest element(on their left)
             for(i = i_aux - 1; i >= 0; i--){
                 row = i/m_size;
                 col = i%m_size;
                 
                 if((vector[i] > 0) && (vector[i] < m_size)){
-                  //  printf("row=%d, col=%d, val=%d\n", row, col, vector[i]);
-                    rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
                     val_aux = vector[i] + 1;
-                    break;
-                }else if(vector[i] == m_size){
-                   // printf("row=%d, col=%d, val=%d\n", row, col, vector[i]);
-                    
+                    rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
                     vector[i] = 0;
                     grid[row][col] = 0;
-                    rm_num_masks(0, row, col, rows_mask, cols_mask, boxes_mask);
+                    break;
+                }else if((vector[i] > 0) && vector[i] == m_size){
+                    rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
+                    vector[i] = 0;
+                    grid[row][col] = 0;
+                    
                     zeros ++;
                 }
             }
@@ -140,8 +139,6 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                         
                         break;
                     }else if(val == m_size){
-                        //printf("** IMP** , row=%d, col=%d, val=%d, i=%d\n", row, col, val, i);
-                        
                         flag_back = 1;
                         i_aux = i;
                         i = max; //break
