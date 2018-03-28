@@ -102,7 +102,7 @@ int solve(int **grid, int m_zeros, int* rows_mask, int* cols_mask, int* boxes_ma
                     vector[i] = 0;
                     grid[row][col] = 0;
                     break;
-                }else if(vector[i] == m_size){
+                }else if((vector[i] > 0) && vector[i] == m_size){
                     rm_num_masks(vector[i], row, col, rows_mask, cols_mask, boxes_mask);
                     vector[i] = 0;
                     grid[row][col] = 0;
