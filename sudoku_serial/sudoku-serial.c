@@ -6,6 +6,8 @@
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
+#define ROW(i) i/m_size
+#define COL(i) i%m_size
 
 int r_size, m_size, v_size;
 
@@ -86,8 +88,8 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
             // search nearest element(on their left)
             for(i = i_aux - 1; i >= 0; i--){
                 if(cp_sudoku[i] > 0 && cp_sudoku[i] <= m_size){
-                    row = i/m_size;
-                    col = i%m_size;
+                    row = ROW(i);
+                    col = COL(i);
                     
                     val_aux = cp_sudoku[i] + 1;
                     rm_num_masks(cp_sudoku[i], row, col, rows_mask, cols_mask, boxes_mask);
@@ -109,8 +111,8 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
         
         for(i = i; i < v_size; i++){
             if(!cp_sudoku[i] || flag_back){
-                row = i/m_size;
-                col = i%m_size;
+                row = ROW(i);
+                col = COL(i);
                 
                 val = 1;
                 if(flag_back){
@@ -170,8 +172,8 @@ void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
 
     for(i = 0; i < v_size; i++){
         if(sudoku[i]){
-            row = i/m_size;
-            col = i%m_size;
+            row = ROW(i);
+            col = COL(i);
             
             mask = int_to_mask(sudoku[i]);          //convert number found to mask ex: if dim=4x4, 3 = 0010
             rows_mask[row] = rows_mask[row] | mask; //to add the new number to the current row's mask use bitwise OR
