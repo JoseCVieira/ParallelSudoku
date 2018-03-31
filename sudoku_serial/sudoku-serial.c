@@ -200,8 +200,8 @@ void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int
 int* read_matrix(char *argv[]) {
     FILE *fp;
     size_t characters, len = 1;
-    char *line = NULL, aux[2];
-    int i, j, k;
+    char *line = NULL, aux[3];
+    int i, j, k, l;
     
     //verifies if the file was correctly opened
     if((fp = fopen(argv[1], "r+")) == NULL) {
@@ -216,14 +216,17 @@ int* read_matrix(char *argv[]) {
 
     int* sudoku = (int*)malloc(v_size * sizeof(int));
 
-    k = 0;
+    k = 0, l = 0;
     len = m_size * 2;
     for(i = 0; (characters = getline(&line, &len, fp)) != -1; i++){
         for (j = 0; j < characters; j++) {
             if(isdigit(line[j])){
-                aux[0] = line[j];
-                aux[1] = '\0';
+                aux[l++] = line[j];
+            }else if(l > 0){
+                aux[l] = '\0';
+                l = 0;
                 sudoku[k++] = atoi(aux);
+                memset(aux, 0, sizeof aux);
             }
         }
     }
