@@ -102,6 +102,24 @@ int vertex_visited(Vertex **vertex){
     return FALSE;
 }
 
+int get_next_v(int curr_cell, int *vect){
+      
+    int aux = curr_cell+1;
+    while( vect[aux] == UNCHANGEABLE && aux <= (v_size-2)) aux++;
+    if(vect[aux] != UNCHANGEABLE) 
+        return aux;
+    else 
+        return curr_cell;
+}
+
+int get_prev_v(int curr_cell, int prev_cell, int *vect ){
+
+    prev_cell -= prev_cell - curr_cell;
+    curr_cell = prev_cell;
+   // while(vect[cell_id] == UNCHANGEABLE) cell_id++;
+    return curr_cell;
+}
+
 
 int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
     
@@ -145,9 +163,8 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
 	    if( prev_vertex->cell > vertex->cell ){
                 sudoku[prev_vertex->cell] = 0; //if the cell has been visited with no solution found we go back one cell
                 rm_num_masks(prev_vertex->num,  ROW(prev_vertex->cell), COL(prev_vertex->cell), rows_mask, cols_mask, boxes_mask);
-                cell_id -= prev_cell_id - vertex->cell;
-                while(cp_sudoku[cell_id] == UNCHANGEABLE) cell_id++;
-            }
+                cell_id = get_prev_v( vertex->cell, prev_vertex->cell, cp_sudoku );
+	    }
 
             sudoku[cell_id] = vertex->num;
 	    update_masks( vertex->num, ROW(cell_id), COL(cell_id), rows_mask, cols_mask, boxes_mask);
@@ -164,12 +181,10 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
 		}
                 else continue; 
             }
-	   // if(vertex->visited == TRUE) continue; 
+	    
+	    cell_id = get_next_v( cell_id, cp_sudoku);
+            if(cell_id == vertex->cell) continue; //if cell id is the same, nothing new to put in the stack
             
-	    cell_id++; //if there are new cells to explore we will advance one cell
-            while(cp_sudoku[cell_id] == UNCHANGEABLE && cell_id < (v_size-1)) cell_id++;
-            
-
             for( num = m_size; num >= 1; num--){
 
                 vertex = new_vertex(num, cell_id);
