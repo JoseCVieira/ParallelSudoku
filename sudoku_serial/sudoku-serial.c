@@ -3,13 +3,24 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
+#include <string.h>
+#include "stack.h"
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
+#define FALSE 0
+#define TRUE 1
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
 
+typedef struct Vertex {
+    int num;         
+    int cell; 
+    int visited;  
+} Vertex;
+
 int r_size, m_size, v_size;
+
 
 int* read_matrix(char *argv[]);
 int exists_in( int index, int* mask, int num);
@@ -21,6 +32,10 @@ void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int
 int is_safe_num( int* rows_mask, int* cols_mask, int* boxes_mask, int row, int col, int num);
 void rm_num_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask);
 void print_sudoku(int* sudoku);
+
+Vertex* new_vertex(int num, int cell_id);
+int vertex_visited(Vertex** vertex);
+
 
 int main(int argc, char *argv[]) {
     clock_t start, end;
@@ -66,12 +81,37 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+Vertex* new_vertex(int num, int cell){
 
+    Vertex *new_v;
+    new_v = (Vertex*)malloc(sizeof(Vertex));
+    new_v->num = num;
+    new_v->cell = cell;
+    new_v->visited = FALSE;
 
-int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
-    int i, val, zeros = 1, flag_back = 0, i_aux, row, col, val_aux;
-    int cp_sudoku[v_size];
+    return new_v;
+}
+
+int vertex_visited(Vertex **vertex){
+
+    if( (*vertex)->visited == TRUE ) 
+        return TRUE;
     
+    (*vertex)->visited = TRUE;
+
+    return FALSE;
+}
+
+
+int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
+    
+    // *******************************
+    // ******************************* mudar o cell_id++ para contar com as que já estão preenchidas
+    int i, num, root_num, cell_id = 0, aux, prev_cell_id = -1;
+    int cp_sudoku[v_size];
+    Stack *dfs_stack = NULL;
+    Vertex *vertex = NULL, *prev_vertex = NULL;
+
     // init cp_sudoku
     for(i = 0; i < v_size; i++){
         if(sudoku[i])
@@ -80,64 +120,68 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
             cp_sudoku[i] = UNASSIGNED;
     }
 
-    while(zeros){
-        zeros = 0;
+    //start the search on the first cell of the sudoku
+    for( root_num = 1; root_num < m_size; root_num++ ){
 
-        i = 0;
-        if(flag_back){
-            // search nearest element(on their left)
-            for(i = i_aux - 1; i >= 0; i--){
-                if(cp_sudoku[i] > 0 && cp_sudoku[i] <= m_size){
-                    row = ROW(i);
-                    col = COL(i);
-                    
-                    val_aux = cp_sudoku[i] + 1;
-                    rm_num_masks(cp_sudoku[i], row, col, rows_mask, cols_mask, boxes_mask);
-                    sudoku[i] = UNASSIGNED;
-                    
-                    if(cp_sudoku[i] < m_size){
-                        cp_sudoku[i] = UNASSIGNED;
-                        break;
-                    }else{
-                        cp_sudoku[i] = UNASSIGNED;
-                        zeros ++;
-                    }
-                }
-            }
-            
-            if(i == -1)
-                return 0; //impossible
-        }
         
-        for(i = i; i < v_size; i++){
-            if(!cp_sudoku[i] || flag_back){
-                row = ROW(i);
-                col = COL(i);
+	//find first empty cell
+	while(cp_sudoku[cell_id] == UNCHANGEABLE) cell_id++;	
+
+        //new_vertex
+        Vertex* vertex = new_vertex(root_num, cell_id);
+
+	//init  search stack
+    	dfs_stack = stackCreate();
+
+        //push first vertex
+        aux = stackPush(dfs_stack, (StackItem)vertex);
+
+        while(!stackIsEmpty(dfs_stack)){
+
+	    prev_vertex = vertex;
+            vertex = stackPop(dfs_stack);
+	
+
+	    if( prev_vertex->cell > vertex->cell ){
+                sudoku[prev_vertex->cell] = 0; //if the cell has been visited with no solution found we go back one cell
+                rm_num_masks(prev_vertex->num,  ROW(prev_vertex->cell), COL(prev_vertex->cell), rows_mask, cols_mask, boxes_mask);
+                cell_id -= prev_cell_id - vertex->cell;
+                while(cp_sudoku[cell_id] == UNCHANGEABLE) cell_id++;
+            }
+
+            sudoku[cell_id] = vertex->num;
+	    update_masks( vertex->num, ROW(cell_id), COL(cell_id), rows_mask, cols_mask, boxes_mask);
+	    print_sudoku(sudoku);
+	    
+	    if(vertex->visited == TRUE) continue;
+
+            if( cell_id == (v_size-1) ){
                 
-                val = 1;
-                if(flag_back){
-                    val = val_aux;
-                    flag_back = 0;
-                }
-                zeros++;
-                
-                for(; val <= m_size; val++){
-                    if(is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val)){
-                        cp_sudoku[i] = val;
-                        sudoku[i] = val;
-                        
-                        update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
-                        break;
-                    }else if(val == m_size){
-                        flag_back = 1;
-                        i_aux = i;
-                        i = v_size; //break
-                    }
-                }
+		if(verify_sudoku(sudoku, r_size)){
+		    printf("SUCCESS!!!\n");
+                    print_sudoku(sudoku);
+                    return 1;
+		}
+                else continue; 
+            }
+	   // if(vertex->visited == TRUE) continue; 
+            
+	    cell_id++; //if there are new cells to explore we will advance one cell
+            while(cp_sudoku[cell_id] == UNCHANGEABLE && cell_id < (v_size-1)) cell_id++;
+            
+
+            for( num = m_size; num >= 1; num--){
+
+                vertex = new_vertex(num, cell_id);
+
+                if(vertex->visited == FALSE)    
+                    stackPush(dfs_stack, vertex);
             }
         }
+        printf("NO SOLUTION\n");
+        return 0;
+
     }
-    return 1;
 }
 
 int exists_in(int index, int* mask, int num) {
@@ -200,8 +244,8 @@ void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int
 int* read_matrix(char *argv[]) {
     FILE *fp;
     size_t characters, len = 1;
-    char *line = NULL, aux[3];
-    int i, j, k, l;
+    char *line = NULL, aux[2];
+    int i, j, k;
     
     //verifies if the file was correctly opened
     if((fp = fopen(argv[1], "r+")) == NULL) {
@@ -216,17 +260,14 @@ int* read_matrix(char *argv[]) {
 
     int* sudoku = (int*)malloc(v_size * sizeof(int));
 
-    k = 0, l = 0;
+    k = 0;
     len = m_size * 2;
     for(i = 0; (characters = getline(&line, &len, fp)) != -1; i++){
         for (j = 0; j < characters; j++) {
             if(isdigit(line[j])){
-                aux[l++] = line[j];
-            }else if(l > 0){
-                aux[l] = '\0';
-                l = 0;
+                aux[0] = line[j];
+                aux[1] = '\0';
                 sudoku[k++] = atoi(aux);
-                memset(aux, 0, sizeof aux);
             }
         }
     }
