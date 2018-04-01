@@ -138,40 +138,40 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
             cp_sudoku[i] = UNASSIGNED;
     }
 
-    //start the search on the first cell of the sudoku
-    for( root_num = 1; root_num < m_size; root_num++ ){
-
-        
+    
 	//find first empty cell
 	while(cp_sudoku[cell_id] == UNCHANGEABLE) cell_id++;	
-
-        //new_vertex
-        Vertex* vertex = new_vertex(root_num, cell_id);
-
+        
 	//init  search stack
     	dfs_stack = stackCreate();
-
-        //push first vertex
-        aux = stackPush(dfs_stack, (StackItem)vertex);
+	
+        //start the search on the first cell of the sudoku
+        for( root_num = m_size; root_num >= 1; root_num-- ){
+	    //check if root_num is safe in first cell
+	    if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(cell_id), COL(cell_id),  root_num)) continue;
+	     
+	    //new_vertex
+	    Vertex* vertex = new_vertex(root_num, cell_id);
+	
+	    //push first vertex
+	    aux = stackPush(dfs_stack, vertex);
+        }
 
         while(!stackIsEmpty(dfs_stack)){
 
 	    prev_vertex = vertex;
             vertex = stackPop(dfs_stack);
 	
-
 	    if( prev_vertex->cell > vertex->cell ){
                 sudoku[prev_vertex->cell] = 0; //if the cell has been visited with no solution found we go back one cell
                 rm_num_masks(prev_vertex->num,  ROW(prev_vertex->cell), COL(prev_vertex->cell), rows_mask, cols_mask, boxes_mask);
                 cell_id = get_prev_v( vertex->cell, prev_vertex->cell, cp_sudoku );
 	    }
-
+	    
             sudoku[cell_id] = vertex->num;
 	    update_masks( vertex->num, ROW(cell_id), COL(cell_id), rows_mask, cols_mask, boxes_mask);
 	    print_sudoku(sudoku);
 	    
-	    if(vertex->visited == TRUE) continue;
-
             if( cell_id == (v_size-1) ){
                 
 		if(verify_sudoku(sudoku, r_size)){
@@ -188,15 +188,13 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
             for( num = m_size; num >= 1; num--){
 
                 vertex = new_vertex(num, cell_id);
-
-                if(vertex->visited == FALSE)    
+                if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(cell_id), COL(cell_id),  vertex->num)) continue;   
                     stackPush(dfs_stack, vertex);
             }
         }
+    
         printf("NO SOLUTION\n");
         return 0;
-
-    }
 }
 
 int exists_in(int index, int* mask, int num) {
