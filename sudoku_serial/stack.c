@@ -4,7 +4,7 @@
 
 
 typedef struct StackNode {
-	StackItem item;				/** The data of this node. **/
+	Vertex* item;				/** The data of this node. **/
 	struct StackNode *next;		/** The next node (the one below the top). **/
 } StackNode;
 
@@ -50,18 +50,18 @@ size_t stackSize(Stack *stack)
 	return stack->count;
 }
 
-StackItem stackTop(Stack *stack)
+Vertex* stackTop(Stack *stack)
 {
 	return stack->top->item;
 }
 
-bool stackPush(Stack *stack, StackItem item)
+bool stackPush(Stack *stack, Vertex *item)
 {
-	StackNode *newNode = (StackNode *) malloc(sizeof *newNode);
+	StackNode *newNode = (StackNode *) malloc(sizeof(StackNode));
 	if(newNode == NULL)
-		return false;
+	    return false;
 	
-	newNode->item = item;
+	newNode->item = new_vertex(item->num, item->cell);
 	newNode->next = stack->top;
 	stack->top = newNode;
 	
@@ -69,10 +69,10 @@ bool stackPush(Stack *stack, StackItem item)
 	return true;
 }
 
-StackItem stackPop(Stack *stack)
+Vertex *stackPop(Stack *stack)
 {
 	StackNode *oldTop;
-	StackItem item;
+	Vertex *item;
 	
 	if(stack->top == NULL)
 		return 0; /** @todo Make a better way to return this error. **/

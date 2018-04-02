@@ -13,12 +13,6 @@
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
 
-typedef struct Vertex {
-    int num;         
-    int cell; 
-    int visited;  
-} Vertex;
-
 int r_size, m_size, v_size;
 
 
@@ -81,44 +75,6 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-Vertex* new_vertex(int num, int cell){
-
-    Vertex *new_v;
-    new_v = (Vertex*)malloc(sizeof(Vertex));
-    new_v->num = num;
-    new_v->cell = cell;
-    new_v->visited = FALSE;
-
-    return new_v;
-}
-
-int vertex_visited(Vertex **vertex){
-
-    if( (*vertex)->visited == TRUE ) 
-        return TRUE;
-    
-    (*vertex)->visited = TRUE;
-
-    return FALSE;
-}
-
-int get_next_v(int curr_cell, int *vect){
-      
-    int aux = curr_cell+1;
-    while( vect[aux] == UNCHANGEABLE && aux <= (v_size-2)) aux++;
-    if(vect[aux] != UNCHANGEABLE) 
-        return aux;
-    else 
-        return curr_cell;
-}
-
-int get_prev_v(int curr_cell, int prev_cell, int *vect ){
-
-    prev_cell -= prev_cell - curr_cell;
-    curr_cell = prev_cell;
-   // while(vect[cell_id] == UNCHANGEABLE) cell_id++;
-    return curr_cell;
-}
 
 
 int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
@@ -128,7 +84,7 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
     int i, num, root_num, cell_id = 0, aux, prev_cell_id = -1;
     int cp_sudoku[v_size];
     Stack *dfs_stack = NULL;
-    Vertex *vertex = NULL, *prev_vertex = NULL;
+    Vertex *vtx, *prev_vertex;
 
     // init cp_sudoku
     for(i = 0; i < v_size; i++){
@@ -151,25 +107,25 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
 	    if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(cell_id), COL(cell_id),  root_num)) continue;
 	     
 	    //new_vertex
-	    Vertex* vertex = new_vertex(root_num, cell_id);
+	    Vertex* vtx = new_vertex(root_num, cell_id);
 	
 	    //push first vertex
-	    aux = stackPush(dfs_stack, vertex);
+	    stackPush(dfs_stack, vtx);
         }
 
         while(!stackIsEmpty(dfs_stack)){
 
-	    prev_vertex = vertex;
-            vertex = stackPop(dfs_stack);
+	    prev_vertex = vtx;
+            vtx = stackPop(dfs_stack);
 	
-	    if( prev_vertex->cell > vertex->cell ){
+	    if( prev_vertex->cell > vtx->cell ){
                 sudoku[prev_vertex->cell] = 0; //if the cell has been visited with no solution found we go back one cell
                 rm_num_masks(prev_vertex->num,  ROW(prev_vertex->cell), COL(prev_vertex->cell), rows_mask, cols_mask, boxes_mask);
-                cell_id = get_prev_v( vertex->cell, prev_vertex->cell, cp_sudoku );
+                cell_id = get_prev_v( vtx->cell, prev_vertex->cell, cp_sudoku );
 	    }
 	    
-            sudoku[cell_id] = vertex->num;
-	    update_masks( vertex->num, ROW(cell_id), COL(cell_id), rows_mask, cols_mask, boxes_mask);
+            sudoku[cell_id] = vtx->num;
+	    update_masks( vtx->num, ROW(cell_id), COL(cell_id), rows_mask, cols_mask, boxes_mask);
 	    print_sudoku(sudoku);
 	    
             if( cell_id == (v_size-1) ){
@@ -183,13 +139,13 @@ int solve(int *sudoku, int *rows_mask, int *cols_mask, int *boxes_mask) {
             }
 	    
 	    cell_id = get_next_v( cell_id, cp_sudoku);
-            if(cell_id == vertex->cell) continue; //if cell id is the same, nothing new to put in the stack
+            if(cell_id == vtx->cell) continue; //if cell id is the same, nothing new to put in the stack
             
             for( num = m_size; num >= 1; num--){
 
-                vertex = new_vertex(num, cell_id);
-                if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(cell_id), COL(cell_id),  vertex->num)) continue;   
-                    stackPush(dfs_stack, vertex);
+                vtx = new_vertex(num, cell_id);
+                if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(cell_id), COL(cell_id),  vtx->num)) continue;   
+                    stackPush(dfs_stack, vtx);
             }
         }
     

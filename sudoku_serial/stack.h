@@ -2,6 +2,7 @@
 #define STACK_H_INCLUDED
 
 #include <stdlib.h>
+#include "vertex.h"
 
 #if !defined(__bool_true_false_are_defined) && !defined(__cplusplus)
 typedef int bool;
@@ -11,7 +12,7 @@ typedef int bool;
 #endif
 
 //#define StackItem (*void);
-typedef void  *StackItem;
+//typedef Vertex*  StackItem;
 typedef struct Stack Stack;
 
 Stack *stackCreate();
@@ -19,8 +20,8 @@ void stackDestroy(Stack *stack);
 void stackClean(Stack *stack);
 bool stackIsEmpty(Stack *stack);
 size_t stackSize(Stack *stack);
-StackItem stackTop(Stack *stack);
-bool stackPush(Stack *stack, StackItem item);
-StackItem stackPop(Stack *stack);
+Vertex* stackTop(Stack *stack);
+bool stackPush(Stack *stack, Vertex* item);
+Vertex* stackPop(Stack *stack);
 
 #endif
