@@ -95,13 +95,11 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
         if(flag_back){
             // search nearest element(on their left)
 
-
-
-
             while(head != NULL){
               /*printf("it: %d , val: %d\n", head->iteration, head->val);
               sleep(1);*/
 
+                //há um erro, voltar atrás com as hipóteses criadas
                 if(cp_sudoku[head->iteration] > 0 && cp_sudoku[head->iteration] <= m_size){
                     row = ROW(head->iteration);
                     col = COL(head->iteration);
@@ -125,17 +123,17 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
 
             }
 
-            if(head == NULL)
-                return 0; //impossible
-            else
-              i_in = head->iteration;
+            if(head == NULL) //se a lista ficou vazia então não existe solução
+                return 0; 
+            else 
+              i_in = head->iteration; //se não estiver, recomeçamos as hipoteses onde ficámos
         }
 
         #pragma omp parallel for private(row, col, val) reduction(max:i_aux)
-        for(i = i_in; i < v_size; i++){
+        for(i = i_in; i < v_size; i++){ //iterate the sudoku vector cells
             #pragma omp critical
-            allow = (!cp_sudoku[i] || flag_back);
-            if(allow){
+            allow = (cp_sudoku[i] == UNASSIGNED || flag_back); 
+            if(allow){ //we only place a new hypothesis if the present cell has a 0 or if there was a mistake in the previous attempt
                 row = ROW(i);
                 col = COL(i);
 
@@ -150,9 +148,9 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
                 #pragma omp atomic
                 zeros++;
 
-                for(; val <= m_size; val++){
+                for(; val <= m_size; val++){  //for every cell try every number
                   #pragma omp critical
-                  is_safe = is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val);
+                  is_safe = is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val); //if the number isn't safe skip it
                     if(is_safe){
                       #pragma omp critical
                         {
