@@ -3,24 +3,20 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
-#include "string.h"
+#include <string.h>
+#include <omp.h>
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
 
-struct node{
-  int iteration, val;
-  struct node *next;
-};
-
-
 int r_size, m_size, v_size;
-struct node* add_node(struct node*, int, int);
+
 int* read_matrix(char *argv[]);
 int exists_in( int index, int* mask, int num);
 int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
+int solve_from( int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
 int new_mask( int size);
 int int_to_mask(int num);
 void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
@@ -48,7 +44,7 @@ int main(int argc, char *argv[]) {
         //start measurement
         start = clock();
 
-        init_masks(sudoku, rows_mask, cols_mask, boxes_mask);
+        init_masks(sudoku, rows_mask, cols_mask, boxes_mask);        
         result = solve(sudoku, rows_mask, cols_mask, boxes_mask);
 
         // end measurement
@@ -56,7 +52,7 @@ int main(int argc, char *argv[]) {
 
         printf("result sudoku:");
         print_sudoku(sudoku);
-
+        
         verify_sudoku(sudoku, r_size) == 1 ? printf("corret, ") : printf("wrong, ");
         result == 1 ? printf("solved!\n") : printf("no solution!\n");
 
@@ -66,138 +62,161 @@ int main(int argc, char *argv[]) {
         free(rows_mask);
         free(cols_mask);
         free(boxes_mask);
-        free(sudoku);
+        free(sudoku);        
     }else
         printf("invalid input arguments.\n");
-
+    
     return 0;
 }
 
-
-
-int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
-    int i_in = 0, i = 0, val, zeros = 1, flag_back = 0, i_aux = 0, row, col, val_aux, is_safe =0 , allow =0;
+int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
+    
+    int ret_val, cell;
+    int start_pos = 1, start_num = 0;
     int cp_sudoku[v_size];
-    struct node* head;
-    head = NULL;
+
+    int p_sudoku[v_size], p_cp_sudoku[v_size], p_rows_mask[m_size], p_cols_mask[m_size], p_boxes_mask[m_size], i;
+
     // init cp_sudoku
-    for(i = 0; i < v_size; i++){
-        if(sudoku[i])
-            cp_sudoku[i] = UNCHANGEABLE;
+    for(cell = 0; cell < v_size; cell++){
+        if(sudoku[cell])
+            cp_sudoku[cell] = UNCHANGEABLE;
         else
-            cp_sudoku[i] = UNASSIGNED;
+            cp_sudoku[cell] = UNASSIGNED;
     }
 
+    // a copy for each processor
+    for(i = 0; i < v_size; i++){
+        p_sudoku[i] = sudoku[i];
+        p_cp_sudoku[i] = cp_sudoku[i];
+        if(i < m_size){
+            p_rows_mask[i] = rows_mask[i];
+            p_cols_mask[i] = cols_mask[i];
+            p_boxes_mask[i] = boxes_mask[i];
+        }
+    }
+
+
+
+    #pragma omp parallel
+    {   
+        
+       /* int* rows_mask = (int*) malloc(m_size * sizeof(int));
+        int* cols_mask = (int*) malloc(m_size * sizeof(int));
+        int* boxes_mask = (int*) malloc(m_size * sizeof(int));
+        init_masks(sudoku, rows_mask, cols_mask, boxes_mask);  */
+
+        #pragma omp for private(start_pos, p_sudoku, p_cp_sudoku, p_rows_mask, p_cols_mask, p_boxes_mask)
+        for(start_num = 1; start_num <= m_size; start_num++){
+
+        /*    printf("num: %d\n", start_num);
+            printf("rows: %d\n", rows_mask[0]);
+            printf("cols: %d\n", cols_mask[0]);
+            printf("boxes: %d\n", boxes_mask[0]);
+            printf("\n"); */
+
+            if( solve_from(start_pos, start_num, sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask) )  start_num = m_size +1;  //break
+            
+        }
+    }
+  
+    if(start_num == m_size +1) return 1;
+    return 0;
+}
+
+int solve_from(int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
+    
+    int cell, val, zeros = 1, flag_back = 0, cell_aux, row, col, val_aux;
+    
+    //int tid = omp_get_thread_num();
+    //printf("thread: %d ; num: %d\n", tid, start_num);
+ /*   printf("rows: %d\n", rows_mask[0]);
+    printf("cols: %d\n", cols_mask[0]);
+    printf("boxes: %d\n", boxes_mask[0]); 
+    printf("\n");*/
+    //if the value given for the first cell isn't valid return
+    if( !is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(start_pos), COL(start_pos), start_num) ) return 0;
+
+    //printf("thread: %d ; num: %d\n", tid, start_num);
+
+    //use the received starting value on the starting cell, create hypothesis from start_cell+1
+    sudoku[start_pos] = start_num;
+    cp_sudoku[start_pos] = start_num;
+    update_masks( start_num, ROW(start_pos), COL(start_pos), rows_mask, cols_mask, boxes_mask);   
+   // print_sudoku(sudoku);
+            
     while(zeros){
         zeros = 0;
 
-        i = 0;
+        cell = start_pos + 1;
         if(flag_back){
             // search nearest element(on their left)
-
-            while(head != NULL){ //stop going back if the list is empty
-              /*printf("it: %d , val: %d\n", head->iteration, head->val);
-              sleep(1);*/
-
-                //há um erro, voltar atrás com as hipóteses criadas
-                if(cp_sudoku[head->iteration] > 0 && cp_sudoku[head->iteration] <= m_size){
-                    row = ROW(head->iteration);
-                    col = COL(head->iteration);
-                    //printf("row: %d, col: %d, val: %d\n",row, col, head->val );
-                    val_aux = cp_sudoku[head->iteration] + 1;
-                    rm_num_masks(cp_sudoku[head->iteration], row, col, rows_mask, cols_mask, boxes_mask);
-                    sudoku[head->iteration] = UNASSIGNED;
-
-                    if(cp_sudoku[head->iteration] < m_size){
-                        cp_sudoku[head->iteration] = UNASSIGNED;
+            for(cell = cell_aux - 1; cell >= (start_pos+1); cell--){
+                if(cp_sudoku[cell] > 0 && cp_sudoku[cell] <= m_size){
+                    row = ROW(cell);
+                    col = COL(cell);
+                    
+                    val_aux = cp_sudoku[cell] + 1;
+                    rm_num_masks(cp_sudoku[cell], row, col, rows_mask, cols_mask, boxes_mask);
+                    sudoku[cell] = UNASSIGNED;
+                   // print_sudoku(sudoku);
+                    if(cp_sudoku[cell] < m_size){
+                        cp_sudoku[cell] = UNASSIGNED;
                         break;
                     }else{
-                        cp_sudoku[head->iteration] = UNASSIGNED;
+                        cp_sudoku[cell] = UNASSIGNED;
                         zeros ++;
                     }
-
-
                 }
-                printf("row: %d, col: %d, val: %d\n",ROW(head->iteration), COL(head->iteration), head->val );
-                head = head->next;
-
             }
-
-            if(head == NULL) //se a lista ficou vazia então não existe solução
+            
+            //starting cell's value is incorrect, remove it and return
+            if(cell == start_pos){
+                sudoku[start_pos] = UNASSIGNED;
+                cp_sudoku[start_pos] = UNASSIGNED;
+                rm_num_masks(start_num, ROW(start_pos), COL(start_pos), rows_mask, cols_mask, boxes_mask);
                 return 0; 
-            else 
-              i_in = head->iteration; //se não estiver, recomeçamos as hipoteses onde ficámos
+            }
         }
-
-        #pragma omp parallel for private(row, col, val) reduction(max:i_aux)
-        for(i = i_in; i < v_size; i++){ //iterate the sudoku vector cells
-            #pragma omp critical
-            allow = (cp_sudoku[i] == UNASSIGNED || flag_back); 
-            if(allow){ //we only place a new hypothesis if the present cell has a 0 or if there was a mistake in the previous attempt
-                row = ROW(i);
-                col = COL(i);
-
+        
+        for(; cell < v_size; cell++){
+            if(!cp_sudoku[cell] || flag_back){
+                row = ROW(cell);
+                col = COL(cell);
+                
                 val = 1;
-                #pragma omp critical
-                {
-                  if(flag_back){
-                      val = val_aux;
-                      flag_back = 0;
-                  }
+                if(flag_back){
+                    val = val_aux;
+                    flag_back = 0;
                 }
-                #pragma omp atomic
                 zeros++;
-
-                for(; val <= m_size; val++){  //for every cell try every number
-                  #pragma omp critical
-                  is_safe = is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val); //if the number isn't safe skip it
-                    if(is_safe){
-                      #pragma omp critical
-                        {
-                          head = add_node(head, i, val); //add the new hypothesis to the list
-                          printf("LOOP - row: %d, col: %d, val: %d\n",ROW(head->iteration), COL(head->iteration), head->val );
-                          cp_sudoku[i] = val; 
-                          sudoku[i] = val;
-                          update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
-                        /*  print_sudoku(sudoku);
-                          sleep(1);*/
-                        }
-
-                          //sleep(1);
-                        //} 
-                        break; //if a number was placed on the current cell go to next cell
-                    }else if(val == m_size){ //if no number can be placed on the cell there must be a mistake 
-                      #pragma omp critical
+                
+                for(; val <= m_size; val++){
+                    if(is_safe_num( rows_mask, cols_mask, boxes_mask, row, col, val)){
+                        cp_sudoku[cell] = val;
+                        sudoku[cell] = val;
+                        
+                        update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
+                       // print_sudoku(sudoku);
+                        break;
+                    }else if(val == m_size){
                         flag_back = 1;
-                        i_aux = i;
-                        i = v_size; //break
+                        cell_aux = cell;
+                        cell = v_size; //break
                     }
                 }
             }
         }
-       printf("%d\n", zeros);
-      }
-    return 1;
-}
-struct node* add_node(struct node *n, int iteration, int val){
-  struct node *temp;
-  temp = (struct node*) calloc(1, sizeof(struct node));
-  temp->iteration = iteration;
-  temp->val = val;
-  if(n == NULL){
-    temp->next = NULL;
+    }
 
-  }else{
-    temp->next = n;
-  }
-  return temp;
+    return 1;
 }
 
 int exists_in(int index, int* mask, int num) {
     int res, masked_num = int_to_mask(num);
 
     res = mask[index] | masked_num;
-    if(res != mask[index])
+    if(res != mask[index]) 
         return 0;
     return 1;
 }
@@ -227,7 +246,7 @@ void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
         if(sudoku[i]){
             row = ROW(i);
             col = COL(i);
-
+            
             mask = int_to_mask(sudoku[i]);          //convert number found to mask ex: if dim=4x4, 3 = 0010
             rows_mask[row] = rows_mask[row] | mask; //to add the new number to the current row's mask use bitwise OR
             cols_mask[col] = cols_mask[col] | mask;
@@ -255,7 +274,7 @@ int* read_matrix(char *argv[]) {
     size_t characters, len = 1;
     char *line = NULL, aux[3];
     int i, j, k, l;
-
+    
     //verifies if the file was correctly opened
     if((fp = fopen(argv[1], "r+")) == NULL) {
         fprintf(stderr, "unable to open file %s\n", argv[1]);
@@ -263,7 +282,7 @@ int* read_matrix(char *argv[]) {
     }
 
     getline(&line, &len, fp);
-    r_size = atoi(line);
+    r_size = atoi(line);    
     m_size = r_size *r_size;
     v_size = m_size * m_size;
 
@@ -286,13 +305,13 @@ int* read_matrix(char *argv[]) {
 
     free(line);
     fclose(fp);
-
+    
     return sudoku;
 }
 
 void print_sudoku(int *sudoku) {
     int i;
-
+    
     printf("\n\n");
     for (i = 0; i < v_size; i++) {
         if(i%m_size != m_size - 1){
@@ -303,7 +322,7 @@ void print_sudoku(int *sudoku) {
             printf("%2d\n", sudoku[i]);
             if(((i/m_size)+1)%r_size == 0)
                 printf("\n");
-
+            
         }
     }
     printf("\n\n");

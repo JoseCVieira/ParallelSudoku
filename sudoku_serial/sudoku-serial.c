@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
+#include <string.h>
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
