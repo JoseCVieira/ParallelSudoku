@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
 int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
     
-    int ret_val, cell;
+    int ret_val, cell, solved = 0;
     int start_pos = 1, start_num = 0;
     int cp_sudoku[v_size];
 
@@ -93,12 +93,15 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
 
         #pragma omp for //private(start_pos, sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask)
         for(start_num = 1; start_num <= m_size; start_num++){
-            if( solve_from(start_pos, start_num, sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask) )  start_num = m_size +1;  //break
+            if( solve_from(start_pos, start_num, sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask) ){  
+                solved = 1;
+                start_num = m_size +1;  //break
+            }
             
         }
     }
   
-    if(start_num == m_size +1) return 1;
+    if(solve) return 1;
     return 0;
 }
 
