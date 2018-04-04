@@ -1,10 +1,15 @@
 #include "sudoku-aux.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <time.h>
+#include <ctype.h>
 #include <string.h>
 #include <omp.h>
+
+// export OMP_NUM_THREADS=2
+// http://www.menneske.no/sudoku/eng/random.html?diff=9
+// source ~/.profile
+// kinst-ompp
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
@@ -16,7 +21,6 @@ int r_size, m_size, v_size;
 int* read_matrix(char *argv[]);
 int exists_in( int index, int* mask, int num);
 int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
-int solve_from( int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
 int new_mask( int size);
 int int_to_mask(int num);
 void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
@@ -69,118 +73,136 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
+int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
+    int i, fst_val, cp_sudoku[v_size];
+    int fst_pos = -1, flag_finish = 0;
     
-    int ret_val, cell, solved = 0;
-    int start_pos = 0, start_num = 0;
-    int cp_sudoku[v_size], p_sudoku[v_size];
-
     // init cp_sudoku
-    for(cell = 0; cell < v_size; cell++){       
-        p_sudoku[cell] = sudoku[cell];
-        if(sudoku[cell])
-            cp_sudoku[cell] = UNCHANGEABLE;
-        else
-            cp_sudoku[cell] = UNASSIGNED;
-    }
-
-    #pragma omp parallel firstprivate(cp_sudoku, p_sudoku)
-    {
-        int j;
-        int* r_mask = (int*) malloc(m_size * sizeof(int));
-        int* c_mask = (int*) malloc(m_size * sizeof(int));
-        int* b_mask = (int*) malloc(m_size * sizeof(int));
-        init_masks(sudoku, r_mask, c_mask, b_mask);
-
-        #pragma omp for
-        for(start_num = 1; start_num <= m_size; start_num++){
-            if(!solved){
-                if(solve_from(start_pos, start_num, p_sudoku, cp_sudoku, r_mask, c_mask, b_mask)){
-                    solved = 1;
-                    start_num = m_size + 1;
-                    
-                    for(j = 0; j < v_size; j++)
-                        sudoku[j] = p_sudoku[j];
-                }
+    for(i = 0; i < v_size; i++){
+        if(sudoku[i])
+            cp_sudoku[i] = UNCHANGEABLE;
+        else{
+            cp_sudoku[i] = UNASSIGNED;
+            if(fst_pos == -1){
+                fst_pos = i;
+                cp_sudoku[i] = UNCHANGEABLE;
             }
         }
     }
-  
-    if(solved)
-        return 1;
-    return 0;
-}
+    
+    #pragma omp parallel private(i) firstprivate(cp_sudoku)
+    {
+    int flag_res, val, zeros, i_aux, row, col, val_aux, flag_back, fst_l_val = 0;
+    int p_sudoku[v_size], p_r_mask[m_size], p_c_mask[m_size], p_b_mask[m_size];
+    
+    // a copy for each processor
+    for(i = 0; i < v_size; i++){
+        p_sudoku[i] = sudoku[i];
+        if(i < m_size){
+            p_r_mask[i] = rows_mask[i];
+            p_c_mask[i] = cols_mask[i];
+            p_b_mask[i] = boxes_mask[i];
+        }
+    }
+    
+    #pragma omp for nowait
+    for(fst_val = 1; fst_val <= m_size; fst_val++){
 
-int solve_from(int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
-    
-    int cell, val, zeros = 1, flag_back = 0, cell_aux, row, col, val_aux;
-    
-    //if the value given for the first cell isn't valid return
-    if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(start_pos), COL(start_pos), start_num))
-        return 0;
-    
-    //use the received starting value on the starting cell, create hypothesis from start_cell+1
-    sudoku[start_pos] = start_num;
-    cp_sudoku[start_pos] = start_num;
-    update_masks(start_num, ROW(start_pos), COL(start_pos), rows_mask, cols_mask, boxes_mask);
-    
-    while(zeros){
-        zeros = 0;
+        flag_res = is_safe_num(p_r_mask, p_c_mask, p_b_mask, fst_pos/m_size, fst_pos%m_size, fst_val);
 
-        cell = start_pos;
-        if(flag_back){
-            // search nearest element(on their left)
-            for(cell = cell_aux - 1; cell >= start_pos; cell--){
-                if(cp_sudoku[cell] > 0 && cp_sudoku[cell] <= m_size){
+        if(flag_res){
+            p_sudoku[fst_pos] = fst_val;
+            
+            if(fst_l_val)
+                rm_num_masks(fst_l_val, fst_pos/m_size, fst_pos%m_size, p_r_mask, p_c_mask, p_b_mask);
+
+            fst_l_val = fst_val;
+
+            update_masks(fst_val, fst_pos/m_size, fst_pos%m_size, p_r_mask, p_c_mask, p_b_mask);
+
+            zeros = 1;
+            flag_back = 0;
+            while(zeros){
+                zeros = 0;
+                
+                i = 0;
+                if(flag_back){
+                    // search nearest element(on their left)
+                    for(i = i_aux - 1; i >= 0; i--){
+                        if(cp_sudoku[i] > 0 && cp_sudoku[i] <= m_size){
+                            row = ROW(i);
+                            col = COL(i);
+                            
+                            val_aux = cp_sudoku[i] + 1;
+                            
+                            rm_num_masks(cp_sudoku[i], row, col, p_r_mask, p_c_mask, p_b_mask);
+                            
+                            p_sudoku[i] = UNASSIGNED;
+                            
+                            if(cp_sudoku[i] < m_size){
+                                cp_sudoku[i] = UNASSIGNED;
+                                break;
+                            }else{
+                                cp_sudoku[i] = UNASSIGNED;
+                                zeros ++;
+                            }
+                        }
+                    }
                     
-                    val_aux = cp_sudoku[cell] + 1;
-                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                    sudoku[cell] = UNASSIGNED;
-                    
-                    if(cp_sudoku[cell] < m_size){
-                        cp_sudoku[cell] = UNASSIGNED;
-                        break;
-                    }else{
-                        cp_sudoku[cell] = UNASSIGNED;
-                        zeros ++;
+                    if(i == -1)
+                        break; //impossible
+                }
+                
+                for(i = i; i < v_size; i++){
+                    if(!cp_sudoku[i] || flag_back){
+                        zeros++;
+                        
+                        row = ROW(i);
+                        col = COL(i);
+                        
+                        val = 1;
+                        if(flag_back){
+                            val = val_aux;
+                            flag_back = 0;
+                        }
+                        
+                        for(; val <= m_size; val++){
+                            
+                            flag_res = is_safe_num(p_r_mask, p_c_mask, p_b_mask, row, col, val);
+                            
+                            if(flag_res){
+                                cp_sudoku[i] = val;
+                                p_sudoku[i] = val;
+                                
+                                update_masks(val, row, col, p_r_mask, p_c_mask, p_b_mask);
+
+                                break;
+                            }else if(val == m_size){
+                                flag_back = 1;
+                                i_aux = i;
+                                i = v_size; //break
+                            }
+                        }
                     }
                 }
             }
             
-            //starting cell's value is incorrect, return
-            if(cell == start_pos - 1)
-                return 0;
-        }
-        
-        for(; cell < v_size; cell++){
-            if(!cp_sudoku[cell]){
-                row = ROW(cell);
-                col = COL(cell);
-                
-                val = 1;
-                if(flag_back){
-                    val = val_aux;
-                    flag_back = 0;
-                }
-                
-                zeros++;
-                
-                for(; val <= m_size; val++){
-                    if(is_safe_num(rows_mask, cols_mask, boxes_mask, row, col, val)){
-                        update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
-                        cp_sudoku[cell] = val;
-                        sudoku[cell] = val;
-                        break;
-                    }else if(val == m_size){
-                        flag_back = 1;
-                        cell_aux = cell;
-                        cell = v_size; //break
-                    }
-                }
+            #pragma omp critical
+            if(i!=-1 && !flag_finish){
+                for(i = 0; i < v_size; i++)
+                    sudoku[i] = p_sudoku[i];
+                fst_val = m_size + 1;
+                flag_finish = 1;
             }
         }
     }
-    return 1;
+
+    }
+    
+    if(flag_finish)
+        return 1;
+    else
+        return 0;
 }
 
 int exists_in(int index, int* mask, int num) {
