@@ -96,11 +96,12 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
         for(start_num = 1; start_num <= m_size; start_num++){
             if(!solved){
                 if(solve_from(start_pos, start_num, p_sudoku, cp_sudoku, r_mask, c_mask, b_mask)){
-                    solved = 1;
-                    start_num = m_size + 1;
-                    
-                    for(j = 0; j < v_size; j++)
-                        sudoku[j] = p_sudoku[j];
+                    #pragma omp critical
+                    if(!solved){
+                        solved = 1;                    
+                        for(j = 0; j < v_size; j++)
+                            sudoku[j] = p_sudoku[j];
+                    }
                 }
             }
         }
