@@ -15,7 +15,7 @@ int r_size, m_size, v_size;
 
 int* read_matrix(char *argv[]);
 int exists_in( int index, int* mask, int num);
-int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
+int solve(int* sudoku);
 int solve_from( int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
 int new_mask( int size);
 int int_to_mask(int num);
@@ -34,18 +34,13 @@ int main(int argc, char *argv[]) {
     if(argc == 2){
         sudoku = read_matrix(argv);
 
-        int* rows_mask = (int*) malloc(m_size * sizeof(int));
-        int* cols_mask = (int*) malloc(m_size * sizeof(int));
-        int* boxes_mask = (int*) malloc(m_size * sizeof(int));
-
         printf("\n\ninitial sudoku:");
         print_sudoku(sudoku);
 
         //start measurement
         start = clock();
-
-        init_masks(sudoku, rows_mask, cols_mask, boxes_mask);        
-        result = solve(sudoku, rows_mask, cols_mask, boxes_mask);
+       
+        result = solve(sudoku);
 
         // end measurement
         end = clock();
@@ -59,17 +54,16 @@ int main(int argc, char *argv[]) {
         time = (double) (end-start)/CLOCKS_PER_SEC;
         printf("took %lf sec (%.3lf ms).\n\n", time, time*1000.0);
 
-        free(rows_mask);
-        free(cols_mask);
-        free(boxes_mask);
-        free(sudoku);        
+             
     }else
         printf("invalid input arguments.\n");
     
+    free(sudoku);    
+
     return 0;
 }
 
-int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
+int solve(int* sudoku){
     
     int ret_val, cell, solved = 0;
     int start_pos = 0, start_num = 0;
@@ -92,21 +86,36 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
         int* b_mask = (int*) malloc(m_size * sizeof(int));
         init_masks(sudoku, r_mask, c_mask, b_mask);
 
-        #pragma omp for
-        for(start_num = 1; start_num <= m_size; start_num++){
-            if(!solved){
-                if(solve_from(start_pos, start_num, p_sudoku, cp_sudoku, r_mask, c_mask, b_mask)){
+        for( start_pos = 0; start_pos <= v_size; start_pos++){
+
+            printf("start pos: %d\n", start_pos);
+            if( cp_sudoku[start_pos] == UNCHANGEABLE) continue;
+
+            #pragma omp for
+            for(start_num = 1; start_num <= m_size; start_num++){
+               
+                if(solve_from(start_pos, start_num, p_sudoku, cp_sudoku, r_mask, c_mask, b_mask)){ 
                     #pragma omp critical
                     if(!solved){
                         solved = 1;                    
                         for(j = 0; j < v_size; j++)
                             sudoku[j] = p_sudoku[j];
+
                     }
                 }
+                else if( start_num == m_size){
+                    start_num = m_size+1;
+                    start_pos = v_size + 1;
+                }
+                
             }
         }
+    
+        free(r_mask);
+        free(c_mask);
+        free(b_mask);
     }
-  
+    
     if(solved)
         return 1;
     return 0;
@@ -115,6 +124,9 @@ int solve(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask){
 int solve_from(int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
     
     int cell, val, zeros = 1, flag_back = 0, cell_aux, row, col, val_aux;
+    
+    int tid = omp_get_thread_num();
+    printf("thread: %d , num: %d\n", tid, start_num);
     
     //if the value given for the first cell isn't valid return
     if(!is_safe_num( rows_mask, cols_mask, boxes_mask, ROW(start_pos), COL(start_pos), start_num))
