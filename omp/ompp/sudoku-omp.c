@@ -139,7 +139,6 @@ int solve(int* sudoku){
             printf("thread %d finished start_cell: %d , start_num: %d\n", tid, start_pos, start_num);
         }
 
-        printf("solved: %d\n", solved);
        // #pragma omp for nowait schedule( dynamic, 1) private(hyp)
         for(i = 0; i >= 0; i++){
           
@@ -148,9 +147,12 @@ int solve(int* sudoku){
                 //get work from the other threads
                 hyp = get_work( tid, cp_sudokus_array, list_array, r_mask_array, c_mask_array, b_mask_array);
                 
-                if(hyp.num == -1 ) i = -2; //no more work //============================= try again???????
+                if(hyp.num == -1 ){
+                    printf("\nNO MORE WORK\n");
+                    i = -2; //no more work //============================= try again???????
+                }
                 else{
-                    insert_head( list_array[tid], hyp_work);  //push the starting hypothesis received to the work list            
+                    insert_head( list_array[tid], hyp);  //push the starting hypothesis received to the work list            
                     printf("- thread %d gets cell %d, num %d\n", tid, hyp.cell, hyp.num);
                     if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                         #pragma omp critical(sudoku)
@@ -163,7 +165,7 @@ int solve(int* sudoku){
                             }
                         }
                     }
-                    else 
+                    else //Não sei se isto aqui é necessário
                         clear_all_work( cp_sudokus_array[tid], list_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid] );
                 }
             }
