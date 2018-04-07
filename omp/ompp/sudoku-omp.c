@@ -138,17 +138,16 @@ int solve(int* sudoku){
             printf("thread %d finished start_cell: %d , start_num: %d\n", tid, start_pos, start_num);
         }
 
-
+        printf("solved: %d\n", solved);
        // #pragma omp for nowait schedule( dynamic, 1) private(hyp)
         for(i = 0; i >= 0; i++){
           
-            if(solved) i = -1; //is solve=1 break, else continue
+            if(solved) i = -2; //is solve=1 break, else continue
             else{
                 //get work from the other threads
-                #pragma omp critical
                 hyp = get_work( tid, cp_sudokus_array, list_array, r_mask_array, c_mask_array, b_mask_array);
                 
-                if(hyp.num == -1 ) i = -1; //no more work //============================= try again???????
+                if(hyp.num == -1 ) i = -2; //no more work //============================= try again???????
                 else{
                     insert_head( list_array[tid], hyp_work);  //push the starting hypothesis received to the work list            
                     printf("- thread %d gets cell %d, num %d\n", tid, hyp.cell, hyp.num);
@@ -317,7 +316,7 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
     for(th = 0; th < tnum; th++){
         if(list_array[th]->tail != NULL){
             if( list_array[th]->tail->this.cell <= min_cell ){
-                //#pragma omp critical
+                #pragma omp critical
                 {   
                     receive_from_th = th;
                     hyp = pop_tail(list_array[th]);
