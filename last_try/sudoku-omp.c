@@ -354,7 +354,7 @@ int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, 
     return 1;
 }
 
-
+//Search the other thread's work lists to find work to do
 Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_array, int **c_mask_array, int **b_mask_array){
 
     int tnum = omp_get_max_threads();
@@ -362,21 +362,29 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
     int receive_from_th = -1;
     Item hyp;
     
+    //initialize the hypothesis to (-1,-1) to retrieve it in case no work is found
     hyp.cell = -1; hyp.num = -1;
     
+    //iterate the work lists of all the threads. If they contain work to do the head != NULL
     for(th = 0; th < tnum; th++){
         if(list_array[th]->tail != NULL){ //&& list_array[th]->head->next != NULL){
+            //choose the work node that contains a cell_id closer to the root of the overall search tree (closer to 0)
+            //this kind of selection allows for a better balance in the processing between threads and requires less communication
+            //the search is done in the tail of the lists because it contains the first nodes to be put in the work list which means they have a lower cell_id
             if( list_array[th]->tail->this.cell <= min_cell ){
                 min_cell = list_array[th]->tail->this.cell;
                 receive_from_th = th;
             }
         }
     }
+    //if work is found:
     if(receive_from_th != -1){
+
+        //remove the node from the list that contains the lower cell_id.
         #pragma omp critical(lists)
         hyp = pop_tail(list_array[receive_from_th]);
     
-        //receber o sudoku e máscaras da thread que está a dar o trabalho;
+        //copy the sudoku and masks of the thread that gave the work cell
         for( i = 0; i < v_size; i++){
             cp_sudokus_array[tid][i] = cp_sudokus_array[receive_from_th][i];
         }
@@ -385,7 +393,7 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
             c_mask_array[tid][i] = c_mask_array[receive_from_th][i];
             b_mask_array[tid][i] = b_mask_array[receive_from_th][i];
         }
-        // apagar tudo o que esta fez até á posição hyp.cell
+        //delete everything done after this node was put in the work list
         i = v_size;
         while(i >= hyp.cell){
             if(cp_sudokus_array[tid][i] > 0){
@@ -398,6 +406,7 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
     return hyp;
 }
 
+//Clear all work from a sudoku and masks (put everything back to 0)
 void clear_all_work( int *cp_sudoku, List *work, int *rows_mask, int *cols_mask, int *boxes_mask){
     int i;
     
@@ -412,6 +421,7 @@ void clear_all_work( int *cp_sudoku, List *work, int *rows_mask, int *cols_mask,
     return;
 }
 
+//Test if all the threads have finished Parallell Stage 1
 int termination_test( int* terminated){
     int i;
     int tnum = omp_get_max_threads();
@@ -423,27 +433,32 @@ int termination_test( int* terminated){
     return 1;
 }
 
+//Test if a number (num) exists in a row, column or box. To check if it exists in a row, the mask of that row is passed as input
 int exists_in(int index, int* mask, int num) {
     int res, masked_num = int_to_mask(num);
 
-    res = mask[index] | masked_num;
-    if(res != mask[index]) 
+    res = mask[index] | masked_num; //example row_mask = 1010 ; number to check = 0100 (3) then row_masl | num = 1110
+    if(res != mask[index])          // since the result is different from the initial mask, it is safe to put 3 in this row/col/box
         return 0;
     return 1;
 }
 
+//check if a given number is safe in a given cell (row,col) for that check safety in corresponding row, column and box
 int is_safe_num(int* rows_mask, int* cols_mask, int* boxes_mask, int row, int col, int num) {
     return !exists_in(row, rows_mask, num) && !exists_in(col, cols_mask, num) && !exists_in(r_size*(row/r_size)+col/r_size, boxes_mask, num);
 }
 
+//initialize a mask
 int new_mask(int size) {
     return (0 << (size-1));
 }
 
+//convert an integer to mask ex: 3 = 0100
 int int_to_mask(int num) {
     return (1 << (num-1));
 }
 
+//initialize the masks from the sudoku read from the file
 void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
     int i, mask, row, col;
 
@@ -466,20 +481,23 @@ void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask) {
     }
 }
 
+//remove number from the masks
 void rm_num_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask) {
     int num_mask = int_to_mask(num);
-    rows_mask[row] = rows_mask[row] ^ num_mask;
+    rows_mask[row] = rows_mask[row] ^ num_mask; //ex row_mask = 0101 ; number to remove: 0100 --> row_mask XOR num = 0001
     cols_mask[col] = cols_mask[col] ^ num_mask;
     boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask[r_size*(row/r_size)+col/r_size] ^ num_mask;
 }
 
+//add new number to the masks
 void update_masks(int num, int row, int col, int* rows_mask, int* cols_mask, int* boxes_mask) {
     int new_mask = int_to_mask(num);
-    rows_mask[row] = rows_mask[row] | new_mask;
+    rows_mask[row] = rows_mask[row] | new_mask; //ex row_mask = 0101 ; number to add: 0010 --> row_mask OR num = 0111
     cols_mask[col] = cols_mask[col] | new_mask;
     boxes_mask[r_size*(row/r_size)+col/r_size] = boxes_mask[r_size*(row/r_size)+col/r_size] | new_mask;
 }
 
+//read the input file
 int* read_matrix(char *argv[]) {
     FILE *fp;
     size_t characters, len = 1;
