@@ -73,7 +73,7 @@ Item pop_head(List* list){
 	Item item = list -> head -> this;
 
 	ListNode* aux = list -> head -> next;
-	if(aux == NULL){
+	if(aux == NULL){ //last node
 		free(list->head);
 		list->head = NULL;
 		list->tail = NULL;
@@ -90,8 +90,9 @@ Item pop_tail(List* list){
 	Item item = list -> tail -> this;
 	ListNode* aux = list -> tail -> prev;
 	if(aux == NULL){
-	 	/*list->tail = NULL;
-        list->head = NULL;*/
+		free(list -> tail);
+	 	list->tail = NULL;
+        list->head = NULL;
 	 	return item;
 	}
 	aux -> next = NULL;
@@ -110,6 +111,9 @@ void pop_all( List* list){
 		free(aux);
 		aux = list -> head;
 	}
+	list->tail = NULL;
+    list->head = NULL;
+    return;
 }
 
 int listSize(List* list){
@@ -122,4 +126,17 @@ int listSize(List* list){
 		counter++;
 
 	return counter;
+}
+
+void print_list(List* list){
+
+	ListNode *aux;
+
+	aux = list->head;
+	while(aux!=NULL){
+		printf("(%d,%d) ", aux->this.cell, aux->this.num);
+		aux = aux->next;
+	}
+	printf("\n");
+	return;
 }

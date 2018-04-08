@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+//Solve a sudoku
 int solve(int* sudoku) {
     int i, j, flag_start = 0, solved = 0, start_pos = 0, start_num = 0, tnum = omp_get_max_threads();
     Item hyp;
@@ -176,9 +177,10 @@ int solve(int* sudoku) {
                         #pragma omp critical(sudoku)
                         if(!solved){
                             solved = 1;                  
-                            for(j = 0; j < v_size; j++)
+                            for(j = 0; j < v_size; j++){
                                 if(cp_sudokus_array[tid][j] != UNCHANGEABLE)
                                     sudoku[j] = cp_sudokus_array[tid][j];              
+                            }
                         }
                     }
                     //if no solution is found clear the sudoku and the masks, go find more work
@@ -307,6 +309,7 @@ int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, 
                                 hyp.cell = cell;
                                 hyp.num = val;
                                 insert_head(work, hyp);
+                                
                             }
                         }
                     }
