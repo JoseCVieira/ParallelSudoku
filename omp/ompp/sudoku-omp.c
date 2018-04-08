@@ -126,7 +126,10 @@ int solve(int* sudoku){
         for(start_num = 1; start_num <= m_size; start_num++){
 
             hyp.cell = start_pos; hyp.num = start_num; //create first hypothesis and push it to the list
-            insert_head( list_array[tid], hyp);                
+            #pragma omp critical(lists)
+            {    
+                insert_head( list_array[tid], hyp);                
+            }
             printf("thread %d gets start_num %d\n", tid, start_num );
             if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                 #pragma omp critical(sudoku)
@@ -157,8 +160,11 @@ int solve(int* sudoku){
                     if(termination_test(terminated) )i = -2; //no more work verse já todas as threads terminaram a o for inicial se sim exit, se não  try again?
                 }
                 else{
-                    insert_head( list_array[tid], hyp);  //push the starting hypothesis received to the work list            
-                    
+                    #pragma omp critical(lists)
+                    {
+                        insert_head( list_array[tid], hyp);  //push the starting hypothesis received to the work list            
+                    }
+                 //   if(omp_get_thread_num() == 0){ print_list(list_array[tid]); printf("\n"); }
                     if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                         #pragma omp critical(sudoku)
                         if(!solved){
@@ -189,7 +195,7 @@ int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask,
     int first_valid, val_to_insert, aux, counter = 0;
     
     //use the received starting value on the starting cell, create hypothesis from start_cell+1
-    #pragma omp critical
+    #pragma omp critical(lists)
     {
         hyp = pop_head(work);
     }
@@ -212,9 +218,10 @@ int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask,
             flag_back = 0;
              
             //get next hypothesis to work on from the list 
-            #pragma omp critical
+            #pragma omp critical(lists)
             { 
                 hyp = pop_head(work);
+               // if(omp_get_thread_num() == 0){ print_list(work); printf("\n"); }
             }
             
             // put every element back to zero until we get to the new hypothesis cell
@@ -227,7 +234,6 @@ int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask,
                     if(cell == hyp.cell){
                         update_masks(hyp.num, ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                         cp_sudoku[cell] = hyp.num;
-                        counter ++;
                         cell = hyp.cell + 1;
                         break;
                     }
@@ -243,7 +249,6 @@ int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask,
         }
         
         for(; cell < v_size; cell++){
-            
             if(!cp_sudoku[cell]){ //if the cell has a zero
                 
                 row = ROW(cell);
@@ -254,7 +259,6 @@ int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask,
 
                 for(val = 1; val <= m_size; val++){
                     if(is_safe_num(rows_mask, cols_mask, boxes_mask, row, col, val)){
-                        
                         //explore only the first valid, save its value to insert at the end of the cycle
                         if(first_valid){
                             val_to_insert = val;
@@ -263,16 +267,18 @@ int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask,
                         else {
                             //add the remaining valid ones to work list
                             hyp.cell = cell; hyp.num = val;
-                            #pragma omp critical
+                            #pragma omp critical(lists)
                             {
                                 insert_head( work, hyp);
+                            //    if(omp_get_thread_num() == 0){ print_list(work); printf("\n"); }
+        
                             }
                         }
                     }
                     if(val == m_size && first_valid == 0){
                             update_masks(val_to_insert, row, col, rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = val_to_insert;
-                            counter ++;
+                          
                             break;
                     }
                     else if(val == m_size){
@@ -302,7 +308,7 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
 
     int tnum = omp_get_max_threads();
     int th, min_cell = v_size, i;
-    int receive_from_th = 0;
+    int receive_from_th = -1;
     Item hyp;
     
     hyp.cell = -1; hyp.num = -1;
@@ -310,17 +316,19 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
         for(th = 0; th < tnum; th++){
             if(list_array[th]->tail != NULL){ //&& list_array[th]->head->next != NULL){
                 if( list_array[th]->tail->this.cell <= min_cell ){
-                    #pragma omp critical
-                    {   
-                        min_cell = list_array[th]->tail->this.cell;
-                        receive_from_th = th;
-                        hyp = pop_tail(list_array[th]);
-
-                    }
+                    min_cell = list_array[th]->tail->this.cell;
+                    receive_from_th = th;
                 }
             }
         }
-        if(hyp.cell != -1){
+        if(receive_from_th != -1){
+            #pragma omp critical(lists)
+                    {   
+                        hyp = pop_tail(list_array[receive_from_th]);
+                       // if(omp_get_thread_num() == 0){ print_list(list_array[th]); printf("\n"); }
+                       
+                    }
+        
             //receber o sudoku e máscaras da thread que está a dar o trabalho;
             for( i = 0; i < v_size; i++){
                 cp_sudokus_array[tid][i] = cp_sudokus_array[receive_from_th][i];
@@ -343,9 +351,10 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
 
             printf("\nThread %d: receive (%d,%d), list size: %d\n", tid, hyp.cell, hyp.num, listSize(list_array[tid]) );
             if(list_array[receive_from_th]->tail == NULL) printf("Thread %d: tail is now NULL, list size: %d\n", receive_from_th, listSize(list_array[receive_from_th]));
-            else printf("Thread %d: tail is now: (%d,%d), list size: %d\n", receive_from_th, list_array[receive_from_th]->tail->this.cell, list_array[receive_from_th]->tail->this.num, listSize(list_array[receive_from_th]));
-            //print_sudoku(cp_sudokus_array[tid]);
-            printf("\n");
+            else{ printf("Thread %d: tail is now: (%d,%d), list size: %d\n", receive_from_th, list_array[receive_from_th]->tail->this.cell, list_array[receive_from_th]->tail->this.num, listSize(list_array[receive_from_th]));
+            /*if(receive_from_th == 0){ printf("Th0 list:"); print_list(list_array[receive_from_th]); printf("\n");}*/}
+           // print_sudoku(cp_sudokus_array[tid]);
+            printf("\n"); 
         }
     return hyp;
 }

@@ -124,3 +124,16 @@ int listSize(List* list){
 
 	return counter;
 }
+
+void print_list(List* list){
+
+	ListNode *aux;
+
+	aux = list->head;
+	while(aux!=NULL){
+		printf("(%d,%d) ", aux->this.cell, aux->this.num);
+		aux = aux->next;
+	}
+	printf("\n");
+	return;
+}

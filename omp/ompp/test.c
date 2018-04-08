@@ -15,12 +15,14 @@ int main(void){
 			insert_head( list, pair);
 		}
 	}
-
+print_list(list);
 	while( (list->head) != NULL){
 		
 		pair = pop_tail(list);
 
 	}
+
+	
 
 	free_list(list);
 	/*for(i=0;i<9;i++){
