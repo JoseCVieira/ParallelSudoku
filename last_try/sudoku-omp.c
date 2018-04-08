@@ -66,6 +66,7 @@ int solve(int* sudoku) {
     int i, j, flag_start = 0, solved = 0, start_pos = 0, start_num = 0, tnum = omp_get_max_threads();
     Item hyp;
     
+    /* Initializations */
     List **list_array      = (List**) malloc(tnum * sizeof(List*));
     int *terminated        = (int*)   malloc(tnum * sizeof(int));
     int **r_mask_array     = (int**)  malloc(tnum * sizeof(int*));
@@ -73,15 +74,24 @@ int solve(int* sudoku) {
     int **b_mask_array     = (int**)  malloc(tnum * sizeof(int*));
     int **cp_sudokus_array = (int**)  malloc(tnum * sizeof(int*));
     
+
     for(i = 0; i < tnum; i++){
-        list_array[i]       = init_list();
+        
+        //init array of work lists, one for each thread. 
+        // A work list contains the pairs (cell_id, number) from wich serial DFS search must still be performed 
+        //(in other words it cointains the root values of the unexplored parts of the search tree)
+        list_array[i] = init_list();
+
+        //init array of masks, one for each thread
         r_mask_array[i]     = (int*) malloc(m_size * sizeof(int));
         c_mask_array[i]     = (int*) malloc(m_size * sizeof(int));
         b_mask_array[i]     = (int*) malloc(m_size * sizeof(int));
         cp_sudokus_array[i] = (int*) malloc(v_size * sizeof(int));
         
+        //init array of work lists, one for each thread
         init_masks(sudoku, r_mask_array[i], c_mask_array[i], b_mask_array[i]);
         
+        //init array of cp_sudokus, one for each thread
         for(j = 0; j < v_size; j++) {
             if(sudoku[j])
                 cp_sudokus_array[i][j] = UNCHANGEABLE;
@@ -93,75 +103,86 @@ int solve(int* sudoku) {
                 }
             }
         }
-        
+
+        //array with indication of termination of the parallell for, one cell for each thread (if terminated the parallel for set to 1)
         terminated[i] = 0;
     }
     
+
     #pragma omp parallel private(hyp, i) shared(solved, start_pos, start_num, sudoku, list_array, r_mask_array, c_mask_array, b_mask_array, cp_sudokus_array)
     {
         int tid = omp_get_thread_num();
         
-        //give an initial cell value to each thread
+        // Parallell Stage 1
+        // Each thread starts with a different initial value for the first free cell; 
+        // When a thread finishes searching the search tree for it's initial value, it tries with a different value (dynamic scheduling)
+        // If there are no more initial values to search the thread continues to the Parallell Stage 2
         #pragma omp for nowait schedule(dynamic, 1)
         for(start_num = 1; start_num <= m_size; start_num++) {
 
-            //create first hypothesis and push it to the list
+            //create first hypothesis
             hyp.cell = start_pos;
             hyp.num = start_num;
 
+            //push first hypothesis it to the work list
             #pragma omp critical(hyp)
             insert_head(list_array[tid], hyp);
             
-            //printf("thread %d gets start_num %d\n", tid, start_num);
-            
+            //do serial DFS starting from the cell and number indicated in the first hypothesis
             if(solve_from(cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])) {
+                //if the solution is found set flag solved to 1 and copy the solution to be retrieved
                 #pragma omp critical(sudoku)
                 if(!solved){
-                    solved = 1;
-                    
-                    printf("solved 1\n");
-                    
-                    //printf("\nsolved[1]\n");
-                    
+                    solved = 1;                        
                     for(i = 0; i < v_size; i++)
                         if(cp_sudokus_array[tid][i] != UNCHANGEABLE)
                             sudoku[i] = cp_sudokus_array[tid][i];
                 }
+            //if no solution is found clear all the work done from the sudoku and from the masks; go to Parrallell Stage 2
             }else{    
                 clear_all_work(cp_sudokus_array[tid], list_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid]);
                 terminated[tid] = 1;
             }
         }
-        
-        for(i = 0; i >= 0;){
+
+        //Parallell Stage 2
+        //Each thread searches the work lists of the other threads, trying to find work to do. 
+        //When a node is found the thread removes it from the other thread's list allong with the state of the masks and the sudoku
+        // places the node in it's own list and starts Serial DFS using that node as root
+        //if no solution is found, the thread searches the works lists again to find more work
+        for(i = 0; i >= 0;){ //infinite loop
             if(solved)
                 i = -2; //is solve=1 break, else continue
             else{
-                //get work from the other threads
+
+                //get work from the other threads: a node to start DFS is received and the sudoku and masks are set to that node.
+                //If no work is found a node initialized to (-1,-1) is retrieved
                 #pragma omp critical(hyp)
                 hyp = get_work(tid, cp_sudokus_array, list_array, r_mask_array, c_mask_array, b_mask_array);
                 
+                //no work was found
                 if(hyp.num == -1){
-                    if(termination_test(terminated) )i = -2; //no more work verse já todas as threads terminaram a o for inicial se sim exit, se não  try again?
+                    //do a termination test to see if there is still any thread in Parallell Stage 1. If no thread is there anymore the Sudoku has no solution
+                    //if there are still threads in Parallell Stage 2 keep trying to find more work
+                    if(termination_test(terminated) )i = -2;
+                //work was found
                 }else{
+                    //push the received node to the work list
                     #pragma omp critical(hyp)
-                    insert_head(list_array[tid], hyp);  //push the starting hypothesis received to the work list            
+                    insert_head(list_array[tid], hyp);           
                     
-                    //printf("- thread %d gets cell %d, num %d\n", tid, hyp.cell, hyp.num);
+                    //do Serial DFS from the starting node received
                     if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                         #pragma omp critical(sudoku)
                         if(!solved){
-                            solved = 1;
-                            
-                            printf("solved 2\n");
-                            
+                            solved = 1;                  
                             for(j = 0; j < v_size; j++)
                                 if(cp_sudokus_array[tid][j] != UNCHANGEABLE)
-                                    sudoku[j] = cp_sudokus_array[tid][j];
-                                
+                                    sudoku[j] = cp_sudokus_array[tid][j];              
                         }
                     }
-                    else //Não sei se isto aqui é necessário
+                    //if no solution is found clear the sudoku and the masks, go find more work
+                    else
                         clear_all_work( cp_sudokus_array[tid], list_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid] );
                 }
             }
