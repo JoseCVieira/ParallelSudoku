@@ -130,7 +130,9 @@ int solve(int* sudoku){
             {    
                 insert_head( list_array[tid], hyp);                
             }
+
             printf("thread %d gets start_num %d\n", tid, start_num );
+            printf(" THREAD: %d - ", omp_get_thread_num()); print_list(list_array[tid]); printf("\n");
             if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                 #pragma omp critical(sudoku)
                 if(!solved){
@@ -164,7 +166,7 @@ int solve(int* sudoku){
                     {
                         insert_head( list_array[tid], hyp);  //push the starting hypothesis received to the work list            
                     }
-                 //   if(omp_get_thread_num() == 0){ print_list(list_array[tid]); printf("\n"); }
+                    print_list(list_array[tid]); printf(" THREAD: %d\n", omp_get_thread_num());
                     if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                         #pragma omp critical(sudoku)
                         if(!solved){
