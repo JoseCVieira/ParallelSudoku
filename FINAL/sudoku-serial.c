@@ -11,7 +11,6 @@
 #define COL(i) i%m_size
 
 int r_size, m_size, v_size;
-int cont = 0;
 
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
@@ -34,7 +33,7 @@ int main(int argc, char *argv[]){
         if(solve(sudoku))
             print_sudoku(sudoku);
         else
-            printf("No solution");
+            printf("No solution\n");
     }else
         printf("invalid input arguments.\n");
     
