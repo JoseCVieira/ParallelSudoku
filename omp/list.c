@@ -46,7 +46,7 @@ ListNode * newNode( ListNode* next, ListNode* prev, Item this){
 void insert_head( List* list, Item this){
 
 	if( list -> head == NULL){ //the list is empty
-		list -> tail = newNode(NULL, NULL, this);
+		list -> tail = newNode(NULL, NULL, this);s
 		list -> head = list -> tail;
 		return;
 	}

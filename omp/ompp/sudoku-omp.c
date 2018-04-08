@@ -20,6 +20,7 @@ int solve(int* sudoku);
 int solve_from( int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, List* work);
 Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_array, int **cols_mask_array, int **b_mask_array);
 void clear_all_work( int* cp_sudoku, List* work, int* rows_mask, int* cols_mask, int* boxes_mask);
+int termination_test( int* terminated);
 int new_mask( int size);
 int int_to_mask(int num);
 void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
@@ -73,7 +74,11 @@ int solve(int* sudoku){
     int cp_sudoku[v_size];
     Item hyp;
     int tnum = omp_get_max_threads();
-    
+
+    //array with indication of termination of the parallell for
+    int *terminated = (int*) malloc(tnum * sizeof(int));
+    for(i = 0; i < tnum ; i++) terminated[i] = 0;
+
     //init array of work lists, one for each thread
     List **list_array = (List**) malloc(tnum * sizeof(List*));
     for(i = 0; i < tnum; i++) list_array[i] = init_list();
@@ -134,12 +139,13 @@ int solve(int* sudoku){
                     }
                 }
             }
-            else
+            else{
                 clear_all_work( cp_sudokus_array[tid], list_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid] );
+                terminated[tid] = 1;
+            }
             printf("thread %d finished start_cell: %d , start_num: %d\n", tid, start_pos, start_num);
         }
 
-       // #pragma omp for nowait schedule( dynamic, 1) private(hyp)
         for(i = 0; i >= 0;){
           
             if(solved) i = -2; //is solve=1 break, else continue
@@ -148,13 +154,11 @@ int solve(int* sudoku){
                 hyp = get_work( tid, cp_sudokus_array, list_array, r_mask_array, c_mask_array, b_mask_array);
                 
                 if(hyp.num == -1 ){
-                    printf("\nNO MORE WORK\n");
-                    i = -2; //no more work //============================= try again???????
+                    if(termination_test(terminated) )i = -2; //no more work verse já todas as threads terminaram a o for inicial se sim exit, se não  try again?
                 }
                 else{
                     insert_head( list_array[tid], hyp);  //push the starting hypothesis received to the work list            
                     
-                    printf("- thread %d gets cell %d, num %d\n", tid, hyp.cell, hyp.num);
                     if(solve_from( cp_sudokus_array[tid], r_mask_array[tid], c_mask_array[tid], b_mask_array[tid], list_array[tid])){ 
                         #pragma omp critical(sudoku)
                         if(!solved){
@@ -311,6 +315,7 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
                         min_cell = list_array[th]->tail->this.cell;
                         receive_from_th = th;
                         hyp = pop_tail(list_array[th]);
+
                     }
                 }
             }
@@ -334,8 +339,14 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
                 }
                 i--;
             }
+
+
+            printf("\nThread %d: receive (%d,%d), list size: %d\n", tid, hyp.cell, hyp.num, listSize(list_array[tid]) );
+            if(list_array[receive_from_th]->tail == NULL) printf("Thread %d: tail is now NULL, list size: %d\n", receive_from_th, listSize(list_array[receive_from_th]));
+            else printf("Thread %d: tail is now: (%d,%d), list size: %d\n", receive_from_th, list_array[receive_from_th]->tail->this.cell, list_array[receive_from_th]->tail->this.num, listSize(list_array[receive_from_th]));
+            //print_sudoku(cp_sudokus_array[tid]);
+            printf("\n");
         }
-    printf("GET WORK from %d (start num: %d) ", receive_from_th, cp_sudokus_array[tid][0]);
     return hyp;
 }
 
@@ -351,6 +362,17 @@ void clear_all_work( int *cp_sudoku, List *work, int *rows_mask, int *cols_mask,
     pop_all(  work );
 
     return;
+}
+
+int termination_test( int* terminated){
+    int i;
+    int tnum = omp_get_max_threads();
+
+    for(i = 0; i < tnum; i++){
+        if(terminated[i] == 0 ) return 0;
+    }
+
+    return 1;
 }
 
 int exists_in(int index, int* mask, int num) {
