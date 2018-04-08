@@ -21,6 +21,7 @@ int solve(int* sudoku);
 int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, List* work);
 Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_array, int **cols_mask_array, int **b_mask_array);
 void clear_all_work( int* cp_sudoku, List* work, int* rows_mask, int* cols_mask, int* boxes_mask);
+int termination_test( int* terminated);
 int new_mask( int size);
 int int_to_mask(int num);
 void init_masks(int* sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
@@ -185,26 +186,25 @@ int solve(int* sudoku) {
     return 0;
 }
 
+//Perform Depth First Search from an initial condition of (cell_id, num)
 int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, List* work) {
     int cell, val, row, col, zeros = 1, flag_back = 0, cell_aux, first_valid, val_to_insert, next_empty;
     Item hyp;
-   
+    
+    //Get the initial condition, which contains the starting cell to solve in serial mode from, and the number to put in that cell
     #pragma omp critical(hyp)
     hyp = pop_head(work);
     
     int start_num = hyp.num;
     int start_pos = hyp.cell;
 
+    //if the initial condition is not safe return
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(start_pos), COL(start_pos), start_num))
         return 0;
 
+    //if it is safe put the condition in the sudoku and update the masks
     cp_sudoku[start_pos] = start_num;
     update_masks(start_num, ROW(start_pos), COL(start_pos), rows_mask, cols_mask, boxes_mask);
-    
-    for(cell = start_pos; cell < v_size ; cell++)
-        if(cp_sudoku[cell] == UNASSIGNED)
-            break;
-    next_empty = cell;
     
     /*#pragma omp critical
     {
@@ -214,55 +214,56 @@ int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, 
     }*/
     
     while(zeros){
+        
         zeros = 0;
 
-        cell = next_empty;
+        //start the search in the cell next to the initial condition cell
+        cell = start_pos +1;
+
+        //there is a mistake: go back
         if(flag_back){
-             flag_back = 0;
+            flag_back = 0;
+            
             //get next hypothesis to work on from the list 
             #pragma omp critical(hyp)
             hyp = pop_head(work);
             
             // put every element back to zero until we get to the new hypothesis cell
-            for(cell = cell_aux -1; cell >= next_empty; cell--) {
-                if(cp_sudoku[cell] > 0 && cp_sudoku[cell] <= m_size) {
+            for(cell = cell_aux -1; cell >= hyp.cell; cell--) {
+
+                //if the current cell has a number greater than 0: remove that number from the sudoku and from the masks
+                if(cp_sudoku[cell] > 0) {
                     
                     rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                     cp_sudoku[cell] = UNASSIGNED;
 
-                    if(cp_sudoku[cell] < m_size){
-                        if(cell == hyp.cell){
-                            update_masks(hyp.num, ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                            cp_sudoku[cell] = hyp.num;
-                            
-                            /*if(++cont == 5000){
-                                #pragma omp critical
-                                {
-                                    cont = 0;
-                                    system("clear");
-                                    print_sudoku(cp_sudoku);
-                                    //usleep(100000);
-                                }
-                            }*/
-                            
-                            cell = hyp.cell + 1;
-                            break;
-                        }
+                    //when we get to the new hypothesis cell: write the new number on the sudoku, update masks, continue the search from the next cell on
+                    if(cell == hyp.cell){
+
+                        update_masks(hyp.num, ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                        cp_sudoku[cell] = hyp.num;
+                        
+                      /*  if(++cont == 500000){
+                            #pragma omp critical
+                            {
+                                cont = 0;
+                                system("clear");
+                                print_sudoku(cp_sudoku);
+                                //usleep(100000);
+                            }
+                        } */
+                        
+                        cell = hyp.cell + 1;
+                        break;
                     }
                 }
             }
-            
-            //starting cell's value is incorrect, return
-            if(cell == start_pos){
-                rm_num_masks(cp_sudoku[start_pos],  ROW(start_pos), COL(start_pos), rows_mask, cols_mask, boxes_mask);
-                cp_sudoku[start_pos] = UNASSIGNED;
-                return 0;
-            }
         }
         
+        //iterate the sudoku trying a number in each cell
         for(; cell < v_size; cell++){
             
-            if(!cp_sudoku[cell]){ //if the cell has a zero
+            if(!cp_sudoku[cell]){ //if the cell has a zero skip it, else try a number
                 
                 row = ROW(cell);
                 col = COL(cell);
@@ -270,6 +271,7 @@ int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, 
                 zeros++;
                 first_valid = 1;
                 
+                //for each cell find the valid numbers, try the first valid, save the others on a work list
                 for(val = 1; val <= m_size; val++){
                     if(is_safe_num(rows_mask, cols_mask, boxes_mask, row, col, val)){
                         
@@ -281,29 +283,33 @@ int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, 
                             //add the remaining valid ones to work list
                             #pragma omp critical(hyp)
                             {
-                            hyp.cell = cell;
-                            hyp.num = val;
-                            insert_head(work, hyp);
+                                hyp.cell = cell;
+                                hyp.num = val;
+                                insert_head(work, hyp);
                             }
                         }
                     }
+                    //After testing all the numbers
+                    //if at least one valid number was found: write it to the sudoku, update the masks, go to the next cell
                     if(val == m_size && first_valid == 0){
                         update_masks(val_to_insert, row, col, rows_mask, cols_mask, boxes_mask);
                         cp_sudoku[cell] = val_to_insert;
                         
-                        //if(++cont == 5000){
-                            /*#pragma omp critical
+                      /*  if(++cont == 500000){
+                            #pragma omp critical
                             {   
                                 cont = 0;
                                 system("clear");
                                 print_sudoku(cp_sudoku);
                                 //usleep(100000);
-                            }*/
-                        //}
+                            }
+                        } */
                         
                         break;
+                    //if no valid number was found there must be a mistake somewhere
                     }else if(val == m_size){
                         
+                        //if there is no more work to do, it's impossible to solve the sudoku from the initial condition: delete everything and return
                         if(work->head == NULL){
                             for(; cell >= start_pos; cell--){
                                 if(cp_sudoku[cell] > 0){
@@ -313,10 +319,12 @@ int solve_from(int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask, 
                             }
                             return 0;
                         }
-                        
-                        flag_back = 1;
-                        cell_aux = cell;
-                        cell = v_size; //break
+                        //if there's still work to do search activate: flag_back, break
+                        else{
+                            flag_back = 1;
+                            cell_aux = cell;
+                            cell = v_size; //break
+                        }
                     }
                 }
             }
@@ -365,14 +373,6 @@ Item get_work( int tid, int **cp_sudokus_array, List** list_array, int **r_mask_
             }
             i--;
         }
-
-
-       /* printf("\nThread %d: receive (%d,%d), list size: %d\n", tid, hyp.cell, hyp.num, listSize(list_array[tid]) );
-        if(list_array[receive_from_th]->tail == NULL) printf("Thread %d: tail is now NULL, list size: %d\n", receive_from_th, listSize(list_array[receive_from_th]));
-        else{ printf("Thread %d: tail is now: (%d,%d), list size: %d\n", receive_from_th, list_array[receive_from_th]->tail->this.cell, list_array[receive_from_th]->tail->this.num, listSize(list_array[receive_from_th]));
-        /*if(receive_from_th == 0){ printf("Th0 list:"); print_list(list_array[receive_from_th]); printf("\n");}*//*}
-        // print_sudoku(cp_sudokus_array[tid]);
-        printf("\n"); */
     }
     return hyp;
 }
