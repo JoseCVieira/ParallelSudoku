@@ -21,4 +21,4 @@ Item pop_head(List* list);
 Item pop_tail(List* list);
 void pop_all( List* list);
 int listSize(List* list);
-//void clear_item(Item *this);
+void free_(Item *this);

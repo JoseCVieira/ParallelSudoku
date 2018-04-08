@@ -18,7 +18,7 @@ int r_size, m_size, v_size;
 
 int* read_matrix(char *argv[]);
 int exists_in( int index, int* mask, int num);
-int solve(int* sudoku);
+int solve(int* sudoku, int* cp_sudoku, int *rows_mask, int*cols_mask, int*boxes_mask, int pos, int val);
 int* solve_from( int start_pos, int start_num, int* sudoku, int* cp_sudoku, int* rows_mask, int* cols_mask, int* boxes_mask);
 int new_mask( int size);
 int int_to_mask(int num);
@@ -30,12 +30,11 @@ void print_sudoku(int* sudoku);
 void update_elem_mask(int *r_mask, int *c_mask, int *b_mask, ListNode *n);
 void print_mask(int*mask);
 Item build_item(int pos, int val,int* r_mask,int* c_mask,int *b_mask);
-void free_item(Item* this);
-
+void clear_item(Item *this);
 int main(int argc, char *argv[]) {
     clock_t start, end;
-    int result;
-    int* sudoku;
+    int result, cell = 0, fst_pos= 0, pos = 0;
+    int* sudoku, *rows_mask, *cols_mask, *boxes_mask, *cp_sudoku;
     double time;
 
     if(argc == 2){
@@ -49,9 +48,29 @@ int main(int argc, char *argv[]) {
         //start measurement
         start = clock();
 
-
-        result = solve(sudoku);
-
+        rows_mask = (int*) malloc(m_size * sizeof(int));
+        cols_mask = (int*) malloc(m_size * sizeof(int));
+        boxes_mask = (int*) malloc(m_size * sizeof(int));
+        cp_sudoku = (int*) malloc(v_size * sizeof(int));
+        // init each vector for each thread
+        for(cell = 0; cell < v_size; cell++){
+            if(sudoku[cell])
+                cp_sudoku[cell] = UNCHANGEABLE;
+            else{
+                // first pos empty
+                if(!fst_pos){
+                    fst_pos = !fst_pos;
+                    pos = cell;
+                }
+                cp_sudoku[cell] = UNASSIGNED;
+            }
+        }
+        init_masks(sudoku, rows_mask, cols_mask, boxes_mask);
+        #pragma omp parallel firstprivate(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask)
+        {
+          #pragma omp single
+          result = solve(sudoku,cp_sudoku,rows_mask, cols_mask, boxes_mask, 0, 0);
+        }
         // end measurement
         end = clock();
 
@@ -72,110 +91,59 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-int solve(int* sudoku){
-  int cp_sudoku[v_size];
-  int cell, pos, val = 0, fst_pos = 0, done = 1,row, col;
-  int* rows_mask;
-  int* cols_mask;
-  int* boxes_mask;
-  List *private_list = init_list();
-  List *shared_list = init_list();
-  ListNode current_node;
-  rows_mask = (int*) malloc(m_size * sizeof(int));
-  cols_mask = (int*) malloc(m_size * sizeof(int));
-  boxes_mask = (int*) malloc(m_size * sizeof(int));
-
-  // init each vector for each thread
-  for(cell = 0; cell < v_size; cell++){
-      if(sudoku[cell])
-          cp_sudoku[cell] = UNCHANGEABLE;
-      else{
-          // first pos empty
-          if(!fst_pos){
-              fst_pos = !fst_pos;
-              pos = cell;
-          }
-          cp_sudoku[cell] = UNASSIGNED;
-      }
-  }
-  init_masks(sudoku, rows_mask, cols_mask, boxes_mask);
-
-  insert_head(private_list, build_item(0, 0, rows_mask, cols_mask, boxes_mask));
-  insert_head(shared_list, build_item(0, 0, rows_mask, cols_mask, boxes_mask));
-    current_node.this = pop_head(private_list);
-    #pragma omp parallel firstprivate(rows_mask, cols_mask, boxes_mask, current_node) shared(shared_list)
-    {
+int solve(int* sudoku, int *cp_sudoku, int * rows_mask, int *cols_mask, int* boxes_mask,int  val,int pos){
+    int row, col,last_val = 0,done = 1;
 
 
-    #pragma omp single nowait
-    {
-    while(current_node.this.pos < v_size){
-    /* printf("while-------%d\n", current_node.this.pos );
-      print_mask(rows_mask);
-      print_mask(cols_mask);
-      print_mask(boxes_mask);
-      printf("-----------\n" );*/
+    if(done !=0)
+    while(pos < v_size){
         done = 1;
-      //  printf(" pos: %d, val: %d\n", current_node.this.pos, current_node.this.val);
-    //  printf("tid: %d -pos:%d -val: %d\n",omp_get_thread_num(),current_node.this.pos, current_node.this.val);
-         if(current_node.this.val < m_size){
+        row  = ROW(pos);
+        col = COL(pos);
+         if(val < m_size){
 
-              val = ++current_node.this.val;
-              pos = current_node.this.pos;
-              row = ROW(pos);
-              col = COL(pos);
-             if(is_safe_num(current_node.this.r_mask, current_node.this.c_mask, current_node.this.b_mask, row, col,val)){
-                #pragma omp task firstprivate(rows_mask, cols_mask, boxes_mask, current_node)
-                {
+              val++;
+             if(is_safe_num(rows_mask, cols_mask, boxes_mask, row, col,val)){
+               //printf("tid: %d saved mask for- pos: %d val: %d\n",omp_get_thread_num(), pos, val);
+               //print_mask(rows_mask);
+               //is safe so update masks
+               update_masks(val, row, col, rows_mask, cols_mask, boxes_mask);
+               //print_mask(rows_mask);
+               //insert value in sudoku
 
-                   //printf("tid: %d -pos:%d -val: %d\n",shared_list->head->this.pos,shared_list->head->this.pos, shared_list->head->this.val);
-                   #pragma omp critical
-                   {
-                    insert_head(shared_list, build_item(pos, val, current_node.this.r_mask, current_node.this.c_mask, current_node.this.b_mask));
-                      update_masks(val, row, col, current_node.this.r_mask, current_node.this.c_mask, current_node.this.b_mask);
-                      sudoku[pos]  =val;
-                    }
-
-                    insert_head(private_list, current_node.this);
-
-                    while(cp_sudoku[++pos] == -1);
-                    row = ROW(pos);
-                    col = COL(pos);
-                  }
-                  #pragma omp taskwait
-
-                    current_node.this = build_item(pos, 0, current_node.this.r_mask, current_node.this.c_mask, current_node.this.b_mask);
-                    insert_head(private_list, current_node.this);
+               last_val = val;
+               //searches next pos
+               while(cp_sudoku[++pos] == -1);
+               //goes deeper
+                 //printf("%d\n", omp_get_thread_num());
+                 //print_mask(rows_mask);
+                done = solve(sudoku,cp_sudoku, rows_mask, cols_mask, boxes_mask, 0, pos);
+                //printf("DONE:%d, tid:%d\n", done ,omp_get_thread_num());
 
 
-                }
+
+               if(done){
+                return 1;
+               }
+               else{
+                 #pragma omp task shared(sudoku) firstprivate(done)
+                 {
+                   done = solve(sudoku,cp_sudoku, rows_mask, cols_mask, boxes_mask, 0, pos);
+                 }
+
+               }
+
+               while(cp_sudoku[--pos] == -1);
+               rm_num_masks(last_val, row, col, rows_mask, cols_mask, boxes_mask);
+             }
+
           }else{
-              //printf("HEY\n" );
-              if(private_list->head->next != NULL && shared_list->head->next != NULL){
-                //  printf("ITS ME\n" );
-                    current_node.this = pop_head(private_list);
-                    #pragma omp critical
-                    {
-                      current_node.this = pop_head(shared_list);
-                    }
-
-
-              }else{
-                  current_node.this.pos = v_size;
-                  done = 0;
-                }
+              return 0;
           }
 
         }
 
-}//single
 
-}//parallel
-    /*free(rows_mask);
-    free(cols_mask);
-    free(boxes_mask);*/
-
-    return done;
 }
 
 /*struct node* add_node(struct node* n, int *r_mask, int *c_mask, int *b_mask, int pos, int val){
@@ -203,10 +171,10 @@ Item build_item(int pos, int val,int *r_mask,int *c_mask,int *b_mask){
   int i;
   this.pos = pos;
   this.val = val;
-
-/*  this.r_mask = (int *) malloc(m_size*sizeof(int));
+  //printf("malloc\n" );
+  this.r_mask = (int *) malloc(m_size*sizeof(int));
   this.c_mask = (int *) malloc(m_size*sizeof(int));
-  this.b_mask = (int *) malloc(m_size*sizeof(int));*/
+  this.b_mask = (int *) malloc(m_size*sizeof(int));
 
   for(i = 0; i < m_size; i++){
     this.r_mask[i] = r_mask[i];
@@ -288,7 +256,7 @@ int* read_matrix(char *argv[]) {
     m_size = r_size *r_size;
     v_size = m_size * m_size;
 
-    int* sudoku = (int*)malloc(v_size * sizeof(int));
+    int* sudoku = (int*)calloc(v_size, sizeof(int));
 
     k = 0, l = 0;
     len = m_size * 2;
@@ -335,4 +303,9 @@ void print_mask(int*mask){
     printf("%d ",mask[i]);
   }
   printf("\n" );
+}
+void clear_item(Item *this){
+  free(this->r_mask);
+  free(this->c_mask);
+  free(this->b_mask);
 }

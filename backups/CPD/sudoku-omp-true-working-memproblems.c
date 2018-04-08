@@ -30,6 +30,7 @@ void print_sudoku(int* sudoku);
 void update_elem_mask(int *r_mask, int *c_mask, int *b_mask, ListNode *n);
 void print_mask(int*mask);
 Item build_item(int pos, int val,int* r_mask,int* c_mask,int *b_mask);
+void clear_item(Item *this);
 int main(int argc, char *argv[]) {
     clock_t start, end;
     int result;
@@ -71,28 +72,21 @@ int main(int argc, char *argv[]) {
 }
 
 int solve(int* sudoku){
-    int cp_sudoku[v_size];
+    int *cp_sudoku;
     int cell, pos, val = 0, fst_pos = 0, done = 1,row, col;
     int* rows_mask;
     int* cols_mask;
     int* boxes_mask;
-    List *private_list = init_list();
-    List *shared_list = init_list();
-    ListNode current_node;
     rows_mask = (int*) malloc(m_size * sizeof(int));
     cols_mask = (int*) malloc(m_size * sizeof(int));
     boxes_mask = (int*) malloc(m_size * sizeof(int));
-
+    cp_sudoku = (int*) calloc(v_size, sizeof(int));
     // init each vector for each thread
     for(cell = 0; cell < v_size; cell++){
+      printf("%d\n", sudoku[cell]);
         if(sudoku[cell])
             cp_sudoku[cell] = UNCHANGEABLE;
         else{
-            // first pos empty
-            if(!fst_pos){
-                fst_pos = !fst_pos;
-                pos = cell;
-            }
             cp_sudoku[cell] = UNASSIGNED;
         }
     }
@@ -151,7 +145,10 @@ int solve(int* sudoku){
               //printf("HEY\n" );
               if(private_list->head->next != NULL && shared_list->head->next != NULL){
                 //  printf("ITS ME\n" );
+                clear_item(&current_node.this);
                     current_node.this = pop_head(private_list);
+
+
                     #pragma omp critical
                     {
                       current_node.this = pop_head(shared_list);
@@ -201,7 +198,7 @@ Item build_item(int pos, int val,int *r_mask,int *c_mask,int *b_mask){
   int i;
   this.pos = pos;
   this.val = val;
-
+  //printf("malloc\n" );
   this.r_mask = (int *) malloc(m_size*sizeof(int));
   this.c_mask = (int *) malloc(m_size*sizeof(int));
   this.b_mask = (int *) malloc(m_size*sizeof(int));
@@ -286,7 +283,7 @@ int* read_matrix(char *argv[]) {
     m_size = r_size *r_size;
     v_size = m_size * m_size;
 
-    int* sudoku = (int*)malloc(v_size * sizeof(int));
+    int* sudoku = (int*)calloc(v_size * sizeof(int));
 
     k = 0, l = 0;
     len = m_size * 2;
@@ -305,7 +302,7 @@ int* read_matrix(char *argv[]) {
 
     free(line);
     fclose(fp);
-
+    printf("dome\n";
     return sudoku;
 }
 
@@ -333,4 +330,9 @@ void print_mask(int*mask){
     printf("%d ",mask[i]);
   }
   printf("\n" );
+}
+void clear_item(Item *this){
+  free(this->r_mask);
+  free(this->c_mask);
+  free(this->b_mask);
 }

@@ -21,7 +21,8 @@ void free_list( List* list){
 	for(aux = list -> head; aux != NULL; aux = next){
 
 		next = aux -> next;
-		free( aux );
+		clear_item(&aux->this);
+		free(aux);
 	}
 	free(list);
 
@@ -80,6 +81,7 @@ Item pop_head(List* list){
 	 	return item;
 	}
 	aux -> prev = NULL;
+
 	free(list->head);
 	list -> head = aux;
 	return item;
@@ -94,7 +96,7 @@ Item pop_tail(List* list){
 	 	return item;
 	}
 	aux -> next = NULL;
-	free(list -> tail);
+	free(list->tail);
 	list -> tail = aux;
 	return item;
 }
@@ -122,3 +124,8 @@ int listSize(List* list){
 
 	return counter;
 }
+/*void clear_item(Item *this){
+  free(this->r_mask);
+  free(this->c_mask);
+  free(this->b_mask);
+}*/
