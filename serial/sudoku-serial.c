@@ -139,9 +139,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         for(cell = hyp.cell + 1; cell < v_size; cell++){
 
             if(!cp_sudoku[cell]){
-                //for(val = 1; val <= m_size; val++){
                 for(val = m_size; val >= 1; val--){
-                    //printf("val=%d\n", val);
                     
                     if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                          if(cell == last_pos){
@@ -154,7 +152,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         insert_head(work, hyp);
                     }
                 }
-                //sleep(1);
                     
                 if(work->head == NULL){
                     for(cell = v_size - 1; cell >= start_pos; cell--)
