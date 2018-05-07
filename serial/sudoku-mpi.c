@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdint.h>
+#include <mpi.h>
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
@@ -107,7 +108,7 @@ int solve(int* sudoku){
         }
 
     }
-    MPI_Scatter(possibilities, elements_per_proc, MPI_INT, start_num,
+    MPI_Scatter(possibilities, 1, MPI_INT, start_num,
             1, MPI_INT, 0, MPI_COMM_WORLD);
     if(!solved){
         hyp.cell = start_pos;
