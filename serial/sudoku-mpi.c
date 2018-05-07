@@ -124,11 +124,11 @@ int solve(int* sudoku){
                     sudoku[i] = cp_sudoku[i];
         }
     }
-    if(id){
+    /*if(id){
       MPI_Send(&sudoku, v_size * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD);
     }else{
       MPI_Recv(&sudoku,  v_size * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
+    }*/
     free(work);
     free(r_mask_array);
     free(c_mask_array);
