@@ -108,8 +108,8 @@ int solve(int* sudoku){
         }
 
     }
-    MPI_Scatter(possibilities, 1, MPI_INT, start_num,
-            1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter((void *)possibilities, 1, MPI_INT, start_num,
+            (int)1, MPI_INT, 0, MPI_COMM_WORLD);
     if(!solved){
         hyp.cell = start_pos;
         hyp.num = start_num;
