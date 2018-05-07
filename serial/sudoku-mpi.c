@@ -66,7 +66,7 @@ int main(int argc, char *argv[]){
 
         printf("nr_it=%d\n", nr_it);
         fflush(stdout);
-        MPI_finalize();
+        MPI_Finalize();
     }else
         printf("invalid input arguments.\n");
 
@@ -108,7 +108,7 @@ int solve(int* sudoku){
         }
 
     }
-    MPI_Scatter((void *)possibilities, 1, MPI_INT, start_num,
+    MPI_Scatter((void *)possibilities, 1, MPI_INT, &start_num,
             (int)1, MPI_INT, 0, MPI_COMM_WORLD);
     if(!solved){
         hyp.cell = start_pos;
@@ -127,7 +127,7 @@ int solve(int* sudoku){
     if(id){
       MPI_Send(&sudoku, v_size * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD);
     }else{
-      MPI_Recvi(&sudoku,  v_size * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(&sudoku,  v_size * sizeof(int), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
     free(work);
     free(r_mask_array);
