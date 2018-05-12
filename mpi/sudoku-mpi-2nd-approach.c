@@ -135,17 +135,15 @@ int solve(int* sudoku){
               for(i = 0; i < v_size; i++)
                   if(cp_sudoku[i] != UNCHANGEABLE)
                       sudoku[i] = cp_sudoku[i];
-
           }else{
-            start_num++;
+            if(start_num < high_value)
+              start_num++;
 
             if(start_num == high_value){
               printf("trying to find");
-              if(id == 4){
-                MPI_Send(&send, 1, MPI_INT, 0, id, MPI_COMM_WORLD);
-              }else{
-                MPI_Send(&send, 1, MPI_INT, id+1, id, MPI_COMM_WORLD);
-              }
+              if(id != 0)
+              MPI_Send(&send, 1, MPI_INT, 0, id, MPI_COMM_WORLD);
+
             }
 
             /*  MPI_Bcast(&, 1, MPI_INT, solved, MPI_COMM_WORLD);*/
