@@ -68,7 +68,6 @@ int main(int argc, char *argv[]){
 
         fflush(stdout);
         MPI_Finalize();
-        printf("\n");
 
     }else
         printf("invalid input arguments.\n");
