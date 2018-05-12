@@ -125,8 +125,10 @@ int solve(int* sudoku){
         }else{
             if(start_num < high_value)
                 start_num++;
+            else
+                break;
 
-            if(start_num == high_value){
+            /*if(start_num == high_value){
                 for(i = id + 1; i != id; i++){
                     if(i == p)
                         i = 0;
@@ -134,7 +136,7 @@ int solve(int* sudoku){
                     MPI_Send(&i, 1, MPI_INT, i, id, MPI_COMM_WORLD);
                 }
                 return 0;
-            }
+            }*/
         }
     }
 
@@ -166,7 +168,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
         MPI_Test(&request, &flag, &status);
         if(flag)
-            printf("RECEIVED: %d\n",recv);
+            printf("rank = %d => renv: %d\n", id, recv);
         
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
