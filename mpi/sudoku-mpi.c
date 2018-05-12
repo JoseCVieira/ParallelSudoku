@@ -5,38 +5,14 @@
 #include <stdint.h>
 #include <mpi.h>
 
+#include "list.h"
+
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
 #define BOX(row, col) r_size*(row/r_size)+col/r_size
-
-typedef struct{
-    int cell;
-    int num;
-}Item;
-
-typedef struct ListNode{
-    Item this;
-    struct ListNode *next;
-    struct ListNode *prev;
-}ListNode;
-
-typedef struct{
-    ListNode *head;
-    ListNode *tail;
-    int len;
-}List;
-
-int r_size, m_size, v_size; int nr_it = 0;
-
-List * init_list(void);
-ListNode* newNode(Item this);
-void insert_head(List* list, Item this);
-Item pop_head(List* list);
-int id, p, world_size = 3;
-MPI_Status status;
 
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
@@ -50,23 +26,33 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
+int r_size, m_size, v_size;
+int id, p, world_size = 3;
+MPI_Status status;
+
+int nr_it = 0; //a eliminar
+
 int main(int argc, char *argv[]){
     int* sudoku;
 
     if(argc == 2){
 
         sudoku = read_matrix(argv);
+        
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
+        
         if(solve(sudoku))
             print_sudoku(sudoku);
         else
             printf("No solution\n");
 
         printf("nr_it=%d\n", nr_it);
+        
         fflush(stdout);
         MPI_Finalize();
+        
     }else
         printf("invalid input arguments.\n");
 
@@ -76,14 +62,15 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int *possibilities;
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
     Item hyp;
-    possibilities = (int*) malloc(m_size*sizeof(int));
+
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
-    int      *cp_sudoku    = (int*)      malloc(v_size * sizeof(int));
+    
+    int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
+    int *possibilities = (int*) malloc(m_size*sizeof(int));
     List *work = init_list();
 
     for(i = 0; i < v_size; i++) {
@@ -100,16 +87,15 @@ int solve(int* sudoku){
     }
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
+    
     MPI_Barrier(MPI_COMM_WORLD);
 
-    for(start_num = 1; start_num <= m_size; start_num++) {
-        if(!id){
+    for(start_num = 1; start_num <= m_size; start_num++)
+        if(!id)
           possibilities[start_num] = start_num;
-        }
-
-    }
-    MPI_Scatter((void *)possibilities, 1, MPI_INT, &start_num,
-            (int)1, MPI_INT, 0, MPI_COMM_WORLD);
+          
+    MPI_Scatter((void *)possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
     if(!solved){
         hyp.cell = start_pos;
         hyp.num = start_num;
@@ -295,55 +281,4 @@ void print_sudoku(int *sudoku) {
         else
             printf("%2d\n", sudoku[i]);
     }
-}
-
-List* init_list(void){
-    List* newList = (List*)malloc(sizeof(List));
-    newList -> head = NULL;
-    newList -> tail = NULL;
-    newList->len = 0;
-
-    return newList;
-}
-
-ListNode* newNode(Item this){
-    ListNode* new_node = (ListNode*) malloc(sizeof(ListNode));
-
-    new_node -> this = this;
-    new_node -> next = NULL;
-
-    return new_node;
-}
-
-void insert_head(List* list, Item this){
-    ListNode* node = newNode(this);
-
-    if (list->len) {
-        node->next = list->head;
-        node->prev = NULL;
-        list->head->prev = node;
-        list->head = node;
-    }else {
-        list->head = list->tail = node;
-        node->prev = node->next = NULL;
-    }
-
-    ++list->len;
-}
-
-Item pop_head(List* list){
-    Item item;
-
-    ListNode* node = list->head;
-
-    if (--list->len)
-        (list->head = node->next)->prev = NULL;
-    else
-        list->head = list->tail = NULL;
-
-    node->next = node->prev = NULL;
-
-    item = node -> this;
-    free(node);
-    return item;
 }
