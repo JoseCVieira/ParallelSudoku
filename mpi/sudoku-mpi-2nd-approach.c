@@ -66,7 +66,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value; //variables related to block decomposition
+    int low_value, high_value, result; //variables related to block decomposition
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -91,8 +91,11 @@ int solve(int* sudoku){
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
 
+<<<<<<< HEAD
     //MPI_Barrier(MPI_COMM_WORLD);
 
+=======
+>>>>>>> 743a7c58ed8d2819bfe0a0dd2384d3f3b65a6c57
     low_value = 1+BLOCK_LOW(id,p,m_size);
     high_value = 2 + BLOCK_HIGH(id,p,m_size);
     
@@ -106,12 +109,25 @@ int solve(int* sudoku){
 
         insert_head(work, hyp);
 
-        if(solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) {
+        if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos))) {
             solved = 1;
             for(i = 0; i < v_size; i++)
                 if(cp_sudoku[i] != UNCHANGEABLE)
                     sudoku[i] = cp_sudoku[i];
+                
+                for(i = id + 1; i != id; i++){
+                    if(i >= p)
+                        i = 0;
+                    
+                    MPI_Send(&i, 1, MPI_INT, i, id, MPI_COMM_WORLD);
+                }
+                
         }else{
+<<<<<<< HEAD
+=======
+            if(result == -1)
+                return 0;
+>>>>>>> 743a7c58ed8d2819bfe0a0dd2384d3f3b65a6c57
             start_num++;
             if(start_num == high_value)
                 break;
@@ -155,8 +171,15 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         /*flag = 0;
         MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
         MPI_Test(&request, &flag, &status);
+<<<<<<< HEAD
         if(flag)
             printf("rank = %d => renv: %d\n", id, recv);*/
+=======
+       /* if(flag){
+            printf("rank = %d => renv: %d\n", id, recv);
+            return -1;
+        }*/
+>>>>>>> 743a7c58ed8d2819bfe0a0dd2384d3f3b65a6c57
         
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
