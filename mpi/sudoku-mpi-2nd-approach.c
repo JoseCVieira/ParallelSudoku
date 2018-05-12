@@ -87,7 +87,6 @@ int solve(int* sudoku){
     /*variables related to block decomposition*/
     int low_value, high_value, size, proc0_size;
     Item hyp;
-    int send = 1;
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -140,9 +139,11 @@ int solve(int* sudoku){
               start_num++;
 
             if(start_num == high_value){
-              printf("trying to find");
-              if(id != 0)
-              MPI_Send(&send, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+              for(i = id+1, i !=id, i++){
+                if(i == p)
+                  i = 0;
+                MPI_Send(&solved,1, MPI_INT, i, id, MPI_COMM_WORLD);
+              }
 
             }
 
@@ -177,9 +178,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 
     while(1){
         if(id ==0){
-          MPI_Irecv(&recv, 1, MPI_INT,0 , 0, MPI_COMM_WORLD, &request);
-          if(recv == 1)
-          printf("RECEIVED: %d\n", recv);
+          MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+          if(request != NULL)
+            printf("RECEIVED: %d\n", recv);
         }
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
