@@ -23,7 +23,7 @@ int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask,
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
-int exists_in( int index, uint64_t*awdamask, int num);
+int exists_in( int index, uint64_t* mask, int num);
 int* read_matrix(char *argv[]);
 void print_sudoku(int *sudoku);
 int int_to_mask(int num);
@@ -131,7 +131,6 @@ int solve(int* sudoku){
                 start_num++;
 
             if(start_num == high_value){
-<<<<<<< HEAD
                 for(i = id + 1; i != id; i++){
                     if(i == p)
                         i = 0;
@@ -139,15 +138,6 @@ int solve(int* sudoku){
                     MPI_Send(&i, 1, MPI_INT, i, id, MPI_COMM_WORLD);
                 }
                 return 0;
-=======
-              for(i = id+1; i !=id; i++){
-                if(i == p){
-                  i = 0;
-
-		            }
-                MPI_Send(&i,1, MPI_INT, i, id, MPI_COMM_WORLD);
-              }
->>>>>>> ab65537157f8bec72142f5a07633a2206cc983e1
             }
         }
     }
