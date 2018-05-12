@@ -111,7 +111,7 @@ int solve(int* sudoku){
                     sudoku[i] = cp_sudoku[i];
                 
                 for(i = id + 1; i != id; i++){
-                    if(i == p)
+                    if(i >= p)
                         i = 0;
                     
                     MPI_Send(&i, 1, MPI_INT, i, id, MPI_COMM_WORLD);
