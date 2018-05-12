@@ -36,7 +36,7 @@ int id, p;
 int nr_it = 0; //a eliminar
 
 int main(int argc, char *argv[]){
-    int* sudoku;
+    int result, solved, *sudoku;
 
     if(argc == 2){
 
@@ -46,15 +46,21 @@ int main(int argc, char *argv[]){
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
-        if(solve(sudoku))
-            print_sudoku(sudoku);
-        else
-            printf("No solution\n");
+        result = solve(sudoku);
 
         printf("process %d => nr_it=%d\n", id, nr_it);
-
 	MPI_Barrier(MPI_COMM_WORLD);
-        
+
+	MPI_Reduce(&result, &solved, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	if(!solved){
+	    if(!id)
+	        printf("No solution\n");
+	}else{
+	    if(result)
+            	print_sudoku(sudoku);
+	}        
+
         fflush(stdout);
         MPI_Finalize();
 
@@ -69,6 +75,7 @@ int main(int argc, char *argv[]){
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
     int low_value, high_value, result; //variables related to block decomposition
+    MPI_Request request;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -115,8 +122,8 @@ int solve(int* sudoku){
                 
                 for(i = 0; i < p; i++){
 		    if(i != id){
-                        MPI_Send(&i, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-                        printf("sent by %d\n", id);
+                        MPI_Isend(&i, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &request);
+                        printf("sent from = %d to = %d\n", id, i);
 		    }
 		}
                 
@@ -158,8 +165,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 
     while(1){
         MPI_Test(&request, &flag, &status);
-	if(flag != 0)
-	    return -1;       
+	if(flag != 0){
+	    printf("id = %d recv => tag = %d | source = %d\n", id, status.MPI_TAG, status.MPI_SOURCE);
+	    return -1;
+	}       
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
