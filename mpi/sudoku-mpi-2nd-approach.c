@@ -158,10 +158,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
         return 0;
+    
+    flag = 0;
+    MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
 
     while(1){
-        flag = 0;
-        MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+        
         MPI_Test(&request, &flag, &status);
         if(flag){
             printf("rank = %d => renv: %d\n", id, recv);
