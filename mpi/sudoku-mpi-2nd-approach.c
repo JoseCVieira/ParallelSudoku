@@ -152,6 +152,7 @@ int solve(int* sudoku){
     return 0;
 }
 
+
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val, recv, flag;
     MPI_Request request;
@@ -173,37 +174,26 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
-
+        
         nr_it ++;
-
+        
         for(cell = hyp.cell + 1; cell < v_size; cell++){
-	     flag = 0;
-       MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-       MPI_Test(&request, &flag, &status);
-       if(flag != 0)
-        printf("RECEIVED: %d\n",recv);
 
-       update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
-       cp_sudoku[hyp.cell] = hyp.num;
-
-       nr_it ++;
-
-       for(cell = hyp.cell + 1; cell < v_size; cell++){
             if(!cp_sudoku[cell]){
                 for(val = m_size; val >= 1; val--){
-
+                    
                     if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                          if(cell == last_pos){
                             cp_sudoku[cell] = val;
                             return 1;
                          }
-
+                        
                         hyp.cell = cell;
                         hyp.num = val;
                         insert_head(work, hyp);
                     }
                 }
-
+                    
                 if(work->head == NULL){
                     for(cell = v_size - 1; cell >= start_pos; cell--)
                         if(cp_sudoku[cell] > 0){
@@ -215,16 +205,15 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     break;
             }
         }
-
+        
         hyp = pop_head(work);
-
+        
         for(cell--; cell >= hyp.cell; cell--){
             if(cp_sudoku[cell] > 0) {
                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                 cp_sudoku[cell] = UNASSIGNED;
             }
         }
-
     }
 }
 
