@@ -112,9 +112,8 @@ int solve(int* sudoku){
                 if(cp_sudoku[i] != UNCHANGEABLE)
                     sudoku[i] = cp_sudoku[i];
         }else{
-            if(start_num < high_value - 2)
-                start_num++;
-            else
+            start_num++;
+            if(start_num == high_value)
                 break;
 
             /*if(start_num == high_value){
