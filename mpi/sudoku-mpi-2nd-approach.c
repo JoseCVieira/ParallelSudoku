@@ -14,9 +14,9 @@
 #define COL(i) i%m_size
 #define BOX(row, col) r_size*(row/r_size)+col/r_size
 
-#define BLOCK_LOW(ids,pr,num) ((ids)*(num)/(pr))
-#define BLOCK_HIGH(ids,pr,num) (BLOCK_LOW((ids)+1,pr,num)-1)
-#define BLOCK_SIZE(ids,pr,num) (BLOCK_LOW((ids)+1)-BLOCK_LOW(ids))
+#define BLOCK_LOW(id,p,n) ((id)*(n)/(p))
+#define BLOCK_HIGH(id,p,n) (BLOCK_LOW((id)+1,p,n)-1)
+#define BLOCK_SIZE(id,p,n) (BLOCK_HIGH(id,p,n)-BLOCK_LOW(id,p,n)+1)
 
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
@@ -115,17 +115,17 @@ int solve(int* sudoku){
 
 
 
-  /*  if(id == 0){
-    low_value = 2 + BLOCK_LOW(id,p,m_size-1);
-    high_value = 2 + BLOCK_HIGH(id,p,m_size-1);
-    size = BLOCK_SIZE(id,p,m_size-1);
-    proc0_size = (m_size-1)/p;
-    printf("L_value:\t %d\n
-            H_value:\t %d\n
-            size \t  %d\n
-            proc0_size: %d\n", low_value, high_value, size, proc0_size);
-    }*/
-    return 1;
+//   if(id == 0){
+   	low_value = 2 + BLOCK_LOW(id,p,m_size-1);
+    	high_value = 2 + BLOCK_HIGH(id,p,m_size-1);
+    	size = BLOCK_SIZE(id,p,m_size-1);
+    	proc0_size = (m_size-1)/p;
+	printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id, 
+low_value, 
+high_value, 
+size, 
+proc0_size);
+  //  }
     for(start_num = 1; start_num <= m_size; start_num++)
         if(!id)
             possibilities[start_num] = start_num;
