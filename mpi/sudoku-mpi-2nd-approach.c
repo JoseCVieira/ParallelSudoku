@@ -18,6 +18,7 @@
 #define BLOCK_HIGH(id,p,n) (BLOCK_LOW((id)+1,p,n)-1)
 #define BLOCK_SIZE(id,p,n) (BLOCK_HIGH(id,p,n)-BLOCK_LOW(id,p,n)+1)
 
+
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
@@ -36,6 +37,9 @@ void printArray (int *row, int nElements);
 int r_size, m_size, v_size;
 int id, p;
 MPI_Status status;
+typedef struct{
+  int input_array[m_size];
+}t_test;
 
 int nr_it = 0; //a eliminar
 
@@ -138,9 +142,9 @@ int solve(int* sudoku){
 
           }else{
             start_num++;
-	    
+
             if(start_num == high_value)
-		break;
+		          break;
             /*  MPI_Bcast(&, 1, MPI_INT, solved, MPI_COMM_WORLD);*/
             //wait for bcast response
 
