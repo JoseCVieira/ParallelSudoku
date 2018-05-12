@@ -41,14 +41,14 @@ int main(int argc, char *argv[]){
     if(argc == 2){
 
         sudoku = read_matrix(argv);
-        
+
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
-        
+
         int rank, result; // a eliminar e meter como antigamente
         result = solve(sudoku);
-        
+
         rank = 0;
         while (rank < m_size) {
             if (id == rank) {
@@ -58,18 +58,18 @@ int main(int argc, char *argv[]){
                 else
                     printf("No solution\n");
 
-                printf("nr_it=%d\n", nr_it);            
+                printf("nr_it=%d\n", nr_it);
                 fflush (stdout);
             }
-            
+
             rank ++;
             MPI_Barrier(MPI_COMM_WORLD);
         }
-        
+
         fflush(stdout);
         MPI_Finalize();
         printf("\n");
-        
+
     }else
         printf("invalid input arguments.\n");
 
@@ -85,7 +85,7 @@ int solve(int* sudoku){
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
-    
+
     int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
     int *possibilities = (int*) malloc(m_size*sizeof(int));
     List *work = init_list();
@@ -104,53 +104,27 @@ int solve(int* sudoku){
     }
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
-    
-    
-    
-    int *matrix;
 
-    if (id == 0) {
-        matrix = createMatrix(p, p); // Master process creates matrix
-        printf("Initial matrix:\n");
-        printArray(matrix, p*p);
-    }
 
-    int *procRow = malloc(sizeof(int) * p); // received row will contain p integers
-    if (procRow == NULL) {
-        perror("Error in malloc 3");
-        exit(1);
-    }
 
-    if (MPI_Scatter(matrix, p, MPI_INT, // send one row, which contains p integers
-                procRow, p, MPI_INT, // receive one row, which contains p integers
-                0, MPI_COMM_WORLD) != MPI_SUCCESS) {
 
-        perror("Scatter error");
-        exit(1);
-    }
 
-    printf("Process %d received elements: ", id);
-    printArray(procRow, p);
-    
-    
-    
-    
 
-    /*for(start_num = 1; start_num <= m_size; start_num++)
+    for(start_num = 1; start_num <= m_size; start_num++)
         if(!id)
             possibilities[start_num] = start_num;
-          
-    MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);*/
-    
+
+    MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     //printf ("Process %d recv %d\n", id, start_num);
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     if(!solved){
         if(!id)
             start_num = m_size;
-        
+
         hyp.cell = start_pos;
         hyp.num = start_num;
 
@@ -164,7 +138,7 @@ int solve(int* sudoku){
                     sudoku[i] = cp_sudoku[i];
         }
     }
-  
+
     free(work);
     free(r_mask_array);
     free(c_mask_array);
