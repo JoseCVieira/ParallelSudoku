@@ -115,7 +115,7 @@ int solve(int* sudoku){
 
 
 
-    if(id == 0){
+  /*  if(id == 0){
     low_value = 2 + BLOCK_LOW(id,p,m_size-1);
     high_value = 2 + BLOCK_HIGH(id,p,m_size-1);
     size = BLOCK_SIZE(id,p,m_size-1);
@@ -124,7 +124,7 @@ int solve(int* sudoku){
             H_value:\t %d\n
             size \t  %d\n
             proc0_size: %d\n", low_value, high_value, size, proc0_size);
-    }
+    }*/
     return 1;
     for(start_num = 1; start_num <= m_size; start_num++)
         if(!id)
