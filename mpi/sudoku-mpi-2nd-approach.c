@@ -142,7 +142,7 @@ int solve(int* sudoku){
             if(start_num == high_value){
               printf("trying to find");
               if(id != 0)
-              MPI_Send(&send, 1, MPI_INT, 0, id, MPI_COMM_WORLD);
+              MPI_Send(&send, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
             }
 
@@ -167,7 +167,7 @@ int solve(int* sudoku){
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val;
     Item hyp;
-    int recv;
+    int recv = 0;
     MPI_Request request;
     hyp = pop_head(work);
     int start_pos = hyp.cell;
@@ -176,9 +176,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         return 0;
 
     while(1){
-        MPI_Irecv(&recv, 1, MPI_INT, id-1, id-1, MPI_COMM_WORLD, &request);
-        if(recv ==1){
+        if(id ==0){
+          MPI_Irecv(&recv, 1, MPI_INT,0 , 0, MPI_COMM_WORLD, &request);
           printf("RECEIVED: %d\n", recv);
+
         }
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
