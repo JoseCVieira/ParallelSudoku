@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
-        int rank, result; // a eliminar
+        int rank, result; // a eliminar e meter como antigamente
         result = solve(sudoku);
         
         rank = 0;
@@ -106,7 +106,7 @@ int solve(int* sudoku){
     for(start_num = 1; start_num <= m_size; start_num++)
         possibilities[start_num] = start_num;
           
-    MPI_Scatter((void *)possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
     
     printf ("Process %d is recv %d\n", id, start_num);
     MPI_Barrier(MPI_COMM_WORLD);
