@@ -30,12 +30,8 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
-int *createMatrix (int nrows, int ncols);
-void printArray (int *row, int nElements);
-
 int r_size, m_size, v_size;
 int id, p;
-MPI_Status status;
 
 int nr_it = 0; //a eliminar
 
@@ -320,28 +316,4 @@ void print_sudoku(int *sudoku) {
         else
             printf("%2d\n", sudoku[i]);
     }
-}
-
-int *createMatrix (int nrows, int ncols) {
-    int *matrix;
-    int h, i, j;
-
-    if (( matrix = malloc(nrows*ncols*sizeof(int))) == NULL) {
-        printf("Malloc error");
-        exit(1);
-    }
-
-    for (h=0; h<nrows*ncols; h++) {
-        matrix[h] = h+1;
-    }
-
-    return matrix;
-}
-
-void printArray (int *row, int nElements) {
-    int i;
-    for (i=0; i<nElements; i++) {
-        printf("%d ", row[i]);
-    }
-    printf("\n");
 }
