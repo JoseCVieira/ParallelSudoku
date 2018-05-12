@@ -14,6 +14,11 @@
 #define COL(i) i%m_size
 #define BOX(row, col) r_size*(row/r_size)+col/r_size
 
+#define BLOCK_LOW(id,p,n) ((id)*(n)/(p))
+#define BLOCK_HIGH(id,p,n) (BLOCK_LOW((id)+1,p,n)-1)
+#define BLOCK_SIZE(id,p,n) (BLOCK_HIGH(id,p,n)-BLOCK_LOW(id,p,n)+1)
+#define BLOCK_OWNER(index,p,n) (((p)*((index)+1)-1)/(n))
+
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
@@ -83,7 +88,7 @@ int solve(int* sudoku){
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     
     int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
-    int *possibilities = (int*) malloc(m_size*sizeof(int));
+    int *possibilities = (int*) malloc((m_size+1)*sizeof(int));
     List *work = init_list();
 
     for(i = 0; i < v_size; i++) {
@@ -103,7 +108,7 @@ int solve(int* sudoku){
     
     MPI_Barrier(MPI_COMM_WORLD);
         
-    for(start_num = 1; start_num <= m_size; start_num++)
+    for(start_num = 1; start_num <= m_size+1; start_num++)
 	possibilities[start_num-1] = start_num;
 
     if(MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD) != MPI_SUCCESS){
@@ -114,6 +119,8 @@ int solve(int* sudoku){
     printf ("Process %d recv %d\n", id, start_num);
     MPI_Barrier(MPI_COMM_WORLD);
     
+    printf("size=%d\n",BLOCK_SIZE(1, 1, 1));
+
     if(!solved){
         hyp.cell = start_pos;
         hyp.num = start_num;
@@ -135,6 +142,7 @@ int solve(int* sudoku){
     free(b_mask_array);
     free(cp_sudoku);
     free(possibilities);
+
     if(solved)
         return 1;
     return 0;
