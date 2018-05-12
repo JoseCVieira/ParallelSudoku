@@ -14,9 +14,9 @@
 #define COL(i) i%m_size
 #define BOX(row, col) r_size*(row/r_size)+col/r_size
 
-#define BLOCK_LOW(id,p,n) ((id)*(n)/(p))
-#define BLOCK_HIGH(id,p,n) (BLOCK_LOW((id)+1,p,n)-1)
-#define BLOCK_SIZE(id,p,n) (BLOCK_LOW((id)+1)-BLOCK_LOW(id))
+#define BLOCK_LOW(ids,pr,num) ((ids)*(num)/(pr))
+#define BLOCK_HIGH(ids,pr,num) (BLOCK_LOW((ids)+1,pr,num)-1)
+#define BLOCK_SIZE(ids,pr,num) (BLOCK_LOW((ids)+1)-BLOCK_LOW(ids))
 
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
