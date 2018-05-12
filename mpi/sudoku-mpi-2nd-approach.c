@@ -50,8 +50,8 @@ int main(int argc, char *argv[]){
         result = solve(sudoku);
 
         rank = 0;
-        while (rank < m_size) {
-            if (id == rank) {
+        /*while (rank < m_size) {
+            if (id == rank) {*/
                 printf ("\nprocess %d\n", id);
                 if(result)
                     print_sudoku(sudoku);
@@ -60,12 +60,12 @@ int main(int argc, char *argv[]){
 
                 printf("nr_it=%d\n", nr_it);
                 fflush (stdout);
-            }
+            /*}
 
             rank ++;
-            MPI_Barrier(MPI_COMM_WORLD);
-        }
-
+            
+        }*/
+MPI_Barrier(MPI_COMM_WORLD);
         fflush(stdout);
         MPI_Finalize();
 
