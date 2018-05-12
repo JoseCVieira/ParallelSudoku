@@ -140,7 +140,7 @@ int solve(int* sudoku){
             start_num++;
 
             if(start_num == high_value){
-              pritnf("trying to find");
+              printf("trying to find");
               MPI_Send(&send, 1, MPI_INT, id+1, id, MPI_COMM_WORLD);
             }
 
