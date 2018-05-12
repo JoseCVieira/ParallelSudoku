@@ -139,16 +139,13 @@ int solve(int* sudoku){
               start_num++;
 
             if(start_num == high_value){
-	      //printf("id %d\n", id);
               for(i = id+1; i !=id; i++){
                 if(i == p){
                   i = 0;
-		 
-		}
-		//printf("i: %d\n", i);
+
+		            }
                 MPI_Send(&i,1, MPI_INT, i, id, MPI_COMM_WORLD);
               }
-		return 0;
             }
 
             /*  MPI_Bcast(&, 1, MPI_INT, solved, MPI_COMM_WORLD);*/
@@ -177,23 +174,23 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     MPI_Status status;
     hyp = pop_head(work);
     int start_pos = hyp.cell;
-	
+
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
         return 0;
 
     while(1){
-	flag = 0;
-        MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-        MPI_Test(&request, &flag, &status);   
-	if(flag != 0)
-            printf("RECEIVED: %d\n",recv);
-        
-        update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
-        cp_sudoku[hyp.cell] = hyp.num;
+	     flag = 0;
+       MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+       MPI_Test(&request, &flag, &status);
+       if(flag != 0)
+        printf("RECEIVED: %d\n",recv);
 
-        nr_it ++;
+       update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
+       cp_sudoku[hyp.cell] = hyp.num;
 
-        for(cell = hyp.cell + 1; cell < v_size; cell++){
+       nr_it ++;
+
+       for(cell = hyp.cell + 1; cell < v_size; cell++){
 
             if(!cp_sudoku[cell]){
                 for(val = m_size; val >= 1; val--){
