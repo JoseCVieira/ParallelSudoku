@@ -26,9 +26,6 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
-int *createMatrix (int nrows, int ncols);
-void printArray (int *row, int nElements);
-
 int r_size, m_size, v_size;
 int id, p;
 MPI_Status status;
@@ -68,7 +65,6 @@ int main(int argc, char *argv[]){
         
         fflush(stdout);
         MPI_Finalize();
-        printf("\n");
         
     }else
         printf("invalid input arguments.\n");
@@ -106,51 +102,19 @@ int solve(int* sudoku){
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
     
     MPI_Barrier(MPI_COMM_WORLD);
-    
-    
-    
-    int *matrix;
+        
+    for(start_num = 1; start_num <= m_size; start_num++)
+	possibilities[start_num-1] = start_num;
 
-    if (id == 0) {
-        matrix = createMatrix(p, p); // Master process creates matrix
-        printf("Initial matrix:\n");
-        printArray(matrix, p*p);
-    }
-
-    int *procRow = malloc(sizeof(int) * p); // received row will contain p integers
-    if (procRow == NULL) {
-        perror("Error in malloc 3");
-        exit(1);
-    }
-
-    if (MPI_Scatter(matrix, p, MPI_INT, // send one row, which contains p integers
-                procRow, p, MPI_INT, // receive one row, which contains p integers
-                0, MPI_COMM_WORLD) != MPI_SUCCESS) {
-
+    if(MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD) != MPI_SUCCESS){
         perror("Scatter error");
         exit(1);
     }
 
-    printf("Process %d received elements: ", id);
-    printArray(procRow, p);
-    
-    
-    
-    
-
-    /*for(start_num = 1; start_num <= m_size; start_num++)
-        if(!id)
-            possibilities[start_num] = start_num;
-          
-    MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);*/
-    
-    //printf ("Process %d recv %d\n", id, start_num);
+    printf ("Process %d recv %d\n", id, start_num);
     MPI_Barrier(MPI_COMM_WORLD);
     
     if(!solved){
-        if(!id)
-            start_num = m_size;
-        
         hyp.cell = start_pos;
         hyp.num = start_num;
 
@@ -335,28 +299,4 @@ void print_sudoku(int *sudoku) {
         else
             printf("%2d\n", sudoku[i]);
     }
-}
-
-int *createMatrix (int nrows, int ncols) {
-    int *matrix;
-    int h, i, j;
-
-    if (( matrix = malloc(nrows*ncols*sizeof(int))) == NULL) {
-        printf("Malloc error");
-        exit(1);
-    }
-
-    for (h=0; h<nrows*ncols; h++) {
-        matrix[h] = h+1;
-    }
-
-    return matrix;
-}
-
-void printArray (int *row, int nElements) {
-    int i;
-    for (i=0; i<nElements; i++) {
-        printf("%d ", row[i]);
-    }
-    printf("\n");
 }
