@@ -92,7 +92,6 @@ int solve(int* sudoku){
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
 
     int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
-    int *possibilities = (int*) malloc(m_size*sizeof(int));
     List *work = init_list();
 
     for(i = 0; i < v_size; i++) {
@@ -119,10 +118,12 @@ int solve(int* sudoku){
     high_value = 2 + BLOCK_HIGH(id,p,m_size+1);
     size = BLOCK_SIZE(id,p,m_size+1);
     proc0_size = (m_size+1)/p;
-    printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,low_value,high_value,size,proc0_size);
+  //  printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,low_value,high_value,size,proc0_size);
 
-    for(start_num = low_value; start_num < high_value; start_num++){
-      if(!solved){
+    //for(start_num = low_value; start_num < high_value; start_num++){
+    start_num = low_value;
+    while(!solved){
+
           hyp.cell = start_pos;
           hyp.num = start_num;
 
@@ -134,16 +135,23 @@ int solve(int* sudoku){
               for(i = 0; i < v_size; i++)
                   if(cp_sudoku[i] != UNCHANGEABLE)
                       sudoku[i] = cp_sudoku[i];
+
+          }else{
+            start_num++;
+            /*if(start_num == high_value)
+              MPI_Bcast(&, 1, MPI_INT, solved, MPI_COMM_WORLD);*/
+            //wait for bcast response
+
           }
-      }
-  }
+    }
+
+
 
     free(work);
     free(r_mask_array);
     free(c_mask_array);
     free(b_mask_array);
     free(cp_sudoku);
-    free(possibilities);
     if(solved)
         return 1;
     return 0;
