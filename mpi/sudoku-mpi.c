@@ -26,9 +26,6 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
-int *createMatrix (int nrows, int ncols);
-void printArray (int *row, int nElements);
-
 int r_size, m_size, v_size;
 int id, p;
 MPI_Status status;
@@ -68,7 +65,11 @@ int main(int argc, char *argv[]){
 
         fflush(stdout);
         MPI_Finalize();
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 51b8e95d4fd9f3dc242ccf8c2c4b41be84b5fa05
     }else
         printf("invalid input arguments.\n");
 
@@ -105,6 +106,7 @@ int solve(int* sudoku){
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
 
     MPI_Barrier(MPI_COMM_WORLD);
+<<<<<<< HEAD
 
 
 
@@ -118,12 +120,27 @@ int solve(int* sudoku){
     MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     //printf ("Process %d recv %d\n", id, start_num);
+=======
+        
+    for(start_num = 1; start_num <= m_size; start_num++)
+	possibilities[start_num-1] = start_num;
+
+    if(MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD) != MPI_SUCCESS){
+        perror("Scatter error");
+        exit(1);
+    }
+
+    printf ("Process %d recv %d\n", id, start_num);
+>>>>>>> 51b8e95d4fd9f3dc242ccf8c2c4b41be84b5fa05
     MPI_Barrier(MPI_COMM_WORLD);
 
     if(!solved){
+<<<<<<< HEAD
         if(!id)
             start_num = m_size;
 
+=======
+>>>>>>> 51b8e95d4fd9f3dc242ccf8c2c4b41be84b5fa05
         hyp.cell = start_pos;
         hyp.num = start_num;
 
@@ -144,6 +161,7 @@ int solve(int* sudoku){
     free(b_mask_array);
     free(cp_sudoku);
     free(possibilities);
+
     if(solved)
         return 1;
     return 0;
@@ -308,28 +326,4 @@ void print_sudoku(int *sudoku) {
         else
             printf("%2d\n", sudoku[i]);
     }
-}
-
-int *createMatrix (int nrows, int ncols) {
-    int *matrix;
-    int h, i, j;
-
-    if (( matrix = malloc(nrows*ncols*sizeof(int))) == NULL) {
-        printf("Malloc error");
-        exit(1);
-    }
-
-    for (h=0; h<nrows*ncols; h++) {
-        matrix[h] = h+1;
-    }
-
-    return matrix;
-}
-
-void printArray (int *row, int nElements) {
-    int i;
-    for (i=0; i<nElements; i++) {
-        printf("%d ", row[i]);
-    }
-    printf("\n");
 }
