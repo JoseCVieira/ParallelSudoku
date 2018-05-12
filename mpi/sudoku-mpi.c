@@ -27,7 +27,7 @@ int new_mask( int size);
 int solve(int *sudoku);
 
 int r_size, m_size, v_size;
-int id, p, world_size = 3;
+int id, p;
 MPI_Status status;
 
 int nr_it = 0; //a eliminar
@@ -96,6 +96,8 @@ int solve(int* sudoku){
           
     MPI_Scatter((void *)possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
     
+    printf ("Process %d is recv %d\n", id, start_num);
+    
     if(!solved){
         hyp.cell = start_pos;
         hyp.num = start_num;
@@ -110,6 +112,8 @@ int solve(int* sudoku){
                     sudoku[i] = cp_sudoku[i];
         }
     }
+    
+    printf ("Process %d is done\n", id);
   
     free(work);
     free(r_mask_array);
