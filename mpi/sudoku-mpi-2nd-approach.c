@@ -178,8 +178,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     while(1){
         if(id ==0){
           MPI_Irecv(&recv, 1, MPI_INT,0 , 0, MPI_COMM_WORLD, &request);
+          if(recv == 1)
           printf("RECEIVED: %d\n", recv);
-
         }
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
