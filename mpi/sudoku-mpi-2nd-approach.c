@@ -96,7 +96,7 @@ int solve(int* sudoku){
     low_value = 1+BLOCK_LOW(id,p,m_size);
     high_value = 2 + BLOCK_HIGH(id,p,m_size);
     
-    printf("id=%d | low_value = %d | high_value=%d", id, low_value, high_value - 1);
+    printf("id=%d | low_value = %d | high_value=%d\n", id, low_value, high_value - 1);
 
     start_num = low_value;
     while(!solved){
