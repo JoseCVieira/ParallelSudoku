@@ -104,7 +104,7 @@ int solve(int* sudoku){
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
 
     low_value = 1+BLOCK_LOW(id,p,m_size);
     high_value = 2 + BLOCK_HIGH(id,p,m_size);
