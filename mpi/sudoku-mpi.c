@@ -14,6 +14,10 @@
 #define COL(i) i%m_size
 #define BOX(row, col) r_size*(row/r_size)+col/r_size
 
+#define BLOCK_LOW(id,p,n) ((id)*(n)/(p))
+#define BLOCK_HIGH(id,p,n) (BLOCK_LOW((id)+1,p,n)-1)
+#define BLOCK_SIZE(id,p,n) (BLOCK_HIGH(id,p,n)-BLOCK_LOW(id,p,n)+1)
+
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
@@ -28,7 +32,6 @@ int solve(int *sudoku);
 
 int r_size, m_size, v_size;
 int id, p;
-MPI_Status status;
 
 int nr_it = 0; //a eliminar
 
@@ -42,34 +45,19 @@ int main(int argc, char *argv[]){
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
+        
+        if(solve(sudoku))
+            print_sudoku(sudoku);
+        else
+            printf("No solution\n");
 
-        int rank, result; // a eliminar e meter como antigamente
-        result = solve(sudoku);
+        printf("process %d => nr_it=%d\n", id, nr_it);
 
-        rank = 0;
-        while (rank < m_size) {
-            if (id == rank) {
-                printf ("\nprocess %d\n", id);
-                if(result)
-                    print_sudoku(sudoku);
-                else
-                    printf("No solution\n");
-
-                printf("nr_it=%d\n", nr_it);
-                fflush (stdout);
-            }
-
-            rank ++;
-            MPI_Barrier(MPI_COMM_WORLD);
-        }
-
+	MPI_Barrier(MPI_COMM_WORLD);
+        
         fflush(stdout);
         MPI_Finalize();
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> 51b8e95d4fd9f3dc242ccf8c2c4b41be84b5fa05
     }else
         printf("invalid input arguments.\n");
 
@@ -80,14 +68,14 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
+    int low_value, high_value, result; //variables related to block decomposition
     Item hyp;
-
+    
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
 
     int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
-    int *possibilities = (int*) malloc(m_size*sizeof(int));
     List *work = init_list();
 
     for(i = 0; i < v_size; i++) {
@@ -105,53 +93,40 @@ int solve(int* sudoku){
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
 
-    MPI_Barrier(MPI_COMM_WORLD);
-<<<<<<< HEAD
-
-
-
-
-
-
-    for(start_num = 1; start_num <= m_size; start_num++)
-        if(!id)
-            possibilities[start_num] = start_num;
-
-    MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    //printf ("Process %d recv %d\n", id, start_num);
-=======
-        
-    for(start_num = 1; start_num <= m_size; start_num++)
-	possibilities[start_num-1] = start_num;
-
-    if(MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD) != MPI_SUCCESS){
-        perror("Scatter error");
-        exit(1);
-    }
-
-    printf ("Process %d recv %d\n", id, start_num);
->>>>>>> 51b8e95d4fd9f3dc242ccf8c2c4b41be84b5fa05
+    low_value = 1 + BLOCK_LOW(id,p,m_size);
+    high_value = 2 + BLOCK_HIGH(id,p,m_size);
+    
+    printf("id=%d | low_value = %d | high_value=%d\n", id, low_value, high_value - 1);
     MPI_Barrier(MPI_COMM_WORLD);
 
-    if(!solved){
-<<<<<<< HEAD
-        if(!id)
-            start_num = m_size;
+    start_num = low_value;
+    while(!solved){
 
-=======
->>>>>>> 51b8e95d4fd9f3dc242ccf8c2c4b41be84b5fa05
         hyp.cell = start_pos;
         hyp.num = start_num;
 
         insert_head(work, hyp);
 
-        if(solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) {
+        if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
             solved = 1;
-
             for(i = 0; i < v_size; i++)
                 if(cp_sudoku[i] != UNCHANGEABLE)
                     sudoku[i] = cp_sudoku[i];
+                
+                for(i = 0; i < p; i++){
+		    if(i != id){
+                        MPI_Send(&i, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+                        printf("sent by %d\n", id);
+		    }
+		}
+                
+        }else{
+            if(result == -1)
+                return 0;
+
+            start_num++;
+            if(start_num == high_value)
+                break;
         }
     }
 
@@ -160,46 +135,54 @@ int solve(int* sudoku){
     free(c_mask_array);
     free(b_mask_array);
     free(cp_sudoku);
-    free(possibilities);
-
     if(solved)
         return 1;
     return 0;
 }
 
-int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val;
-    Item hyp;
 
+int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
+    int cell, val, recv, flag, result;
+    MPI_Request request;
+    MPI_Status status;
+    Item hyp;
+    
     hyp = pop_head(work);
     int start_pos = hyp.cell;
 
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
         return 0;
 
+    flag = 0;
+    MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+
     while(1){
+        MPI_Test(&request, &flag, &status);
+	if(flag != 0)
+	    return -1;       
+
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
-
+        
         nr_it ++;
-
+        
         for(cell = hyp.cell + 1; cell < v_size; cell++){
 
             if(!cp_sudoku[cell]){
                 for(val = m_size; val >= 1; val--){
-
+                    
                     if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                          if(cell == last_pos){
                             cp_sudoku[cell] = val;
                             return 1;
                          }
-
+                        
                         hyp.cell = cell;
                         hyp.num = val;
                         insert_head(work, hyp);
                     }
                 }
-
+                    
                 if(work->head == NULL){
                     for(cell = v_size - 1; cell >= start_pos; cell--)
                         if(cp_sudoku[cell] > 0){
@@ -211,9 +194,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     break;
             }
         }
-
+        
         hyp = pop_head(work);
-
+        
         for(cell--; cell >= hyp.cell; cell--){
             if(cp_sudoku[cell] > 0) {
                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
