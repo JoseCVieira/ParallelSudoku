@@ -116,14 +116,14 @@ int solve(int* sudoku){
 
 
 //   if(id == 0){
-   	low_value = 2 + BLOCK_LOW(id,p,m_size-1);
+   	low_value = 1+ BLOCK_LOW(id,p,m_size-1);
     	high_value = 2 + BLOCK_HIGH(id,p,m_size-1);
     	size = BLOCK_SIZE(id,p,m_size-1);
     	proc0_size = (m_size-1)/p;
-	printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id, 
-low_value, 
-high_value, 
-size, 
+	printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,
+low_value,
+high_value,
+size,
 proc0_size);
   //  }
     for(start_num = 1; start_num <= m_size; start_num++)
