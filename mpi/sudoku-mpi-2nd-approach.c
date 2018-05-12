@@ -166,6 +166,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     int cell, val;
     Item hyp;
     int recv;
+    MPI_Request request;
     hyp = pop_head(work);
     int start_pos = hyp.cell;
 
@@ -173,7 +174,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         return 0;
 
     while(1){
-        MPI_Irecv(&recv, 1, MPI_INT, id-1, id-1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Irecv(&recv, 1, MPI_INT, id-1, id-1, MPI_COMM_WORLD, &request);
         if(recv ==1){
           pritnf("RECEIVED: %d\n", recv);
         }
