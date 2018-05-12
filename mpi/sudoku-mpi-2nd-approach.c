@@ -23,7 +23,7 @@ int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask,
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
-int exists_in( int index, uint64_t* mask, int num);
+int exists_in( int index, uint64_t*awdamask, int num);
 int* read_matrix(char *argv[]);
 void print_sudoku(int *sudoku);
 int int_to_mask(int num);
@@ -131,6 +131,7 @@ int solve(int* sudoku){
                 start_num++;
 
             if(start_num == high_value){
+<<<<<<< HEAD
                 for(i = id + 1; i != id; i++){
                     if(i == p)
                         i = 0;
@@ -138,6 +139,15 @@ int solve(int* sudoku){
                     MPI_Send(&i, 1, MPI_INT, i, id, MPI_COMM_WORLD);
                 }
                 return 0;
+=======
+              for(i = id+1; i !=id; i++){
+                if(i == p){
+                  i = 0;
+
+		            }
+                MPI_Send(&i,1, MPI_INT, i, id, MPI_COMM_WORLD);
+              }
+>>>>>>> ab65537157f8bec72142f5a07633a2206cc983e1
             }
         }
     }
@@ -160,11 +170,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     
     hyp = pop_head(work);
     int start_pos = hyp.cell;
-	
+
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
         return 0;
 
     while(1){
+<<<<<<< HEAD
         flag = 0;
         MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
         MPI_Test(&request, &flag, &status);
@@ -177,6 +188,20 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         nr_it ++;
 
         for(cell = hyp.cell + 1; cell < v_size; cell++){
+=======
+	     flag = 0;
+       MPI_Irecv(&recv, 1, MPI_INT,MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+       MPI_Test(&request, &flag, &status);
+       if(flag != 0)
+        printf("RECEIVED: %d\n",recv);
+
+       update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
+       cp_sudoku[hyp.cell] = hyp.num;
+
+       nr_it ++;
+
+       for(cell = hyp.cell + 1; cell < v_size; cell++){
+>>>>>>> ab65537157f8bec72142f5a07633a2206cc983e1
 
             if(!cp_sudoku[cell]){
                 for(val = m_size; val >= 1; val--){
