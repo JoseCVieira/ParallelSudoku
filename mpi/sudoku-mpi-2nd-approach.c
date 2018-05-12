@@ -141,7 +141,11 @@ int solve(int* sudoku){
 
             if(start_num == high_value){
               printf("trying to find");
-              MPI_Send(&send, 1, MPI_INT, id+1, id, MPI_COMM_WORLD);
+              if(id == 4){
+                MPI_Send(&send, 1, MPI_INT, 0, id, MPI_COMM_WORLD);
+              }else{
+                MPI_Send(&send, 1, MPI_INT, id+1, id, MPI_COMM_WORLD);
+              }
             }
 
             /*  MPI_Bcast(&, 1, MPI_INT, solved, MPI_COMM_WORLD);*/
@@ -176,7 +180,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     while(1){
         MPI_Irecv(&recv, 1, MPI_INT, id-1, id-1, MPI_COMM_WORLD, &request);
         if(recv ==1){
-          pritnf("RECEIVED: %d\n", recv);
+          printf("RECEIVED: %d\n", recv);
         }
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
