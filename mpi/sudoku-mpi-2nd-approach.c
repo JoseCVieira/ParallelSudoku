@@ -115,43 +115,28 @@ int solve(int* sudoku){
 
 
 
-//   if(id == 0){
-   	low_value = 1+ BLOCK_LOW(id,p,m_size-1);
-    	high_value = 2 + BLOCK_HIGH(id,p,m_size-1);
-    	size = BLOCK_SIZE(id,p,m_size-1);
-    	proc0_size = (m_size-1)/p;
-	printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,
-low_value,
-high_value,
-size,
-proc0_size);
-  //  }
-    for(start_num = 1; start_num <= m_size; start_num++)
-        if(!id)
-            possibilities[start_num] = start_num;
+   	low_value = BLOCK_LOW(id,p,m_size);
+    high_value = 2 + BLOCK_HIGH(id,p,m_size);
+    size = BLOCK_SIZE(id,p,m_size);
+    proc0_size = (m_size-1)/p;
+    printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,low_value,high_value,size,proc0_size);
 
-    MPI_Scatter(possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    for(start_num = low_value; start_num < high_value; start_num++){
+      if(!solved){
+          hyp.cell = start_pos;
+          hyp.num = start_num;
 
-    //printf ("Process %d recv %d\n", id, start_num);
-    MPI_Barrier(MPI_COMM_WORLD);
+          insert_head(work, hyp);
 
-    if(!solved){
-        if(!id)
-            start_num = m_size;
+          if(solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) {
+              solved = 1;
 
-        hyp.cell = start_pos;
-        hyp.num = start_num;
-
-        insert_head(work, hyp);
-
-        if(solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) {
-            solved = 1;
-
-            for(i = 0; i < v_size; i++)
-                if(cp_sudoku[i] != UNCHANGEABLE)
-                    sudoku[i] = cp_sudoku[i];
-        }
-    }
+              for(i = 0; i < v_size; i++)
+                  if(cp_sudoku[i] != UNCHANGEABLE)
+                      sudoku[i] = cp_sudoku[i];
+          }
+      }
+  }
 
     free(work);
     free(r_mask_array);
