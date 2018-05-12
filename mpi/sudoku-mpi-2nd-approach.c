@@ -45,27 +45,14 @@ int main(int argc, char *argv[]){
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
+        
+        if(solve(sudoku))
+            print_sudoku(sudoku);
+        else
+            printf("No solution\n");
 
-        int rank, result; // a eliminar e meter como antigamente
-        result = solve(sudoku);
-
-        rank = 0;
-        /*while (rank < m_size) {
-            if (id == rank) {*/
-                printf ("\nprocess %d\n", id);
-                if(result)
-                    print_sudoku(sudoku);
-                else
-                    printf("No solution\n");
-
-                printf("nr_it=%d\n", nr_it);
-                fflush (stdout);
-            /*}
-
-            rank ++;
-            
-        }*/
-MPI_Barrier(MPI_COMM_WORLD);
+        printf("process %d => nr_it=%d\n", id, nr_it);
+        
         fflush(stdout);
         MPI_Finalize();
 
