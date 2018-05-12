@@ -123,7 +123,7 @@ int solve(int* sudoku){
     printf("L_value:\t %d\n
             H_value:\t %d\n
             size \t  %d\n
-            proc0_size: %d\n");
+            proc0_size: %d\n", low_value, high_value, size, proc0_size);
     }
     return 1;
     for(start_num = 1; start_num <= m_size; start_num++)
