@@ -37,9 +37,6 @@ void printArray (int *row, int nElements);
 int r_size, m_size, v_size;
 int id, p;
 MPI_Status status;
-typedef struct{
-  int input_array[m_size];
-}t_test;
 
 int nr_it = 0; //a eliminar
 
@@ -90,7 +87,7 @@ int solve(int* sudoku){
     /*variables related to block decomposition*/
     int low_value, high_value, size, proc0_size;
     Item hyp;
-
+    int send = 1;
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -122,7 +119,7 @@ int solve(int* sudoku){
     high_value = 2 + BLOCK_HIGH(id,p,m_size);
     size = BLOCK_SIZE(id,p,m_size);
     proc0_size = (m_size)/p;
-   printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,low_value,high_value,size,proc0_size);
+    //printf("id:%d\nl_v:%d\nh_v:%d\ns:%d\nproc0_size%d\n",id,low_value,high_value,size,proc0_size);
 
     //for(start_num = low_value; start_num < high_value; start_num++){
     start_num = low_value;
@@ -135,7 +132,6 @@ int solve(int* sudoku){
 
           if(solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) {
               solved = 1;
-
               for(i = 0; i < v_size; i++)
                   if(cp_sudoku[i] != UNCHANGEABLE)
                       sudoku[i] = cp_sudoku[i];
@@ -143,8 +139,11 @@ int solve(int* sudoku){
           }else{
             start_num++;
 
-            if(start_num == high_value)
-		          break;
+            if(start_num == high_value){
+              pritnf("trying to find");
+              MPI_Send(&send, 1, MPI_INT, id+1, id, MPI_COMM_WORLD);
+            }
+
             /*  MPI_Bcast(&, 1, MPI_INT, solved, MPI_COMM_WORLD);*/
             //wait for bcast response
 
@@ -166,7 +165,7 @@ int solve(int* sudoku){
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val;
     Item hyp;
-
+    int recv;
     hyp = pop_head(work);
     int start_pos = hyp.cell;
 
@@ -174,6 +173,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         return 0;
 
     while(1){
+        MPI_Irecv(&recv, 1, MPI_INT, id-1, id-1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        if(recv ==1){
+          pritnf("RECEIVED: %d\n", recv);
+        }
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
 
@@ -216,6 +219,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 cp_sudoku[cell] = UNASSIGNED;
             }
         }
+
     }
 }
 
