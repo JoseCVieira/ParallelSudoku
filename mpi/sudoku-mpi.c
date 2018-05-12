@@ -91,12 +91,12 @@ int solve(int* sudoku){
     MPI_Barrier(MPI_COMM_WORLD);
 
     for(start_num = 1; start_num <= m_size; start_num++)
-        if(!id)
-          possibilities[start_num] = start_num;
+        possibilities[start_num] = start_num;
           
     MPI_Scatter((void *)possibilities, 1, MPI_INT, &start_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
     
     printf ("Process %d is recv %d\n", id, start_num);
+    MPI_Barrier(MPI_COMM_WORLD);
     
     if(!solved){
         hyp.cell = start_pos;
@@ -114,6 +114,7 @@ int solve(int* sudoku){
     }
     
     printf ("Process %d is done\n", id);
+    MPI_Barrier(MPI_COMM_WORLD);
   
     free(work);
     free(r_mask_array);
