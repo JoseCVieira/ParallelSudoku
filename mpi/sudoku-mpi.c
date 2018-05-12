@@ -43,12 +43,25 @@ int main(int argc, char *argv[]){
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
-        if(solve(sudoku))
-            print_sudoku(sudoku);
-        else
-            printf("No solution\n");
+        int rank, result; // a eliminar
+        result = solve(sudoku);
+        
+        rank = 0;
+        while (rank < m_size) {
+            if (id == rank) {
+                printf ("\nprocess %d\n", id);
+                if(result)
+                    print_sudoku(sudoku);
+                else
+                    printf("No solution\n");
 
-        printf("nr_it=%d\n", nr_it);
+                printf("nr_it=%d\n", nr_it);            
+                fflush (stdout);
+            }
+            
+            rank ++;
+            MPI_Barrier(MPI_COMM_WORLD);
+        }
         
         fflush(stdout);
         MPI_Finalize();
@@ -99,6 +112,9 @@ int solve(int* sudoku){
     MPI_Barrier(MPI_COMM_WORLD);
     
     if(!solved){
+        if(!id)
+            start_num = m_size;
+        
         hyp.cell = start_pos;
         hyp.num = start_num;
 
@@ -112,9 +128,6 @@ int solve(int* sudoku){
                     sudoku[i] = cp_sudoku[i];
         }
     }
-    
-    printf ("Process %d is done\n", id);
-    MPI_Barrier(MPI_COMM_WORLD);
   
     free(work);
     free(r_mask_array);
