@@ -115,7 +115,7 @@ int solve(int* sudoku){
             hyp.num = start_num;
             insert_head(work, hyp);
 
-            if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos))) {
+            if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
                 for(i = 0; i < v_size; i++)
                     if(cp_sudoku[i] != UNCHANGEABLE)
                         sudoku[i] = cp_sudoku[i];
