@@ -45,6 +45,7 @@ int nr_it = 0; //a eliminar
 
 int main(int argc, char *argv[]){
     int result, *sudoku;
+    MPI_Request request_send;
 
     if(argc == 2){
 
