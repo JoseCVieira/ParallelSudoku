@@ -181,7 +181,7 @@ int solve(int* sudoku){
                         printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                         //start_num = recv_hyp[VAL];
                         //start_pos = recv_hyp[POS];
-                        break;
+                        //break;
                     }
                 }
                 
