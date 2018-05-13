@@ -160,6 +160,7 @@ int solve(int* sudoku){
                             //start_num = recv_hyp[VAL];
                             //start_pos = recv_hyp[POS];
                         }else if(status.MPI_TAG == TAG_EXIT){
+                            printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             recv_hyp[POS] = -1;
                             break;
                         }
@@ -215,7 +216,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         MPI_Test(&request, &flag, &status);
         if(flag){
             if(status.MPI_TAG == TAG_EXIT){
-                printf("[%d] process = %d asked for exit\n", id, status.MPI_SOURCE);
+                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
