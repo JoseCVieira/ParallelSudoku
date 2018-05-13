@@ -133,7 +133,7 @@ int solve(int* sudoku){
             if(result == -1)
                 break;
          
-            if(start_num < high_value){
+            if(start_num < high_value - 1){
                 flag_enter = 1;
                 start_num++;
             }
