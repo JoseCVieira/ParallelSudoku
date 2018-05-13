@@ -126,7 +126,7 @@ int solve(int* sudoku){
                     
                 for(i = 0; i < p; i++)
                     if(i != id)
-                        MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
+                        MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
                     
                 solved = 1;
                 break;
@@ -152,7 +152,7 @@ int solve(int* sudoku){
                 
                 for(i = 0; i < p; i++)
                     if(i != id)
-                        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
+                        MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
                 
                 MPI_Test(&request_recv, &flag, &status);
                 if(flag){
