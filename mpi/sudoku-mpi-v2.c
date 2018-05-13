@@ -154,9 +154,6 @@ int solve(int* sudoku){
                     
                     MPI_Test(&request_recv, &flag, &status);
                     
-                    if(id == 3)
-                        printf("[%d]\n", id);
-                    
                     if(flag){
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
