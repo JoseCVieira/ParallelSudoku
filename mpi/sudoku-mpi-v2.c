@@ -156,12 +156,17 @@ int solve(int* sudoku){
                     
                     MPI_Test(&request_recv, &flag, &status);
                     if(flag){
+                        MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                        flag = 0;
+                            
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                             return 0;
                         }else if(status.MPI_TAG == TAG_HYP){
                             printf("[%d] received work\n", id);
+                            
+                            
                             
                             MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &status);
                             
