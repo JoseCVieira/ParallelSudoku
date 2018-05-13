@@ -192,26 +192,25 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 		//MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
 		flag = 0;
         MPI_Test(&request, &flag, &status);
-	if(flag && status.MPI_SOURCE != -1){
-		printf("id: %d here: %d, %d\n",id, status.MPI_SOURCE, status.MPI_TAG);
-	    if(status.MPI_TAG == TAG_EXIT){
-		printf("id = %d | p= %d asked for exit\n", id, status.MPI_SOURCE);
-	    	return -1;
-	    }else if(status.MPI_TAG == TAG_ASK_JOB){
-		printf("id = %d | p= %d asked for a job\n", id, status.MPI_SOURCE);
-		if(work->head != NULL){
-		    Item hyp_send = pop_head(work);
-		    response[POS] = hyp_send.cell;
-		    response[VAL] = hyp_send.num;
-
-		    MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+		if(flag && status.MPI_SOURCE != -1){
+			printf("id: %d here: %d, %d\n",id, status.MPI_SOURCE, status.MPI_TAG);
+	    	if(status.MPI_TAG == TAG_EXIT){
+				printf("id = %d | p= %d asked for exit\n", id, status.MPI_SOURCE);
+	    		return -1;
+	    	}else if(status.MPI_TAG == TAG_ASK_JOB){
+				printf("id = %d | p= %d asked for a job\n", id, status.MPI_SOURCE);
+				if(work->head != NULL){
+		    		Item hyp_send = pop_head(work);
+		    		response[POS] = hyp_send.cell;
+		    		response[VAL] = hyp_send.num;
+					MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request);
-		}else{
-		    response[POS] = -1;
-		    MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+				}else{
+		    		response[POS] = -1;
+		    		MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+				}
+	    	}
 		}
-	    }
-	}
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
