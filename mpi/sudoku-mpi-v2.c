@@ -160,13 +160,13 @@ int solve(int* sudoku){
                             //start_pos = recv_hyp[POS];
                         }else if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
-                            recv_hyp[POS] = -1;
+                            start_pos = -1;
                             break;
                         }
                     }
                 }
                 
-                if(recv_hyp[POS] == -1)
+                if(start_pos == -1)
                     break;
                 
                 /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
