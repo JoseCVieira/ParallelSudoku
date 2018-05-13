@@ -81,10 +81,10 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1;
-    int low_value, high_value, result, flag, recv, recv_hyp[2];
+    int low_value, high_value, result, flag, f2, recv, recv_hyp[2];
 
     MPI_Request request_send, request_recv, request_recv_hyp;
-    MPI_Status status;
+    MPI_Status status, s2;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -163,16 +163,16 @@ int solve(int* sudoku){
                         }else if(status.MPI_TAG == TAG_HYP){
                             printf("[%d] received work\n", id);
                             
-                            flag = -1;
+                            f2 = -1;
                             //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                             while(1){
-                                if(flag){
+                                if(f2){
                                     MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
-                                    flag = 0;
+                                    f2 = 0;
                                 }
                             
-                                MPI_Test(&request_recv_hyp, &flag, &status);
-                                if(flag){                            
+                                MPI_Test(&request_recv_hyp, &f2, &s2);
+                                if(f2){                            
                                     printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                                     //start_num = recv_hyp[VAL];
                                     //start_pos = recv_hyp[POS];
@@ -236,9 +236,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
+                MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                 response[POS] = 123;
                 response[VAL] = 123;
-                MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                
                 sleep(1);
                 MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
