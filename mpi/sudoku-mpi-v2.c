@@ -82,9 +82,9 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
+    int i, flag_start = 0, solved = 0, start_pos, start_aux, start_num, last_pos;
     int low_value, high_value, result, flag, recv[2];
-    MPI_Request request_send, request_recv;
+    MPI_Request request_send[p], request_recv;
     MPI_Status status;
     Item hyp;
     
@@ -114,11 +114,12 @@ int solve(int* sudoku){
     high_value = 2 + BLOCK_HIGH(id,p,m_size);
     
     start_num = low_value;
+    start_aux = start_num;
+
     while(!solved){
 
         hyp.cell = start_pos;
         hyp.num = start_num;
-
         insert_head(work, hyp);
 
         if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
@@ -129,29 +130,31 @@ int solve(int* sudoku){
 
                 for(i = 0; i < p; i++)
 		    if(i != id)
-                        MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
+                        MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send[i]);
                 
         }else{
             if(result == -1)
                 return 0;
 
+	    start_num = start_aux;
 	    if(start_num < high_value)
-            	start_num++;
+            	start_aux = ++start_num;
             
 	    if(start_num == high_value){
+		printf("entrou %d\n", id);
+
 		flag = 0;
 		int f_recv = 0;
 		MPI_Irecv(&recv, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv);
 
-            	for(i = 0; i < p; i++)
+            	for(i = 0; i < 1; i++)
                     if(i != id)
-                    	MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
+                    	MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send[i]);
 			
 		while(1){
 		    MPI_Test(&request_recv, &flag, &status);
 		    if(flag){
-		    	if(!f_recv && recv[POS] >= 0){
-			    printf("aqui\n");
+		    	if(recv[POS] >= 0){
                      	    MPI_Recv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &status);
                             //print_sudoku(cp_sudoku);
 
@@ -161,15 +164,14 @@ int solve(int* sudoku){
                             start_num = recv[VAL];
 
                             printf("rank = %d received work from %d at cell=%d, val=%d\n", id, status.MPI_SOURCE, recv[POS], recv[VAL]);
-                    	}else{
+        		    break;
+	            	}else{
 			    flag = 0;
                             printf("id = %d recv => JOB from = %d have no job to give\n", id, status.MPI_SOURCE);	    
 		    	}
-			f_recv++;
-			if(f_recv == 3)
-			    break;
 		    }
 	    	}
+		printf("saiu %d\n", id);
             }
     	}
     }
