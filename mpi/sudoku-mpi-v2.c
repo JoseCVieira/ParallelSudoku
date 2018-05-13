@@ -141,9 +141,25 @@ int solve(int* sudoku){
             if(!flag_enter){
                 printf("[%d] out of work\n", id);
                 
-                for(i = 0; i < p; i++)
-                    if(i != id)
+                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                flag = 0;
+                
+                for(i = 0; i < p; i++){
+                    MPI_Test(&request_recv, &flag, &status);
+                    if(flag){
+                         if(status.MPI_TAG == TAG_EXIT){
+                            printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                            start_pos = -1;
+                            break;
+                        }
+                    }
+                    
+                    if(i != id){
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
+                    }
+                }
+                if(start_pos == -1)
+                    break;
                 
                 flag = -1;
                 while(1){
