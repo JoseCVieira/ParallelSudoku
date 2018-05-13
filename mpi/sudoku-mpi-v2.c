@@ -160,7 +160,8 @@ int solve(int* sudoku){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                         }else if(status.MPI_TAG == TAG_HYP)
-                            printf("[%d] received work\n", id);
+                            printf("");
+                            //printf("[%d] received work\n", id);
                         
                         break;
                     }
@@ -236,7 +237,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
-                printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
+                //printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
+                printf("");
                 response[POS] = 123;
                 response[VAL] = 123;
                 //MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
