@@ -83,7 +83,7 @@ int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1;
     int low_value, high_value, result, flag, recv, recv_hyp[2];
 
-    MPI_Request request_send, request_recv;
+    MPI_Request request_send, request_recv, request_recv_hyp;
     MPI_Status status;
     Item hyp;
     
@@ -163,15 +163,21 @@ int solve(int* sudoku){
                         }else if(status.MPI_TAG == TAG_HYP){
                             printf("[%d] received work\n", id);
                             
+                            flag = -1;
+                            while(1){
+                                if(flag){
+                                    MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv_hyp);
+                                    flag = 0;
+                                }
                             
-                            
-                            //MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &status);
-                            
-                            printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
-                            //start_num = recv_hyp[VAL];
-                            //start_pos = recv_hyp[POS];
-                        }if(status.MPI_TAG == TAG_ASK_JOB){
-                            continue;
+                                MPI_Test(&request_recv, &flag, &status);
+                                if(flag){                            
+                                    printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
+                                    //start_num = recv_hyp[VAL];
+                                    //start_pos = recv_hyp[POS];
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -232,7 +238,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 response[POS] = 123;
                 response[VAL] = 123;
                 MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
-                //MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
                 if(work->head != NULL){
                     /*Item hyp_send = pop_head(work);
