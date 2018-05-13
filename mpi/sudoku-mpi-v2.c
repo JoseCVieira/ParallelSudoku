@@ -110,6 +110,7 @@ int solve(int* sudoku){
     val_aux = start_num;
     pos_aux = start_pos;
 
+    flag = -1;
     while(1){
         
         if(flag_enter){
@@ -139,22 +140,27 @@ int solve(int* sudoku){
             
             if(start_num < high_value)
                 flag_enter = 1;
+            else{
+                //start_num = val_aux;
+                start_num++;
+                val_aux = start_num;
+            }
             
-            MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, TAG_EXIT, MPI_COMM_WORLD, &request_recv);
-            flag = 0;
+            if(flag){
+                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                flag = 0;
+            }
+            
             MPI_Test(&request_recv, &flag, &status);
-            if(flag)
+            if(flag && status.MPI_TAG == TAG_EXIT)
                 break;
             
-            if(!flag_enter){
-                MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv);
-                flag = 0;
-                
+            if(!flag_enter){                
                 for(i = 0; i < p; i++)
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
                 
-                MPI_Test(&request_recv, &flag, &status);
+               /* MPI_Test(&request_recv, &flag, &status);
                 if(flag){
                     start_num = recv_hyp[VAL];
                     start_pos = recv_hyp[POS];
@@ -167,14 +173,9 @@ int solve(int* sudoku){
                     delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, recv_hyp[POS]);
                     print_sudoku(cp_sudoku);
                     flag_enter = 1;
-                }
+                }*/
                 //start_num = high_value - 1;
                 //start_pos = pos_aux;
-
-                start_num = val_aux;
-                if(start_num < high_value){
-                    val_aux = ++start_num;
-                }
             }
         }
     }
@@ -210,21 +211,20 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         }
         
         MPI_Test(&request, &flag, &status);
-        
         if(flag){
             if(status.MPI_TAG == TAG_EXIT){
                 printf("[%d] %d asked for exit\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 printf("[%d] %d asked for a job\n", id, status.MPI_SOURCE);
-                if(work->head != NULL){
+                /*if(work->head != NULL){
                     Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
                     response[VAL] = hyp_send.num;
 
                     MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request);
-                }
+                }*/
             }
         }
 
