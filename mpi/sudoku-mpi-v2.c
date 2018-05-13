@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, pos_aux, val_aux, flag_enter = 1;
+    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1;
     int low_value, high_value, result, flag, recv, recv_hyp[2];
 
     MPI_Request request_send, request_recv;
@@ -107,10 +107,6 @@ int solve(int* sudoku){
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
     start_num = low_value;
-    val_aux = start_num;
-    pos_aux = start_pos;
-
-    flag = -1;
     while(1){
         
         if(flag_enter){
@@ -143,11 +139,6 @@ int solve(int* sudoku){
                 start_num++;
             }
             
-            if(flag){
-                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
-                flag = 0;
-            }
-            
             /*MPI_Test(&request_recv, &flag, &status);
             if(flag && status.MPI_TAG == TAG_EXIT)
                 break;*/
@@ -155,15 +146,29 @@ int solve(int* sudoku){
             if(!flag_enter){
                 printf("[%d] out of work\n", id);
                 
+                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                
                 for(i = 0; i < p; i++)
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
                 
-                MPI_Test(&request_recv, &flag, &status);
-                if(flag && status.MPI_TAG == TAG_ASK_JOB){
-                    start_num = recv_hyp[VAL];
-                    start_pos = recv_hyp[POS];
+                flag = 0;
+                while(1){
+                    MPI_Test(&request_recv, &flag, &status);
+                    if(flag){
+                        if(status.MPI_TAG == TAG_ASK_JOB){
+                            printf("[%d] received work\n", id);
+                            //start_num = recv_hyp[VAL];
+                            //start_pos = recv_hyp[POS];
+                        }else if(status.MPI_TAG == TAG_EXIT){
+                            recv_hyp[POS] = -1;
+                            break;
+                        }
+                    }
                 }
+                
+                if(recv_hyp[POS] == -1)
+                    break;
                 
                 /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
@@ -174,8 +179,6 @@ int solve(int* sudoku){
                     flag_enter = 1;
                 }*/
                 
-                start_num = high_value - 1;
-                //start_pos = pos_aux;
             }
         }
     }
