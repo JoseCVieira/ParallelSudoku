@@ -172,7 +172,7 @@ int solve(int* sudoku){
                 flag = -1;
                 while(1){
                     if(flag){
-                        MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
+                        MPI_Irecv(recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
                         flag = 0;
                     }
                 
