@@ -155,7 +155,6 @@ int solve(int* sudoku){
                     }
                     
                     MPI_Test(&request_recv, &flag, &status);
-                    
                     if(flag){
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -164,7 +163,7 @@ int solve(int* sudoku){
                         }else if(status.MPI_TAG == TAG_HYP){
                             printf("[%d] received work\n");
                             
-                            MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv);
+                            MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &status);
                             
                             printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                             //start_num = recv_hyp[VAL];
