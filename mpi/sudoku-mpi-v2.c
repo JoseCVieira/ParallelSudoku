@@ -158,14 +158,14 @@ int solve(int* sudoku){
                         printf("[%d]\n", id);
                     
                     if(flag){
-                        if(status.MPI_TAG == TAG_HYP){
-                            printf("[%d] received work\n", id);
-                            //start_num = recv_hyp[VAL];
-                            //start_pos = recv_hyp[POS];
-                        }else if(status.MPI_TAG == TAG_EXIT){
+                        if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                             break;
+                        }else if(status.MPI_TAG == TAG_HYP){
+                            printf("[%d] received work\n", id);
+                            //start_num = recv_hyp[VAL];
+                            //start_pos = recv_hyp[POS];
                         }
                     }
                 }
