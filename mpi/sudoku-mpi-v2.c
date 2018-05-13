@@ -154,7 +154,9 @@ int solve(int* sudoku){
             if(flag && status.MPI_TAG == TAG_EXIT)
                 break;*/
             
-            if(!flag_enter){                
+            if(!flag_enter){
+                printf("[%d] out of work\n", id);
+                
                 for(i = 0; i < p; i++)
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
