@@ -108,7 +108,6 @@ int solve(int* sudoku){
     
     start_num = low_value;
     while(1){
-        
         if(flag_enter){
             flag_enter = 0;
             
@@ -156,7 +155,7 @@ int solve(int* sudoku){
                 while(1){
                     MPI_Test(&request_recv, &flag, &status);
                     if(flag){
-                        if(status.MPI_TAG == TAG_ASK_JOB){
+                        if(status.MPI_TAG == TAG_HYP){
                             printf("[%d] received work\n", id);
                             //start_num = recv_hyp[VAL];
                             //start_pos = recv_hyp[POS];
@@ -195,7 +194,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val, recv, flag, result, response[2];
+    int cell, val, recv, flag, response[2];
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -216,10 +215,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         MPI_Test(&request, &flag, &status);
         if(flag){
             if(status.MPI_TAG == TAG_EXIT){
-                printf("[%d] %d asked for exit\n", id, status.MPI_SOURCE);
+                printf("[%d] process = %d asked for exit\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
-                printf("[%d] %d asked for a job\n", id, status.MPI_SOURCE);
+                printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                 /*if(work->head != NULL){
                     Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
