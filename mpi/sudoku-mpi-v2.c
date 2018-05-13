@@ -137,20 +137,18 @@ int solve(int* sudoku){
         if(result != 1){
             if(result == -1)
                 break;
-
-            //start_num = val_aux;            
+         
             if(start_num < high_value){
                 flag_enter = 1;
                 start_num++;
-                //val_aux = start_num;
             }
             
-            /*if(flag){
+            if(flag){
                 MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
             }
             
-            MPI_Test(&request_recv, &flag, &status);
+            /*MPI_Test(&request_recv, &flag, &status);
             if(flag && status.MPI_TAG == TAG_EXIT)
                 break;*/
             
@@ -161,13 +159,13 @@ int solve(int* sudoku){
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
                 
-               /* MPI_Test(&request_recv, &flag, &status);
-                if(flag){
+                MPI_Test(&request_recv, &flag, &status);
+                if(flag && status.MPI_TAG == TAG_ASK_JOB){
                     start_num = recv_hyp[VAL];
                     start_pos = recv_hyp[POS];
                 }
                 
-                MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
+                /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
                 MPI_Test(&request_recv, &flag, &status);
                 if(flag){
@@ -175,7 +173,8 @@ int solve(int* sudoku){
                     print_sudoku(cp_sudoku);
                     flag_enter = 1;
                 }*/
-                //start_num = high_value - 1;
+                
+                start_num = high_value - 1;
                 //start_pos = pos_aux;
             }
         }
