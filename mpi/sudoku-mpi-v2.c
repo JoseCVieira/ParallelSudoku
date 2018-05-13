@@ -153,7 +153,6 @@ int solve(int* sudoku){
                     }
                     
                     MPI_Test(&request_recv, &flag, &status);
-                    MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
                     
                     if(flag){
                         if(status.MPI_TAG == TAG_EXIT){
