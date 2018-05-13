@@ -82,8 +82,8 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, flag, recv[2];
+    int i, flag_start = 0, solved = 0, start_pos, start_aux, start_num, last_pos;
+    int low_value, high_value, result, recv[2];
     MPI_Request request_send, request_recv;
     MPI_Status status;
     Item hyp;
@@ -114,27 +114,29 @@ int solve(int* sudoku){
     high_value = 2 + BLOCK_HIGH(id,p,m_size);
     
     start_num = low_value;
+    start_aux = start_num;
+
     while(!solved){
 
         hyp.cell = start_pos;
         hyp.num = start_num;
 
         insert_head(work, hyp);
-
         if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
             solved = 1;
             for(i = 0; i < v_size; i++)
                 if(cp_sudoku[i] != UNCHANGEABLE)
                     sudoku[i] = cp_sudoku[i];
 
-                for(i = 0; i < p; i++)
-		    if(i != id)
-                        MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
+            for(i = 0; i < p; i++)
+		if(i != id)
+                    MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
                 
         }else{
 				if(result == -1)
 						return 0;
 
+<<<<<<< HEAD
 				if(start_num < high_value)
 						start_num++;
             
@@ -160,6 +162,39 @@ int solve(int* sudoku){
 						}
 			
 				}
+=======
+	    start_num = start_aux;
+	    if(start_num < high_value)
+	  	start_aux = ++start_num;
+            
+	    if(start_num == high_value){
+            	for(i = 0; i < p; i++){
+                    if(i != id){
+			MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
+			MPI_Recv(&recv, 2, MPI_INT, i, TAG_HYP, MPI_COMM_WORLD, &status);
+
+			printf("recvd from%d\n", status.MPI_SOURCE);
+
+			if(recv[POS] >= 0){
+		            MPI_Recv(cp_sudoku, v_size, MPI_INT, i, TAG_CP_SUD, MPI_COMM_WORLD, &status);
+
+			    //print_sudoku(cp_sudoku);
+
+			    delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, recv[POS]);
+
+			    start_pos = recv[POS];
+        		    start_num = recv[VAL];
+
+			    printf("rank = %d received work from %d at cell=%d, val=%d\n", id, i, recv[POS], recv[VAL]);
+
+			    break;
+                        }else
+			    printf("id = %d recv => JOB from = %d have no job to give\n", id, status.MPI_SOURCE);
+		    }
+		}
+		printf("saiu getjob %d\n", id);
+	    }
+>>>>>>> 9904cc8d9757bc0ba498652d72ac3bef452c6ef5
 
         }
     }
@@ -192,6 +227,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 		//MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
 		flag = 0;
         MPI_Test(&request, &flag, &status);
+<<<<<<< HEAD
 		if(flag && status.MPI_SOURCE != -1){
 			printf("id: %d here: %d, %d\n",id, status.MPI_SOURCE, status.MPI_TAG);
 	    	if(status.MPI_TAG == TAG_EXIT){
@@ -211,6 +247,30 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 				}
 	    	}
 		}
+=======
+	if(flag){
+	    if(status.MPI_TAG == TAG_EXIT){
+		printf("id = %d | p= %d asked for exit\n", id, status.MPI_SOURCE);
+	    	return -1;
+	    }else if(status.MPI_TAG == TAG_ASK_JOB){
+		printf("id = %d | p= %d asked for a job\n", id, status.MPI_SOURCE);
+		if(work->head != NULL){
+		    Item hyp_send = pop_head(work);
+		    response[POS] = hyp_send.cell;
+		    response[VAL] = hyp_send.num;
+			
+		    printf("vai enviar trabalho\n");
+		    MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                    MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request);
+		}else{
+		    printf("noa vai enviar trabalho\n");
+		    response[POS] = -1;
+		    MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+		}
+	    }
+	    flag = 0;
+	}
+>>>>>>> 9904cc8d9757bc0ba498652d72ac3bef452c6ef5
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
