@@ -164,7 +164,8 @@ int solve(int* sudoku){
                         }else if(status.MPI_TAG == TAG_HYP){
                             printf("[%d] received work\n");
                             
-                            MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD);
+                            MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv);
+                            
                             printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                             //start_num = recv_hyp[VAL];
                             //start_pos = recv_hyp[POS];
