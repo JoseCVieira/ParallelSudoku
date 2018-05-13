@@ -120,6 +120,8 @@ int solve(int* sudoku){
                     if(cp_sudoku[i] != UNCHANGEABLE)
                         sudoku[i] = cp_sudoku[i];
                     
+                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                
                 for(i = 0; i < p; i++)
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
