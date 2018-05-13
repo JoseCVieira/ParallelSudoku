@@ -81,10 +81,10 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1;
-    int low_value, high_value, result, flag, f2, recv, recv_hyp[2];
+    int low_value, high_value, result, flag, recv, recv_hyp[2];
 
     MPI_Request request_send, request_recv, request_recv_hyp;
-    MPI_Status status, s2;
+    MPI_Status status;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -159,32 +159,32 @@ int solve(int* sudoku){
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
-                            return 0;
-                        }else if(status.MPI_TAG == TAG_HYP){
+                        }else if(status.MPI_TAG == TAG_HYP)
                             printf("[%d] received work\n", id);
-                            
-                            f2 = -1;
-                            //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
-                            while(1){
-                                if(f2){
-                                    MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
-                                    f2 = 0;
-                                }
-                            
-                                //MPI_Test(&request_recv_hyp, &f2, &s2);
-                                if(f2){                            
-                                    printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
-                                    //start_num = recv_hyp[VAL];
-                                    //start_pos = recv_hyp[POS];
-                                    break;
-                                }
-                            }
-                        }
+                        
+                        break;
                     }
                 }
                 
                 if(start_pos == -1)
                     break;
+                
+                /*flag = -1;
+                //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                while(1){
+                    if(flag){
+                        MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
+                        flag = 0;
+                    }
+                
+                    MPI_Test(&request_recv_hyp, &flag, &status);
+                    if(flag){                            
+                        printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
+                        //start_num = recv_hyp[VAL];
+                        //start_pos = recv_hyp[POS];
+                        break;
+                    }
+                }*/
                 
                 /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
@@ -235,13 +235,11 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
-                printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                 MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                 response[POS] = 123;
                 response[VAL] = 123;
-                
-                sleep(1);
-                MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                //MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
                 if(work->head != NULL){
                     /*Item hyp_send = pop_head(work);
