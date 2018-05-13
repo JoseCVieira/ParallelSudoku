@@ -163,6 +163,8 @@ int solve(int* sudoku){
                             printf("[%d] received work\n", id);
                             //start_num = recv_hyp[VAL];
                             //start_pos = recv_hyp[POS];
+                        }if(status.MPI_TAG == TAG_ASK_JOB){
+                            continue;
                         }
                     }
                 }
