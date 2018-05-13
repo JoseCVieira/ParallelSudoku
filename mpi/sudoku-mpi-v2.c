@@ -164,9 +164,10 @@ int solve(int* sudoku){
                             printf("[%d] received work\n", id);
                             
                             flag = -1;
+                            MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                             while(1){
                                 if(flag){
-                                    MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv_hyp);
+                                    MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
                                     flag = 0;
                                 }
                             
