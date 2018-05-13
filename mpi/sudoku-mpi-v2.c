@@ -169,13 +169,9 @@ int solve(int* sudoku){
                 if(start_pos == -1)
                     break;
                 
-                flag = -1;
-                while(1){
-                    if(flag){
-                        MPI_Irecv(recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
-                        flag = 0;
-                    }
-                
+                MPI_Irecv(recv_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
+                flag = 0;
+                while(1){                
                     MPI_Test(&request_recv_hyp, &flag, &status);
                     if(flag){                            
                         printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
