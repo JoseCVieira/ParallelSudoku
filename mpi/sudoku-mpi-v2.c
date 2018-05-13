@@ -164,14 +164,14 @@ int solve(int* sudoku){
                             printf("[%d] received work\n", id);
                             
                             flag = -1;
-                            MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                            //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                             while(1){
                                 if(flag){
                                     MPI_Irecv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
                                     flag = 0;
                                 }
                             
-                                MPI_Test(&request_recv, &flag, &status);
+                                MPI_Test(&request_recv_hyp, &flag, &status);
                                 if(flag){                            
                                     printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                                     //start_num = recv_hyp[VAL];
@@ -239,6 +239,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 response[POS] = 123;
                 response[VAL] = 123;
                 MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                sleep(1);
                 MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
                 if(work->head != NULL){
