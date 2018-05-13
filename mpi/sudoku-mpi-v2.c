@@ -142,17 +142,17 @@ int solve(int* sudoku){
             if(start_num < high_value){
                 flag_enter = 1;
                 start_num++;
-                val_aux = start_num;
+                //val_aux = start_num;
             }
             
-            if(flag){
+            /*if(flag){
                 MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
             }
             
             MPI_Test(&request_recv, &flag, &status);
             if(flag && status.MPI_TAG == TAG_EXIT)
-                break;
+                break;*/
             
             if(!flag_enter){                
                 for(i = 0; i < p; i++)
