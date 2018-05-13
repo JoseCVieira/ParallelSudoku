@@ -171,7 +171,7 @@ int solve(int* sudoku){
                                     f2 = 0;
                                 }
                             
-                                MPI_Test(&request_recv_hyp, &f2, &s2);
+                                //MPI_Test(&request_recv_hyp, &f2, &s2);
                                 if(f2){                            
                                     printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                                     //start_num = recv_hyp[VAL];
