@@ -304,6 +304,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
     int i;
     
+    for(i = 0; i < m_size; i++){
+        rows_mask[i]  = UNASSIGNED;
+        cols_mask[i]  = UNASSIGNED;
+        boxes_mask[i] = UNASSIGNED;
+    }
+    
     printf("\nrow");
     for(i = 0; i < m_size; i++){
         printf("%d ", rows_mask[i]);
@@ -318,6 +324,7 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     for(i = 0; i < m_size; i++){
         printf("%d ", boxes_mask[i]);
     }
+    printf("\n");
     
     
     i = v_size;
@@ -347,7 +354,7 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
         printf("%d ", boxes_mask[i]);
     }
     
-    return 0;
+    exit(0);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
