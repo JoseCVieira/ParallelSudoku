@@ -171,8 +171,8 @@ int solve(int* sudoku){
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
                             if(number_amount != 1){                                
-                                memcpy(&start_pos, number_buf, sizeof(int));
-                                memcpy(&start_num, (number_buf+1), sizeof(int));
+                                /*memcpy(&start_pos, number_buf, sizeof(int));
+                                memcpy(&start_num, (number_buf+1), sizeof(int));*/
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
                                  printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
