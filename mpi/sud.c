@@ -173,6 +173,7 @@ int solve(int* sudoku){
                             if(number_amount != 1){                                
                                 /*memcpy(&start_pos, number_buf, sizeof(int));
                                 memcpy(&start_num, (number_buf+1), sizeof(int));*/
+                                
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
                                  printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
@@ -206,7 +207,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val, recv, flag, aux;
+    int cell, val, recv, flag;
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -237,14 +238,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     //Item hyp_send = pop_head(work);
                     
-                    aux = hyp.cell;
-                    //memcpy(send_msg, &aux, sizeof(int));
-                    aux = hyp.num;
-                    
-                    printf("hyp.cell = %d, hyp.num=%d\n", hyp.cell, hyp.num);
-                    
-                    //memcpy((send_msg+1), &aux, sizeof(int));
-                    memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
+                    memcpy(send_msg, hyp, sizeof(Item));
+                    memcpy((send_msg+sizeof(Item)), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     
