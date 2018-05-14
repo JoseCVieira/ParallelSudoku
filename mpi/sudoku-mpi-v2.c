@@ -151,6 +151,9 @@ int solve(int* sudoku){
                 
                 for(i = 0; i < p; i++){
                     if(i != id){
+                        
+                        MPI_Status status;
+                        
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         printf("[%d] asked work\n", id);
                         
@@ -226,9 +229,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
             flag = 0;
         }
         
-        if(!flag)
-            MPI_Test(&request, &flag, &status);
-        
+        MPI_Test(&request, &flag, &status);
         if(flag){
             if(status.MPI_TAG == TAG_EXIT){
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
