@@ -234,12 +234,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
-                    /*response[POS] = 123;
-                    response[VAL] = 123;*/
+                    response[POS] = 123;
+                    response[VAL] = 123;
                                         
-                    Item hyp_send = pop_head(work);
+                    /*Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
-                    response[VAL] = hyp_send.num;
+                    response[VAL] = hyp_send.num;*/
 
                     MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request);
@@ -275,8 +275,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
-                        if(!flag)
-                            MPI_Cancel(&request);
+                        /*if(!flag)
+                            MPI_Cancel(&request);*/
                     return 0;
                 }else
                     break;
