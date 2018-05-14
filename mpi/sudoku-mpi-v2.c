@@ -152,6 +152,7 @@ int solve(int* sudoku){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
@@ -160,14 +161,17 @@ int solve(int* sudoku){
                             printf("[%d] received work\n", id);
                             break;
                         }
+                        
                     }
                 }                                  
                 
                 if(start_pos == -1)
                     break;
                 
-                /*MPI_Irecv(recv_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv);
-                flag = 0;
+                MPI_Recv(recv_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &status);
+                printf("[%d] received work from %d => cel = %d, num = %d\n", id, status.MPI_SOURCE, recv_hyp[POS], recv_hyp[VAL]);
+                        
+                /*flag = 0;
                 while(1){
                     MPI_Test(&request_recv, &flag, &status);
                     if(flag){
@@ -176,9 +180,9 @@ int solve(int* sudoku){
                         start_pos = recv_hyp[POS];
                         break;
                     }
-                }
+                }*/
                 
-                MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
+                /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
                 while(1){
                     MPI_Test(&request_recv, &flag, &status);
@@ -240,6 +244,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     response[POS] = hyp.cell;
                     response[VAL] = hyp.num;
+                    
+                    MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
+                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                                         
                     /*Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
