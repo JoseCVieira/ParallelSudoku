@@ -179,6 +179,7 @@ int solve(int* sudoku){
                                 //memcpy(cp_sudoku, &number_buf[2], v_size*sizeof(int));
                                 
                                 //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
+                                printf("\na\n");
                                 print_sudoku(number_buf);
                                 //flag_enter = 1;
                                 free(number_buf);
