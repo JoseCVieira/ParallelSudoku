@@ -161,12 +161,14 @@ int solve(int* sudoku){
                             printf("[%d] received work\n", id);
                             break;
                         }
-                        
                     }
-                }                                  
+                }
                 
                 if(start_pos == -1)
                     break;
+                
+                MPI_Recv(cp_sudoku, v_size, MPI_INT, i, TAG_CP_SUD, MPI_COMM_WORLD, &status);
+                print_sudoku(cp_sudoku);
                 
                         
                 /*flag = 0;
@@ -241,15 +243,14 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                     
+                    MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_send);
+                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);
+                    
                                         
                     /*Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
                     response[VAL] = hyp_send.num;*/
 
-                    /*MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
-                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);
-                    MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_send);
-                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);*/
                 }else{
                     response[POS] = -1;
                     MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
