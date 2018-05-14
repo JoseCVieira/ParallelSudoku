@@ -58,7 +58,6 @@ int main(int argc, char *argv[]){
         result = solve(sudoku);
 
         printf("process %d => nr_it=%d\n", id, nr_it);
-        sleep(1);
         
         for(i = 0; i < p; i++)
             if(i != id)
@@ -200,6 +199,9 @@ int solve(int* sudoku){
     free(b_mask_array);
     free(cp_sudoku);
     
+    if(!flag)
+        MPI_Cancel(&request_recv);
+    
     if(solved)
         return 1;
     return 0;
@@ -275,8 +277,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
-                        /*if(!flag)
-                            MPI_Cancel(&request);*/
+                        if(!flag)
+                            MPI_Cancel(&request);
                     return 0;
                 }else
                     break;
