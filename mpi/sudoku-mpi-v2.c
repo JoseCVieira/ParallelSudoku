@@ -146,7 +146,7 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++)
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
-                
+                MPI_Cancel(&request_send);
                 
                 MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
