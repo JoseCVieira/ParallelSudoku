@@ -309,7 +309,8 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
         i--;
     }
 
-    init_masks(cp_sudoku, rows_mask, cols_mask, boxes_mask);
+    for(i = 0; i < cell; i++)
+        update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
