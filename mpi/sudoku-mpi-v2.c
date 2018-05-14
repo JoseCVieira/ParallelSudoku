@@ -229,6 +229,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
             flag = 0;
         }
         
+        if(id == 3)
+            print_list(work);
+        
         MPI_Test(&request, &flag, &status);
         if(flag){
             if(status.MPI_TAG == TAG_EXIT){
@@ -315,7 +318,7 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
         
-    printf("\n\nrows\n");
+    printf("\nrows\n");
     for(i = 0; i < m_size; i++){
         printf("%d ", rows_mask[i]);
     }
