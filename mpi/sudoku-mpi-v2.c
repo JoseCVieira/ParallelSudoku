@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, flag_enter = 1, recv_hyp[2];
+    int low_value, high_value, result, flag_enter = 1;
     int number_amount;
     
     MPI_Status status;
@@ -165,7 +165,6 @@ int solve(int* sudoku){
 
                         // Now receive the message with the allocated buffer
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        //MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -174,14 +173,14 @@ int solve(int* sudoku){
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
                             if(number_amount != 1){
-                                recv_hyp[POS] = number_buf[POS];
-                                recv_hyp[VAL] = number_buf[VAL];
+                                start_pos = number_buf[POS];
+                                start_num = number_buf[VAL]; 
                                 
-                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, recv_hyp[POS], recv_hyp[VAL]);
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
                                 
                                 memcpy(cp_sudoku, &number_buf[2], v_size*sizeof(int));
                                 
-                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, recv_hyp[POS]);
+                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
                                 free(number_buf);
