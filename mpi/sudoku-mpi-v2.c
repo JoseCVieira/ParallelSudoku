@@ -308,24 +308,7 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
         rows_mask[i]  = UNASSIGNED;
         cols_mask[i]  = UNASSIGNED;
         boxes_mask[i] = UNASSIGNED;
-    }
-    
-    printf("\nrow");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", rows_mask[i]);
-    }
-    
-    printf("\ncol");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", cols_mask[i]);
-    }
-    
-    printf("\nbox");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", boxes_mask[i]);
-    }
-    printf("\n");
-    
+    }    
     
     i = v_size;
     while(i >= cell){
@@ -337,26 +320,6 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-    
-    print_sudoku(cp_sudoku);
-    
-    printf("\nrow");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", rows_mask[i]);
-    }
-    
-    printf("\ncol");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", cols_mask[i]);
-    }
-    
-    printf("\nbox");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", boxes_mask[i]);
-    }
-    printf("\n");
-    
-    exit(0);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
