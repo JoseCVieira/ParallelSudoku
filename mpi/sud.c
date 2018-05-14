@@ -45,8 +45,6 @@ int nr_it = 0; //a eliminar
 
 int main(int argc, char *argv[]){
     int result, *sudoku, i;
-    MPI_Request request_send[p];
-    MPI_Status status_send[p];
 
     if(argc == 2){
 
@@ -60,15 +58,11 @@ int main(int argc, char *argv[]){
 
         printf("process %d => nr_it=%d\n", id, nr_it);
             
-        /*for(i = 0; i < p; i++)
-            if(i != id)
-                MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send[i]);
-        
         for(i = 0; i < p; i++)
             if(i != id)
-                MPI_Wait(&request_send[i], &status_send[i]);*/
+                MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
         
-        //MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 
         if(result)
             print_sudoku(sudoku);
