@@ -89,7 +89,7 @@ int solve(int* sudoku){
     int low_value, high_value, result, flag_enter = 1;
     int number_amount;
     
-    MPI_Status status;
+    //MPI_Status status;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -160,6 +160,7 @@ int solve(int* sudoku){
                         
                         int* number_buf = (int*)malloc(sizeof(int) * number_amount);
                     
+                        MPI_Status status;
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         printf("[%d] recv tag %d\n", id, status.MPI_TAG);
                         
