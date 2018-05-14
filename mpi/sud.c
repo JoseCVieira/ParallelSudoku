@@ -170,16 +170,17 @@ int solve(int* sudoku){
                             //free(number_buf);
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
-                            if(number_amount != 1){                                
-                                /*memcpy(&start_pos, number_buf, sizeof(int));
-                                memcpy(&start_num, (number_buf+1), sizeof(int));*/
-                                Item hyp_recv;
+                            if(number_amount != 1){
                                 
+                                Item hyp_recv;
                                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
-                                //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
+                                start_pos = hyp_recv.cell;
+                                start_num = hyp_recv.num;
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
+                                
+                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
                                 free(number_buf);
@@ -238,12 +239,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
-                    Item hyp_send = pop_head(work);
-                    
-                    /*Item hyp_send;
-                    hyp_send.cell = 10;
-                    hyp_send.num = 20;*/
-                    
+                    Item hyp_send = pop_head(work);                    
                     memcpy(send_msg, &hyp_send, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
