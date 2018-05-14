@@ -230,14 +230,14 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){                    
-                if(work->head != NULL){
+                if(work->tail != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
                     /*response[POS] = 123;
                     response[VAL] = 123;*/
                                         
-                    Item hyp_send = pop_head(work);
+                    Item hyp_send = pop_tail(work);
                     response[POS] = hyp_send.cell;
                     response[VAL] = hyp_send.num;
 
