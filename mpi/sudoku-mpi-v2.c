@@ -87,7 +87,8 @@ int main(int argc, char *argv[]){
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
     int low_value, high_value, result, flag_enter = 1, recv_hyp[2];
-
+    int number_amount;
+    
     MPI_Status status;
     Item hyp;
     
@@ -150,24 +151,44 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        
+                        MPI_Status status;
+                        // Probe for an incoming message from process zero
+                        MPI_Probe(i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+                        // When probe returns, the status object has the size and other
+                        // attributes of the incoming message. Get the message size
+                        MPI_Get_count(&status, MPI_INT, &number_amount);
+
+                        // Allocate a buffer to hold the incoming numbers
+                        int* number_buf = (int*)malloc(sizeof(int) * number_amount);
+
+                        // Now receive the message with the allocated buffer
+                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        //MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
+                            free(number_buf);
                             break;
-                        }else if(status.MPI_TAG == TAG_HYP && recv_hyp[POS] != -1){
-                            printf("[%d] received work\n", id);
-                            break;
+                        }else if(status.MPI_TAG == TAG_HYP){
+                            if(number_amount != 1){
+                                printf("[%d] received work\n", id);
+                                free(number_buf);
+                                break;
+                            }
                         }
+                        
+                        free(number_buf);
                     }
                 }
                 
                 if(start_pos == -1)
                     break;
                 
-                MPI_Recv(cp_sudoku, v_size, MPI_INT, i, TAG_CP_SUD, MPI_COMM_WORLD, &status);
-                print_sudoku(cp_sudoku);
+               /* MPI_Recv(cp_sudoku, v_size, MPI_INT, i, TAG_CP_SUD, MPI_COMM_WORLD, &status);
+                print_sudoku(cp_sudoku);*/
                 
                         
                 /*flag = 0;
@@ -238,7 +259,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     response[VAL] = hyp.num;
                     
                     MPI_Send(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    MPI_Send(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD);
+                    //MPI_Send(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD);
                     
                                         
                     /*Item hyp_send = pop_head(work);
@@ -246,8 +267,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     response[VAL] = hyp_send.num;*/
 
                 }else{
-                    response[POS] = -1;
-                    MPI_Send(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     //MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                 }
             }
