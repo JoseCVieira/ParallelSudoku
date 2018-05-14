@@ -179,7 +179,7 @@ int solve(int* sudoku){
                                 
                                 delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
-                                flag_enter = 1;
+                                //flag_enter = 1;
                                 free(number_buf);
                                 break;
                             }
@@ -208,8 +208,8 @@ int solve(int* sudoku){
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val, recv, flag, src;
-    MPI_Request request, r2;
-    MPI_Status status, s2;
+    MPI_Request request;
+    MPI_Status status;
     Item hyp;
     
     hyp = pop_head(work);
@@ -236,14 +236,13 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     int* send_msg = (int*)malloc( (v_size+2) * sizeof(int));
                     
-                    Item hyp_send = pop_head(work);
-                    send_msg[POS] = hyp_send.cell;
-                    send_msg[VAL] = hyp_send.num;
+                    //Item hyp_send = pop_head(work);
+                    send_msg[POS] = hyp.cell;
+                    send_msg[VAL] = hyp.num;
                     memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
-                    MPI_Isend(send_msg, v_size+2, MPI_INT, 3, TAG_HYP, MPI_COMM_WORLD, &r2);
-                    MPI_Wait(&r2, &s2);
-                    //printf("[%d] sent work to process %d\n", id, status.MPI_SOURCE);
+                    MPI_Send(send_msg, v_size+2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    printf("[%d] sent work to process %d\n", id, status.MPI_SOURCE);
                     
                     free(send_msg);
                 }else
