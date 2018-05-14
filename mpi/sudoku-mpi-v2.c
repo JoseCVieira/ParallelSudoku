@@ -320,6 +320,23 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        
+    printf("\n\nrows");
+    for(i = 0; i < m_size; i++){
+        printf("%d ", rows_mask[i]);
+    }
+    
+    printf("\n\ncols");
+    for(i = 0; i < m_size; i++){
+        printf("%d ", rows_mask[i]);
+    }
+    
+    printf("\n\nboxes");
+    for(i = 0; i < m_size; i++){
+        printf("%d ", rows_mask[i]);
+    }
+    
+    printf("\n\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
