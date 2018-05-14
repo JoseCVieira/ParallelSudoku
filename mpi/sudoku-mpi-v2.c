@@ -303,14 +303,13 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     int i;
     
     i = v_size;
-    while(i >= cell){
+    while(i >= 0){
         if(cp_sudoku[i] > 0)
             cp_sudoku[i] = UNASSIGNED;
         i--;
     }
 
-    for(i = 0; i < cell; i++)
-        update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+    init_masks(cp_sudoku, rows_mask, cols_mask, boxes_mask);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
@@ -335,7 +334,7 @@ int int_to_mask(int num) {
 }
 
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask) {
-    int i, row, col;
+    int i;
 
     for(i = 0; i < m_size; i++){
         rows_mask[i]  = UNASSIGNED;
@@ -343,14 +342,9 @@ void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t*
         boxes_mask[i] = UNASSIGNED;
     }
 
-    for(i = 0; i < v_size; i++){
-        if(sudoku[i]){
-            row = ROW(i);
-            col = COL(i);
-
-            update_masks(sudoku[i], row, col, rows_mask, cols_mask, boxes_mask);
-        }
-    }
+    for(i = 0; i < v_size; i++)
+        if(sudoku[i])
+            update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
 }
 
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask) {
