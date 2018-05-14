@@ -54,16 +54,18 @@ int main(int argc, char *argv[]){
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
+        printf("process %d => nr_it=%d\n", id, nr_it);
         if(solve(sudoku))
             print_sudoku(sudoku);
+        else
+            printf("no solution\n");
+        
 
         for(i = 0; i < p; i++)
             if(i != id)
                 MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
         
         MPI_Barrier(MPI_COMM_WORLD);
-        
-        printf("process %d => nr_it=%d\n", id, nr_it);
         
         exit(0);
 
