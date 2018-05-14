@@ -151,13 +151,13 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Recv(&recv_hyp, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                             break;
-                        }else if(status.MPI_TAG == TAG_HYP && !recv){
+                        }else if(status.MPI_TAG == TAG_HYP && recv_hyp[POS] != -1){
                             printf("[%d] received work\n", id);
                             break;
                         }
@@ -168,8 +168,6 @@ int solve(int* sudoku){
                 if(start_pos == -1)
                     break;
                 
-                MPI_Recv(recv_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &status);
-                printf("[%d] received work from %d => cel = %d, num = %d\n", id, status.MPI_SOURCE, recv_hyp[POS], recv_hyp[VAL]);
                         
                 /*flag = 0;
                 while(1){
@@ -212,7 +210,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val, recv, flag, response[2], r;
+    int cell, val, recv, flag, response[2];
     MPI_Request request, request_send;
     MPI_Status status;
     Item hyp;
@@ -238,15 +236,11 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
-                    r = 0;
-                    MPI_Isend(&r, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
-                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);
-                    
                     response[POS] = hyp.cell;
                     response[VAL] = hyp.num;
-                    
-                    MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
+                    MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);
+                    
                                         
                     /*Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
@@ -257,8 +251,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_send);
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);*/
                 }else{
-                    r = -1;
-                    MPI_Isend(&r, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
+                    response[POS] = -1;
+                    MPI_Isend(&response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                 }
             }
         }
