@@ -328,12 +328,12 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     
     printf("\n\ncols");
     for(i = 0; i < m_size; i++){
-        printf("%d ", rows_mask[i]);
+        printf("%d ", cols_mask[i]);
     }
     
     printf("\n\nboxes");
     for(i = 0; i < m_size; i++){
-        printf("%d ", rows_mask[i]);
+        printf("%d ", boxes_mask[i]);
     }
     
     printf("\n\n");
