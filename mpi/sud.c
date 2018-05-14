@@ -210,7 +210,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val, recv, flag, src;
+    int cell, val, recv, flag, aux;
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -243,8 +243,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     send_msg[POS] = hyp.cell;
                     send_msg[VAL] = hyp.num;*/
                     
-                    memcpy(send_msg, 99, sizeof(int));
-                    memcpy((send_msg+1), 99, sizeof(int));
+                    aux = 99;
+                    memcpy(send_msg, &aux, sizeof(int));
+                    aux = 99;
+                    memcpy((send_msg+1), &aux, sizeof(int));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
