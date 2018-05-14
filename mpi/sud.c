@@ -183,7 +183,10 @@ int solve(int* sudoku){
                                 start_num = hyp_recv.num;
                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);*/
                                 
-                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                int pos = hyp_recv.cell;
+                                int num = hyp_recv.num;
+                                
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, pos, num);
                                 
                                 delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 print_sudoku(cp_sudoku);
