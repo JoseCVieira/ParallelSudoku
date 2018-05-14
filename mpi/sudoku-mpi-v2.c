@@ -183,7 +183,7 @@ int solve(int* sudoku){
                     }
                 }
                 
-                MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
+                //MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
                 
                 MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
@@ -249,17 +249,17 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     response[POS] = hyp.cell;
                     response[VAL] = hyp.num;
                                         
-                    /*Item hyp_send = pop_head(work);
+                    Item hyp_send = pop_tail(work);
                     response[POS] = hyp_send.cell;
-                    response[VAL] = hyp_send.num;*/
+                    response[VAL] = hyp_send.num;
 
                     MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
-                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);
+                   // MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                     MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_send);
-                    MPI_Wait(&request_send, MPI_STATUS_IGNORE);
+                   // MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                 }
             }
-            MPI_Wait(&request, &status);
+            //MPI_Wait(&request, &status);
         }
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
