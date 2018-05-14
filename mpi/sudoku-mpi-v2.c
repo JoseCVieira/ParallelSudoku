@@ -80,10 +80,10 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1;
+    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1, erro[p];
     int low_value, high_value, result, flag, recv, recv_hyp[2];
 
-    MPI_Request request_send, request_recv, request_recv_hyp, request_recv_cp;
+    MPI_Request request_send[p], request_recv, request_recv_hyp, request_recv_cp;
     MPI_Status status;
     Item hyp;
     
@@ -145,7 +145,7 @@ int solve(int* sudoku){
                 
                 for(i = 0; i < p; i++)
                     if(i != id)
-                        MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
+                        erro[i] = MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send[i]);
                 
                 MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
@@ -162,7 +162,10 @@ int solve(int* sudoku){
                     }
                 }
                 
-                MPI_Cancel(&request_send);
+                for(i = 0; i < p; i++)
+                    if(i != id)
+                        if(erro[i] != MPI_SUCCESS)
+                            MPI_Cancel(&request_send[i]);
                 
                 if(start_pos == -1)
                     break;
