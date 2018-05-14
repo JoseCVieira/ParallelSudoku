@@ -39,7 +39,7 @@ void print_sudoku(int *sudoku);
 int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
-int ring_comm(void * msg, int tag, int direction);
+int ring_comm(void * msg, int tag);
 
 int r_size, m_size, v_size;
 int id, p;
@@ -60,9 +60,7 @@ int main(int argc, char *argv[]){
         result = solve(sudoku);
 
         printf("process %d => nr_it=%d\n", id, nr_it);
-	m[0] = 10;
-	while(1)
-	ring_comm(m, TAG_EXIT, SEND_T);
+
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	//MPI_Reduce(&result, &solved, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -87,6 +85,7 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
+	int m[1];
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
     int low_value, high_value, result, flag, recv[2];
     MPI_Request request_send, request_recv;
@@ -129,8 +128,10 @@ int solve(int* sudoku){
         if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
             solved = 1;
             for(i = 0; i < v_size; i++)
-                if(cp_sudoku[i] != UNCHANGEABLE)
+                if(cp_sudoku[i] != UNCHANGEABLE){
                     sudoku[i] = cp_sudoku[i];
+					m[0] = -1;
+				}
 
              break;
         }else{
@@ -174,11 +175,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         return 0;
 
     flag = 0;
-	m[0] =1;
-	if(ring_comm(m, 0, RECV_T)==-1){
-		return 0;
-	}	
-    while(1){
+   while(1){
 
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -225,7 +222,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     }
 }
 
-int ring_comm(void * msg, int tag, int direction){
+/*int ring_comm(void * msg, int tag){
 	MPI_Request recv_request, send_request;
 	MPI_Status status;
 	int * recvbuff;	
@@ -234,28 +231,29 @@ int ring_comm(void * msg, int tag, int direction){
 	
 	inittime = MPI_Wtime();
    if ( id == 0 ){
-	 if(direction == SEND_T)
-	     ierr=MPI_Isend(msg,1,MPI_INT,
+
+	 ierr=MPI_Isend(msg,1,MPI_INT,
 	           id+1,tag,MPI_COMM_WORLD,&send_request);
-   	 else if(direction == RECV_T)
+
      ierr=MPI_Irecv(&recvbuff,1,MPI_INT,
 	           p-1,MPI_ANY_TAG,MPI_COMM_WORLD,&recv_request);
-     recvtime = MPI_Wtime();
+     
+	 recvtime = MPI_Wtime();
    }
    else if( id == p-1 ){
-	 if(direction == SEND_T)
+
         ierr=MPI_Isend(msg,1,MPI_INT,
 	           0,tag,MPI_COMM_WORLD,&send_request);   
-     else if(direction == RECV_T)
+
 	 	ierr=MPI_Irecv(&recvbuff,1,MPI_INT,
 	           id-1,MPI_ANY_TAG,MPI_COMM_WORLD,&recv_request);
      recvtime = MPI_Wtime();
    }
    else{
-	if(direction == SEND_T)
+
         ierr=MPI_Isend(msg,1,MPI_INT,
 	           id+1,tag,MPI_COMM_WORLD,&send_request);
-     else if(direction == RECV_T)
+
 		ierr=MPI_Irecv(&recvbuff,1,MPI_INT,
 	           id-1,MPI_ANY_TAG,MPI_COMM_WORLD,&recv_request);
      recvtime = MPI_Wtime();
@@ -265,12 +263,14 @@ int ring_comm(void * msg, int tag, int direction){
    ierr=MPI_Wait(&recv_request,&status);
 	//printf("from %d to %d data: %d\n", status.MPI_SOURCE, id,recvbuff);
 	//fflush(stdout);
-//   totaltime = MPI_Wtime() - inittime;
-//	printf("%f\n", totaltime);
-	if(status.MPI_TAG == TAG_EXIT)
+   totaltime = MPI_Wtime() - inittime;
+	printf("%f\n", totaltime);
+	if(status.MPI_TAG == TAG_EXIT){
 		return -1;
+
+	}
 	return 0;
-}
+}*/
 
 void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
     int i;
