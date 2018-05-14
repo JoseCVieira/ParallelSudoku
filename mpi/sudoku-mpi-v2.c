@@ -164,6 +164,8 @@ int solve(int* sudoku){
                         break;
                     }
                 }
+                
+                MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
                                        
                 
                 if(start_pos == -1)
@@ -181,6 +183,8 @@ int solve(int* sudoku){
                     }
                 }
                 
+                MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
+                
                 MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
                 while(1){
@@ -191,7 +195,9 @@ int solve(int* sudoku){
                         //flag_enter = 1;
                         break;
                     }
-                }                
+                }  
+                
+                MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
             }
         }
     }
