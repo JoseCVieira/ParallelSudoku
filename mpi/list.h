@@ -25,3 +25,4 @@ ListNode* newNode(Item this);
 void insert_head(List* list, Item this);
 Item pop_head(List* list);
 Item pop_tail(List *list);
+void print_list(List* list);
