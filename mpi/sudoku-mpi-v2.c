@@ -174,7 +174,7 @@ int solve(int* sudoku){
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
                             if(number_amount != 1){
-                                printf("[%d] received work\n", id);
+                                printf("[%d] received work size=%d\n", id, number_amount);
                                 free(number_buf);
                                 break;
                             }
