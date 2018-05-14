@@ -153,7 +153,7 @@ int solve(int* sudoku){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
-                        MPI_Probe(i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         printf("[%d] passed probe tag %d\n", id, status.MPI_TAG);
                         
                         MPI_Get_count(&status, MPI_INT, &number_amount);
@@ -209,7 +209,7 @@ int solve(int* sudoku){
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val, recv, flag, src;
     MPI_Request request;
-    MPI_Status status_recv;
+    MPI_Status status;
     Item hyp;
     
     hyp = pop_head(work);
@@ -225,15 +225,14 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
             flag = 0;
         }
         
-        MPI_Test(&request, &flag, &status_recv);
-        src = status_recv.MPI_SOURCE;
+        MPI_Test(&request, &flag, &status);
         if(flag){
-            if(status_recv.MPI_TAG == TAG_EXIT){
-                printf("[%d] process = %d asked to terminate\n", id, src);
+            if(status.MPI_TAG == TAG_EXIT){
+                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
-            }else if(status_recv.MPI_TAG == TAG_ASK_JOB){
+            }else if(status.MPI_TAG == TAG_ASK_JOB){
                 if(work->head != NULL){
-                    printf("[%d] process = %d asked for a job\n", id, src);
+                    printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     
                     int* send_msg = (int*)malloc( (v_size+2) * sizeof(int));
                     
@@ -243,11 +242,11 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, v_size+2, MPI_INT, 3, TAG_HYP, MPI_COMM_WORLD);
-                    printf("[%d] sent work to process %d\n", id, src);
+                    printf("[%d] sent work to process %d\n", id, status.MPI_SOURCE);
                     
                     free(send_msg);
                 }else
-                    MPI_Send(0, 1, MPI_INT, src, TAG_HYP, MPI_COMM_WORLD);
+                    MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             }
         }
 
