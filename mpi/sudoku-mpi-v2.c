@@ -335,7 +335,8 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     }
 
     for(i = 0; i < cell; i++)
-        update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        if(cp_sudoku[i] > 0)
+            update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
     
     print_sudoku(cp_sudoku);
     
@@ -353,6 +354,7 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     for(i = 0; i < m_size; i++){
         printf("%d ", boxes_mask[i]);
     }
+    printf("\n");
     
     exit(0);
 }
