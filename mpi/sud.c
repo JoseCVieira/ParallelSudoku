@@ -187,7 +187,7 @@ int solve(int* sudoku){
                            // }
                         }
                         
-                        //free(number_buf);
+                        free(number_buf);
                     }
                 }
                 
