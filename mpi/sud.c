@@ -60,18 +60,20 @@ int main(int argc, char *argv[]){
 
         printf("process %d => nr_it=%d\n", id, nr_it);
             
-        for(i = 0; i < p; i++)
+        /*for(i = 0; i < p; i++)
             if(i != id)
                 MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send[i]);
         
         for(i = 0; i < p; i++)
             if(i != id)
-                MPI_Wait(&request_send[i], &status_send[i]);
+                MPI_Wait(&request_send[i], &status_send[i]);*/
         
-        MPI_Barrier(MPI_COMM_WORLD);
+        //MPI_Barrier(MPI_COMM_WORLD);
 
         if(result)
             print_sudoku(sudoku);
+        
+        exit(0);
 
         fflush(stdout);
         MPI_Finalize();
@@ -164,13 +166,13 @@ int solve(int* sudoku){
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                     
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        printf("[%d] recv tag %d\n", id, status.MPI_TAG);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                             free(number_buf);
-                            break;
+                            //break;
+                            exit(0);
                         }else if(status.MPI_TAG == TAG_HYP){
                             if(number_amount != 1){
                                 
@@ -234,7 +236,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         if(flag){
             if(status.MPI_TAG == TAG_EXIT){
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
-                return -1;
+                //return -1;
+                exit(0);
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
