@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, flag_enter = 1;
+    int low_value, high_value, result, flag_enter = 1, flag_aux = 1;
     int number_amount;
     
     MPI_Status status;
@@ -123,9 +123,11 @@ int solve(int* sudoku){
         if(flag_enter){
             flag_enter = 0;
             
-            hyp.cell = start_pos;
-            hyp.num = start_num;
-            insert_head(work, hyp);
+            if(flag_aux){
+                hyp.cell = start_pos;
+                hyp.num = start_num;
+                insert_head(work, hyp);
+            }
 
             if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
                 for(i = 0; i < v_size; i++)
@@ -147,6 +149,7 @@ int solve(int* sudoku){
             }
             
             if(!flag_enter){
+                flag_aux = 0;
                 printf("[%d] out of work\n", id);
                 
                 for(i = 0; i < p; i++){
@@ -182,7 +185,7 @@ int solve(int* sudoku){
                                 
                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
-                                //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
+                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
                                 free(number_buf);
