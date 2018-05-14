@@ -174,10 +174,12 @@ int solve(int* sudoku){
                                 /*start_pos = number_buf[POS];
                                 start_num = number_buf[VAL]; */
                                 
-                               // printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
                                 
-                                /*memcpy(start_pos, number_buf, sizeof(int));
-                                memcpy(start_num, (number_buf+1), sizeof(int));*/
+                                memcpy(&start_pos, number_buf, sizeof(int));
+                                memcpy(&start_num, (number_buf+1), sizeof(int));
+                                
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
+                                
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
                                 //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
