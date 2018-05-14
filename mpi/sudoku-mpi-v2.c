@@ -89,7 +89,7 @@ int solve(int* sudoku){
     int low_value, high_value, result, flag_enter = 1;
     int number_amount;
     
-    //MPI_Status status;
+    MPI_Status status;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -151,8 +151,6 @@ int solve(int* sudoku){
                 
                 for(i = 0; i < p; i++){
                     if(i != id){
-                        MPI_Status status;
-                        
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
                         MPI_Probe(i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -243,7 +241,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     send_msg[VAL] = hyp_send.num;
                     memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
-                    MPI_Send(send_msg, v_size+2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    MPI_Send(send_msg, v_size+2, MPI_INT, 3/*status.MPI_SOURCE*/, TAG_HYP, MPI_COMM_WORLD);
                     printf("[%d] sent work to process %d\n", id, status.MPI_SOURCE);
                     
                     free(send_msg);
