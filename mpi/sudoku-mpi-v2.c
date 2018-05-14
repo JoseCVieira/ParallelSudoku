@@ -45,7 +45,8 @@ int nr_it = 0; //a eliminar
 
 int main(int argc, char *argv[]){
     int result, *sudoku, i;
-    MPI_Request request_send;
+    MPI_Request request_send[p];
+    MPI_Status status_send[p];
 
     if(argc == 2){
 
@@ -58,10 +59,11 @@ int main(int argc, char *argv[]){
         result = solve(sudoku);
 
         printf("process %d => nr_it=%d\n", id, nr_it);
-        
+            
         for(i = 0; i < p; i++)
             if(i != id)
-                MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send);
+                MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send[i]);
+        MPI_Waitall(p, request_send, status_send);
         
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -84,7 +86,7 @@ int solve(int* sudoku){
     int low_value, high_value, result, flag, recv, recv_hyp[2];
 
     MPI_Request request_send[p], request_recv, request_recv_hyp, request_recv_cp;
-    MPI_Status status;
+    MPI_Status status_send[p], status;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -143,12 +145,10 @@ int solve(int* sudoku){
             if(!flag_enter){
                 printf("[%d] out of work\n", id);
                 
-                for(i = 0; i < p; i++){
-                    if(i != id){
+                for(i = 0; i < p; i++)
+                    if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send[i]);
-                        MPI_Wait(&request_send[i], MPI_STATUS_IGNORE);
-                    }
-                }
+                MPI_Waitall(p, request_send, status_send);
                 
                 MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
