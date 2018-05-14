@@ -170,18 +170,12 @@ int solve(int* sudoku){
                             //free(number_buf);
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
-                            if(number_amount != 1){
-                                /*start_pos = number_buf[POS];
-                                start_num = number_buf[VAL]; */
-                                
-                                
+                            if(number_amount != 1){                                
                                 memcpy(&start_pos, number_buf, sizeof(int));
                                 memcpy(&start_num, (number_buf+1), sizeof(int));
-                                
-                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
-                                
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
+                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
                                 //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
@@ -212,7 +206,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val, recv, flag, aux1, aux2;
+    int cell, val, recv, flag, aux;
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -245,10 +239,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     send_msg[POS] = hyp.cell;
                     send_msg[VAL] = hyp.num;*/
                     
-                    aux1= hyp.cell;
-                    memcpy(send_msg, &aux1, sizeof(int));
-                    aux2 = hyp.num;
-                    memcpy((send_msg+1), &aux2, sizeof(int));
+                    aux = 99;
+                    memcpy(send_msg, &aux, sizeof(int));
+                    aux = 99;
+                    memcpy((send_msg+1), &aux, sizeof(int));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
