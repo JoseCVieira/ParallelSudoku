@@ -164,7 +164,7 @@ int solve(int* sudoku){
                 
                 for(i = 0; i < p; i++)
                     if(i != id)
-                        MPI_Wait(&request_send[i], &status)
+                        MPI_Wait(&request_send[i], &status);
                 
                 if(start_pos == -1)
                     break;
