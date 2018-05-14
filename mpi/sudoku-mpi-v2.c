@@ -303,8 +303,8 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     int i;
     
     i = v_size;
-    while(i >= 0){
-        if(cp_sudoku[i] > cell)
+    while(i >= cell){
+        if(cp_sudoku[i] > 0)
             cp_sudoku[i] = UNASSIGNED;
         i--;
     }
