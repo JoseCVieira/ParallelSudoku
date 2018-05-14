@@ -235,13 +235,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
-                    /*Item hyp_send = pop_head(work);
-                    send_msg[POS] = hyp.cell;
-                    send_msg[VAL] = hyp.num;*/
-                    
-                    aux = 99;
+                    Item hyp_send = pop_head(work);                    
+                    aux = hyp_send.cell;
                     memcpy(send_msg, &aux, sizeof(int));
-                    aux = 99;
+                    aux = hyp_send.num;
                     memcpy((send_msg+1), &aux, sizeof(int));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
