@@ -181,6 +181,16 @@ int solve(int* sudoku){
                     }
                 }
                 
+                MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
+                flag = 0;
+                while(1){                
+                    MPI_Test(&request_recv_hyp, &flag, &status);
+                    if(flag){                            
+                        print_sudoku(cp_sudoku);
+                        break;
+                    }
+                }
+                
                 /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
                 flag = 0;
                 MPI_Test(&request_recv, &flag, &status);
