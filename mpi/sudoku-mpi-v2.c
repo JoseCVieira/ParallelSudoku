@@ -191,7 +191,7 @@ int solve(int* sudoku){
                     MPI_Test(&request_recv, &flag, &status);
                     if(flag){                            
                         delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
-                        print_sudoku(cp_sudoku);
+                        //print_sudoku(cp_sudoku);
                         //flag_enter = 1;
                         break;
                     }
