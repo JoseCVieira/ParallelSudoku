@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, flag_enter = 1, flag_aux = 1;
+    int low_value, high_value, result, flag_enter = 1;
     int number_amount;
     
     MPI_Status status;
@@ -123,7 +123,7 @@ int solve(int* sudoku){
         if(flag_enter){
             flag_enter = 0;
             
-            if(flag_aux){
+            if(start_pos != high_value){
                 hyp.cell = start_pos;
                 hyp.num = start_num;
                 insert_head(work, hyp);
@@ -149,7 +149,6 @@ int solve(int* sudoku){
             }
             
             if(!flag_enter){
-                flag_aux = 0;
                 printf("[%d] out of work\n", id);
                 
                 for(i = 0; i < p; i++){
@@ -170,7 +169,7 @@ int solve(int* sudoku){
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
-                            //free(number_buf);
+                            free(number_buf);
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
                             if(number_amount != 1){
@@ -191,7 +190,7 @@ int solve(int* sudoku){
                             }
                         }
                         
-                        //free(number_buf);
+                        free(number_buf);
                     }
                 }
                 
