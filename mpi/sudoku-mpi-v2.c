@@ -241,7 +241,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     send_msg[VAL] = hyp_send.num;
                     memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
-                    MPI_Isend(send_msg, v_size+2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &r2);
+                    MPI_Isend(send_msg, v_size+2, MPI_INT, 3, TAG_HYP, MPI_COMM_WORLD, &r2);
                     MPI_Wait(&r2, &s2);
                     //printf("[%d] sent work to process %d\n", id, status.MPI_SOURCE);
                     
