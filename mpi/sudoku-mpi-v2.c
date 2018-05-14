@@ -58,6 +58,7 @@ int main(int argc, char *argv[]){
         result = solve(sudoku);
 
         printf("process %d => nr_it=%d\n", id, nr_it);
+        sleep(1);
         
         for(i = 0; i < p; i++)
             if(i != id)
@@ -174,7 +175,7 @@ int solve(int* sudoku){
                 while(1){                
                     MPI_Test(&request_recv_hyp, &flag, &status);
                     if(flag){                            
-                        //printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
+                        printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
                         start_num = recv_hyp[VAL];
                         start_pos = recv_hyp[POS];
                         break;
@@ -187,6 +188,7 @@ int solve(int* sudoku){
                     MPI_Test(&request_recv_hyp, &flag, &status);
                     if(flag){                            
                         delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
+                        flag_enter = 1;
                         break;
                     }
                 }
