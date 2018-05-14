@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
         printf("process %d => nr_it=%d\n", id, nr_it);
             
         for(i = 0; i < p; i++)
-            if(i != id)
+            //if(i != id)
                 MPI_Isend(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD, &request_send[i]);
         MPI_Waitall(p, request_send, status_send);
         
@@ -146,7 +146,7 @@ int solve(int* sudoku){
                 printf("[%d] out of work\n", id);
                 
                 for(i = 0; i < p; i++)
-                    if(i != id)
+                   // if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send[i]);
                 MPI_Waitall(p, request_send, status_send);
                 
