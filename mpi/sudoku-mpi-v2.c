@@ -227,7 +227,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         
         MPI_Test(&request, &flag, &status_recv);
         src = status_recv.MPI_SOURCE;
-        MPI_Status status_recv;
         if(flag){
             if(status_recv.MPI_TAG == TAG_EXIT){
                 printf("[%d] process = %d asked to terminate\n", id, src);
@@ -243,7 +242,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     send_msg[VAL] = hyp_send.num;
                     memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
-                    MPI_Send(send_msg, v_size+2, MPI_INT, src, TAG_HYP, MPI_COMM_WORLD);
+                    MPI_Send(send_msg, v_size+2, MPI_INT, 3, TAG_HYP, MPI_COMM_WORLD);
                     printf("[%d] sent work to process %d\n", id, src);
                     
                     free(send_msg);
