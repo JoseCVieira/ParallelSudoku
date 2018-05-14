@@ -173,10 +173,12 @@ int solve(int* sudoku){
                             if(number_amount != 1){                                
                                 /*memcpy(&start_pos, number_buf, sizeof(int));
                                 memcpy(&start_num, (number_buf+1), sizeof(int));*/
+                                Item hyp_recv;
                                 
+                                memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
+                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
