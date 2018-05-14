@@ -152,8 +152,6 @@ int solve(int* sudoku){
                 while(1){
                     MPI_Test(&request_recv, &flag, &status);
                     if(flag){
-                        MPI_Cancel(&request_send);
-                        MPI_Cancel(&request_recv);
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
@@ -163,6 +161,8 @@ int solve(int* sudoku){
                         break;
                     }
                 }
+                
+                MPI_Cancel(&request_send);
                 
                 if(start_pos == -1)
                     break;
@@ -210,7 +210,7 @@ int solve(int* sudoku){
 
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val, recv, flag, response[2];
-    MPI_Request request;
+    MPI_Request request, request_send;
     MPI_Status status;
     Item hyp;
     
@@ -235,7 +235,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
             }else if(status.MPI_TAG == TAG_ASK_JOB){                    
                 if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
-                    MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                    MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                     
                     response[POS] = hyp.cell;
                     response[VAL] = hyp.num;
@@ -244,8 +244,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     response[POS] = hyp_send.cell;
                     response[VAL] = hyp_send.num;*/
 
-                    MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);                    
-                    MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request);
+                    MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);                    
+                    MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_send);
                 }
             }
         }
