@@ -160,11 +160,11 @@ int solve(int* sudoku){
                         
                         MPI_Get_count(&status, MPI_INT, &number_amount);*/
                         
-                        number_amount = v_size + 2;
+                        //number_amount = v_size + 2;
                         
-                        int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                        //int* number_buf = (int*)malloc(number_amount * sizeof(int));
                     
-                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Recv(cp_sudoku, v_size, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         printf("[%d] recv tag %d\n", id, status.MPI_TAG);
                         
                         if(status.MPI_TAG == TAG_EXIT){
@@ -173,23 +173,23 @@ int solve(int* sudoku){
                             free(number_buf);
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
-                            if(number_amount != 1){
+                            //if(number_amount != 1){
                                 start_pos = number_buf[POS];
                                 start_num = number_buf[VAL]; 
                                 
-                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
+                               // printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
                                 
-                                memcpy(cp_sudoku, &number_buf[2], v_size*sizeof(int));
+                                //memcpy(cp_sudoku, &number_buf[2], v_size*sizeof(int));
                                 
-                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
+                                //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
-                                free(number_buf);
+                                //free(number_buf);
                                 break;
-                            }
+                           // }
                         }
                         
-                        free(number_buf);
+                        //free(number_buf);
                     }
                 }
                 
