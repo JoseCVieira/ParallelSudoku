@@ -166,8 +166,6 @@ int solve(int* sudoku){
                             start_pos = -1;
                         }else if(status.MPI_TAG == TAG_HYP)
                             printf("[%d] received work\n", id);
-                        
-                        MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
                         break;
                     }
                 }                                       
@@ -183,8 +181,6 @@ int solve(int* sudoku){
                         printf("[%d] received work from %d => cel = %d, num = %d\n", id, status.MPI_SOURCE, recv_hyp[POS], recv_hyp[VAL]);
                         start_num = recv_hyp[VAL];
                         start_pos = recv_hyp[POS];
-                        
-                        MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
                         break;
                     }
                 }
@@ -197,7 +193,6 @@ int solve(int* sudoku){
                         delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                         //print_sudoku(cp_sudoku);
                         //flag_enter = 1;
-                        MPI_Wait(&request_recv, MPI_STATUS_IGNORE);
                         break;
                     }
                 }
@@ -262,7 +257,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                 }
             }
-            MPI_Wait(&request, &status);
         }
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -293,8 +287,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
-                        if(!flag)
-                            MPI_Cancel(&request);
+                        
                     return 0;
                 }else
                     break;
