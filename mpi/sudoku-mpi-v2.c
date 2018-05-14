@@ -155,10 +155,11 @@ int solve(int* sudoku){
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
-                        }else if(status.MPI_TAG == TAG_HYP)
+                            break;
+                        }else if(status.MPI_TAG == TAG_HYP && !recv){
                             printf("[%d] received work\n", id);
-                        
-                        break;
+                            break;
+                        }
                     }
                 }                                  
                 
@@ -233,6 +234,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
+                    response = 0;
                     MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                     
@@ -247,6 +249,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);
                     MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_send);
                     MPI_Wait(&request_send, MPI_STATUS_IGNORE);*/
+                }else{
+                    response = -1;
+                    MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_send);
                 }
             }
         }
