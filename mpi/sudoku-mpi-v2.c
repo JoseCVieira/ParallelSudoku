@@ -161,7 +161,7 @@ int solve(int* sudoku){
                         
                         int* number_buf = (int*)malloc(v_size +2 * sizeof(int));
                     
-                        MPI_Recv(number_buf, v_size +2 , MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Recv(number_buf, v_size +2, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -177,7 +177,7 @@ int solve(int* sudoku){
                                 
                                 memcpy(cp_sudoku, &number_buf[2], v_size*sizeof(int));
                                 
-                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
+                                //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
                                 //flag_enter = 1;
                                 free(number_buf);
