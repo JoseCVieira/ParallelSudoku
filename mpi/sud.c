@@ -171,13 +171,13 @@ int solve(int* sudoku){
                             break;
                         }else if(status.MPI_TAG == TAG_HYP){
                             //if(number_amount != 1){
-                                /*start_pos = number_buf[POS];
-                                start_num = number_buf[VAL]; */
+                                start_pos = number_buf[POS];
+                                start_num = number_buf[VAL];
                                 
                                // printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);
                                 
-                                //memcpy(cp_sudoku, &number_buf[2], v_size*sizeof(int));
-                                memcpy(cp_sudoku, number_buf, v_size*sizeof(int));
+                                memcpy(cp_sudoku, number_buf + 2*sizeof(int), v_size*sizeof(int));
+                                //memcpy(cp_sudoku, number_buf, v_size*sizeof(int));
                                 
                                 //delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                                 print_sudoku(cp_sudoku);
@@ -236,16 +236,19 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     
-                    //int* send_msg = (int*)malloc( (v_size+2) * sizeof(int));
+                    int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
-                    //Item hyp_send = pop_head(work);
-                    /*send_msg[POS] = hyp.cell;
+                    send_msg[POS] = hyp.cell;
                     send_msg[VAL] = hyp.num;
-                    memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));*/
                     
-                    MPI_Send(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    /*Item hyp_send = pop_head(work);
+                    send_msg[POS] = hyp.cell;
+                    send_msg[VAL] = hyp.num;*/
+                    memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
-                   // free(send_msg);
+                    MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    
+                    free(send_msg);
                 }else
                     MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             }
