@@ -153,21 +153,22 @@ int solve(int* sudoku){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
-                        MPI_Status status;
+                       // MPI_Status status;
                         // Probe for an incoming message from process zero
                         MPI_Probe(i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
+						printf("%d Probe\n", id);
                         // When probe returns, the status object has the size and other
                         // attributes of the incoming message. Get the message size
                         MPI_Get_count(&status, MPI_INT, &number_amount);
-
+						printf("%d Get count\n", id);
                         // Allocate a buffer to hold the incoming numbers
                         int* number_buf = (int*)malloc(sizeof(int) * number_amount);
-
+					
                         // Now receive the message with the allocated buffer
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        
-                        if(status.MPI_TAG == TAG_EXIT){
+                    	printf("RECV\n");    
+                        printf("tag: %d\n", status.MPI_TAG );
+						if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                             free(number_buf);
@@ -250,10 +251,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     MPI_Send(send_msg, v_size+2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     
-                    free(send_msg);
-                }else
+                    printf("[%d] enviei trabalho para %d tag = %d\n", id, status.MPI_SOURCE, status.MPI_TAG);
+					  free(send_msg);
+                }else{
                     MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-            }
+				}
+			 }
         }
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
