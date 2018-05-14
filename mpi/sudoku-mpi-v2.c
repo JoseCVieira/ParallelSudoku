@@ -153,22 +153,17 @@ int solve(int* sudoku){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
-                       // MPI_Status status;
-                        // Probe for an incoming message from process zero
                         MPI_Probe(i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-						printf("%d Probe\n", id);
-                        // When probe returns, the status object has the size and other
-                        // attributes of the incoming message. Get the message size
+                        printf("[%d] passed probe\n", id);
+                        
                         MPI_Get_count(&status, MPI_INT, &number_amount);
-						printf("%d Get count\n", id);
-                        // Allocate a buffer to hold the incoming numbers
+                        
                         int* number_buf = (int*)malloc(sizeof(int) * number_amount);
-					
-                        // Now receive the message with the allocated buffer
+                    
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                    	printf("RECV\n");    
-                        printf("tag: %d\n", status.MPI_TAG );
-						if(status.MPI_TAG == TAG_EXIT){
+                        printf("[%d] recv tag %d\n", id, status.MPI_TAG);
+                        
+                        if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                             start_pos = -1;
                             free(number_buf);
@@ -244,19 +239,15 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     Item hyp_send = pop_head(work);
                     send_msg[POS] = hyp_send.cell;
                     send_msg[VAL] = hyp_send.num;
-                    
-                    /*send_msg[POS] = hyp.cell;
-                    send_msg[VAL] = hyp.num;*/
                     memcpy(&send_msg[2], cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, v_size+2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    printf("[%d] sent work to process %d\n", id, status.MPI_SOURCE);
                     
-                    printf("[%d] enviei trabalho para %d tag = %d\n", id, status.MPI_SOURCE, status.MPI_TAG);
-					  free(send_msg);
-                }else{
+                    free(send_msg);
+                }else
                     MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-				}
-			 }
+            }
         }
 
         update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -317,23 +308,6 @@ void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint6
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        
-    printf("\nrows\n");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", rows_mask[i]);
-    }
-    
-    printf("\n\ncols\n");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", cols_mask[i]);
-    }
-    
-    printf("\n\nboxes\n");
-    for(i = 0; i < m_size; i++){
-        printf("%d ", boxes_mask[i]);
-    }
-    
-    printf("\n\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
