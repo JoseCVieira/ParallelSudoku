@@ -211,7 +211,7 @@ int solve(int* sudoku){
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val, recv[p], flag, src, index;
     MPI_Request request[p];
-    MPI_Status status;
+    MPI_Status status[p];
     Item hyp;
     
     hyp = pop_head(work);
