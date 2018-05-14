@@ -238,7 +238,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     //Item hyp_send = pop_head(work);
                     
-                    memcpy(send_msg, hyp, sizeof(Item));
+                    memcpy(send_msg, &hyp, sizeof(Item));
                     memcpy((send_msg+sizeof(Item)), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
