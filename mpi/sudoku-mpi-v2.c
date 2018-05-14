@@ -156,7 +156,7 @@ int solve(int* sudoku){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
                         MPI_Probe(i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        printf("[%d] passed probe\n", id);
+                        printf("[%d] passed probe tag %d\n", id, status.MPI_TAG);
                         
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         
