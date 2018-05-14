@@ -153,18 +153,15 @@ int solve(int* sudoku){
                     if(i != id){
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        printf("[%d] asked work\n", id);
                         
-                        MPI_Status status;
+                        /*MPI_Status status;
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        printf("[%d] passed probe tag %d \n", id, status.MPI_TAG, status.MPI_SOURCE);
                         
-                        MPI_Get_count(&status, MPI_INT, &number_amount);
+                        MPI_Get_count(&status, MPI_INT, &number_amount);*/
                         
-                        int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                        int* number_buf = (int*)malloc(v_size +2 * sizeof(int));
                     
-                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        printf("[%d] recv tag %d\n", id, status.MPI_TAG);
+                        MPI_Recv(number_buf, v_size +2 , MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
