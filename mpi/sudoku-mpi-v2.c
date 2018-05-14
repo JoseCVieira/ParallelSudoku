@@ -181,7 +181,7 @@ int solve(int* sudoku){
                     }
                 }
                 
-                MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
+                MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv_hyp);
                 flag = 0;
                 while(1){                
                     MPI_Test(&request_recv_hyp, &flag, &status);
@@ -247,6 +247,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     response[POS] = 123;
                     response[VAL] = 123;
                     MPI_Isend(response, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
+                    
+                    MPI_Isend(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request);
                     
                     /*Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
