@@ -155,16 +155,13 @@ int solve(int* sudoku){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         printf("[%d] asked work\n", id);
                         
-                        /*MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        printf("[%d] passed probe tag %d \n", id, status.MPI_TAG, status.MPI_SOURCE);
+                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
-                        MPI_Get_count(&status, MPI_INT, &number_amount);*/
+                        MPI_Get_count(&status, MPI_INT, &number_amount);
                         
-                        //number_amount = v_size + 2;
-                        
-                        //int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                        int* number_buf = (int*)malloc(number_amount * sizeof(int));
                     
-                        MPI_Recv(cp_sudoku, v_size, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Recv(cp_sudoku, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         printf("[%d] recv tag %d\n", id, status.MPI_TAG);
                         
                         if(status.MPI_TAG == TAG_EXIT){
