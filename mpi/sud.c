@@ -245,9 +245,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     send_msg[POS] = hyp.cell;
                     send_msg[VAL] = hyp.num;*/
                     
-                    aux = hyp.cell;
+                    aux = 99;
                     memcpy(send_msg, &aux, sizeof(int));
-                    aux = hyp.num;
+                    aux = 99;
                     memcpy((send_msg+1), &aux, sizeof(int));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
