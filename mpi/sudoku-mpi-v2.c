@@ -167,14 +167,20 @@ int solve(int* sudoku){
                 if(start_pos == -1)
                     break;
                 
-                MPI_Irecv(recv_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request_recv_hyp);
+                MPI_Irecv(recv_hyp, 2, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv_hyp);
                 flag = 0;
                 while(1){
                     MPI_Test(&request_recv_hyp, &flag, &status);
                     if(flag){
-                        printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
-                        start_num = recv_hyp[VAL];
-                        start_pos = recv_hyp[POS];
+                        if(status.MPI_TAG == TAG_HYP){
+                            printf("[%d] received work cel = %d, num = %d\n", id, recv_hyp[POS], recv_hyp[VAL]);
+                            start_num = recv_hyp[VAL];
+                            start_pos = recv_hyp[POS];
+                        }else if(status.MPI_TAG == TAG_EXIT){
+                            printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                            start_pos = -1;
+                        }
+                            
                         break;
                     }
                 }
@@ -189,7 +195,7 @@ int solve(int* sudoku){
                         flag_enter = 1;
                         break;
                     }
-                }                
+                }
             }
         }
     }
@@ -230,14 +236,14 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){                    
-                if(work->tail != NULL){
+                if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     MPI_Isend(response, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD, &request);
                     
                     /*response[POS] = 123;
                     response[VAL] = 123;*/
                                         
-                    Item hyp_send = pop_tail(work);
+                    Item hyp_send = pop_head(work);
                     response[POS] = hyp_send.cell;
                     response[VAL] = hyp_send.num;
 
