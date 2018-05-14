@@ -179,10 +179,6 @@ int solve(int* sudoku){
                                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                /*start_pos = hyp_recv.cell;
-                                start_num = hyp_recv.num;
-                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, start_pos, start_num);*/
-                                
                                 int pos = hyp_recv.cell;
                                 int num = hyp_recv.num;
                                 
@@ -192,7 +188,7 @@ int solve(int* sudoku){
                                 print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
-                                //flag_enter = 1;
+                                flag_enter = 1;
                                 free(number_buf);
                                 break;
                             }
