@@ -84,7 +84,7 @@ int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos, flag_enter = 1;
     int low_value, high_value, result, flag, recv, recv_hyp[2];
 
-    MPI_Request request_send, request_recv, request_recv_hyp;
+    MPI_Request request_send, request_recv, request_recv_hyp, request_recv_cp;
     MPI_Status status;
     Item hyp;
     
@@ -148,13 +148,10 @@ int solve(int* sudoku){
                     if(i != id)
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request_send);
                 
-                flag = -1;
+                
+                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
+                flag = 0;
                 while(1){
-                    if(flag){
-                        MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_recv);
-                        flag = 0;
-                    }
-                    
                     MPI_Test(&request_recv, &flag, &status);
                     if(flag){
                         if(status.MPI_TAG == TAG_EXIT){
@@ -182,27 +179,17 @@ int solve(int* sudoku){
                     }
                 }
                 
-                MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv_hyp);
+                MPI_Irecv(cp_sudoku, v_size, MPI_INT, status.MPI_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv_cp);
                 flag = 0;
                 while(1){
-                    MPI_Test(&request_recv_hyp, &flag, &status);
+                    MPI_Test(&request_recv_cp, &flag, &status);
                     if(flag){                            
                         delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, start_pos);
                         print_sudoku(cp_sudoku);
                         flag_enter = 1;
                         break;
                     }
-                }
-                
-                /*MPI_Irecv(cp_sudoku, v_size, MPI_INT, MPI_ANY_SOURCE, TAG_CP_SUD, MPI_COMM_WORLD, &request_recv);
-                flag = 0;
-                MPI_Test(&request_recv, &flag, &status);
-                if(flag){
-                    delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, recv_hyp[POS]);
-                    print_sudoku(cp_sudoku);
-                    flag_enter = 1;
-                }*/
-                
+                }                
             }
         }
     }
