@@ -189,7 +189,7 @@ int solve(int* sudoku){
                                 print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
-                                flag_enter = 1;
+                                //flag_enter = 1;
                                 free(number_buf);
                                 break;
                             }
