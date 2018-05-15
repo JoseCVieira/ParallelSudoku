@@ -195,7 +195,7 @@ int solve(int* sudoku){
                     }
                     
                     if(no_work_cont == p-1)
-                        start_pos == -1
+                        start_pos == -1;
                 }
                 if(start_pos == -1)
                     break;
