@@ -303,7 +303,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         }
                     }
                     
-                    //printf("[%d] out of work\n", id);
+                    printf("[%d] out of work\n", id);
                     MPI_Test(&request, &flag, &status);
                     if(!flag)
                         MPI_Cancel(&request);
