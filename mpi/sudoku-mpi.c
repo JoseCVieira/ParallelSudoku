@@ -176,7 +176,6 @@ int solve(int* sudoku){
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        printf("[%d] tag=\n", id, status.MPI_TAG);
                         
                         //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         
@@ -302,7 +301,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         }
                     }
                     
-                    printf("[%d] out of work\n", id);
+                    //printf("[%d] out of work\n", id);
                     MPI_Test(&request, &flag, &status);
                     if(!flag)
                         MPI_Cancel(&request);
