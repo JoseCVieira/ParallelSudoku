@@ -134,7 +134,7 @@ int solve(int* sudoku){
         if(flag_enter){
             flag_enter = 0;
             
-            if(aux){
+            if(start_pos != high_value){
                 hyp.cell = start_pos;
                 hyp.num = start_num;
                 insert_head(work, hyp);
