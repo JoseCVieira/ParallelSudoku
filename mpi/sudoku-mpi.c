@@ -160,6 +160,8 @@ int solve(int* sudoku){
             }
             
             if(!flag_enter){
+                printf("[%d] 123out of work\n", id);
+                
                 for(i = 0; i < p; i++){
                     
                     if(i != id){
@@ -298,9 +300,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
-                    
                         printf("[%d] out of work\n", id);
-                    
                         MPI_Test(&request, &flag, &status);
                         if(!flag)
                             MPI_Cancel(&request);
