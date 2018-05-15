@@ -68,16 +68,6 @@ Item pop_tail(List *list) {
     return item;
 }
 
-void list_remove(List *list, Item this) {
-    ListNode* node = newNode(this);
-    
-    node->prev ? (node->prev->next = node->next) : (list->head = node->next);
-    node->next ? (node->next->prev = node->prev) : (list->tail = node->prev);
-
-    --list->len;
-    free(node);
-}
-
 void print_list(List* list){
     ListNode *aux;
 

@@ -229,8 +229,13 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     hyp = pop_head(work);
     int start_pos = hyp.cell;
 
-    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
+    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
+        if(id == 3)
+            printf("unsafe\n");
         return 0;
+    }
+    if(id == 3)
+        printf("safe\n");
 
     flag = -1;
     while(1){
