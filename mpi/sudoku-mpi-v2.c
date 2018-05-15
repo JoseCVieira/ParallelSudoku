@@ -151,11 +151,13 @@ int solve(int* sudoku){
                     if(i != id){
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        printf("[%d] pediu trabalho\n");
+                        printf("[%d] pediu trabalho\n", id);
                         
                         flag = 0;
                         while(!flag)
                             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+                        
+                        printf("[%d] passou iprobe\n", id);
                             
                         //MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         MPI_Get_count(&status, MPI_INT, &number_amount);
