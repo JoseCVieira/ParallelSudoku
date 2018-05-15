@@ -111,7 +111,7 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    MPI_IProbe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, flag, &status);
+    MPI_IProbe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
     start_num = low_value;
     while(1){
         
@@ -153,7 +153,7 @@ int solve(int* sudoku){
                         
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, flag, &status);
+                        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                         if (flag){
                             //MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                             MPI_Get_count(&status, MPI_INT, &number_amount);
