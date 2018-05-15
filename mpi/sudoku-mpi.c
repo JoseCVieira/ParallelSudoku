@@ -186,7 +186,9 @@ int solve(int* sudoku){
                                 free(number_buf);
                                 break;
                             }
-                        }
+                        }else if(status.MPI_TAG == TAG_ASK_JOB)
+                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        
                         free(number_buf);
                     }
                 }
@@ -240,7 +242,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     memcpy(send_msg, &hyp_send, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
+                    printf("[%d] send data1\n", id);
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    printf("[%d] send data2\n", id);
                     
                     nb_sends++;
                     
