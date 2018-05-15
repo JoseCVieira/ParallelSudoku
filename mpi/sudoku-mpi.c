@@ -194,6 +194,7 @@ int solve(int* sudoku){
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
                                 insert_head(work, hyp_recv);
+                                print_list(work);
                                 flag_enter = 1;
                                 
                                 free(number_buf);
@@ -228,8 +229,14 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     
     int i;
     
+    if(id == 3)
+    print_list(work);
+    
     hyp = pop_head(work);
     int start_pos = hyp.cell;
+    
+    if(id == 3)
+    print_list(work);
     
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         
@@ -363,6 +370,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         MPI_Cancel(&request);
                     
                     list_remove(work, hyp);
+                    
+                    
+                    if(id == 3)
+                    print_list(work);
+                    if(id == 3)
+                    print_list(work);
                     
                     return 0;
                 }else
