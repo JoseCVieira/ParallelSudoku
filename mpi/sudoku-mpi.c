@@ -160,6 +160,8 @@ int solve(int* sudoku){
                         MPI_Test(&request, &flag, &status_i);
                         if(!flag)
                             MPI_Cancel(&request);
+                        else
+                            MPI_Send(0, 1, MPI_INT, status_i.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
