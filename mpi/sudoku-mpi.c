@@ -328,7 +328,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
         else if(cp_sudoku[i] == UNCHANGEABLE)
             update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
         
-    /*print_sudoku(sudoku);
+    print_sudoku(sudoku);
     printf("\n");
     print_sudoku(cp_sudoku);
     
@@ -348,7 +348,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     }
     printf("\n");
     
-    exit(0);*/
+    exit(0);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
