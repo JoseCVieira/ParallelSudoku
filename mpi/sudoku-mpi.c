@@ -190,7 +190,7 @@ int solve(int* sudoku){
                                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
                                 insert_head(work, hyp_recv);
@@ -239,6 +239,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 
     flag = -1;
     while(1){
+        if(id == 3)
+            printf("safe\n");
+        
         if(flag){
             MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
             flag = 0;
@@ -302,7 +305,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         }
                     }
                     
-                    printf("[%d] out of work\n", id);
+                    //printf("[%d] out of work\n", id);
                     MPI_Test(&request, &flag, &status);
                     if(!flag)
                         MPI_Cancel(&request);
