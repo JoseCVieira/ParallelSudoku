@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
             
         }else
-            printf("no solution\n");
+            printf("[%d] no solution\n", id);
         
         printf("process %d => nr_it=%d\n", id, nr_it);
 
@@ -186,7 +186,7 @@ int solve(int* sudoku){
                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
                                 delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
-                                print_sudoku(cp_sudoku);
+                                //print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
                                 flag_enter = 1;
