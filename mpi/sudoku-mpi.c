@@ -152,7 +152,7 @@ int solve(int* sudoku){
             }
             
             if(!flag_enter){
-                printf("[%d] out of work\n", id);
+                //printf("[%d] out of work\n", id);
                 
                 for(i = 0; i < p; i++){
                     
@@ -188,7 +188,7 @@ int solve(int* sudoku){
                                 //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
-                                print_sudoku(cp_sudoku);
+                                //print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
                                 flag_enter = 1;
@@ -242,7 +242,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 if(work->head != NULL){
-                    printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
+                    //printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
