@@ -52,18 +52,45 @@ Item pop_head(List* list){
 }
 
 Item pop_tail(List *list) {
-    Item item;	
+    Item item;
 
     ListNode *node = list->tail;
   
     if (--list->len)
-    	(list->tail = node->prev)->next = NULL;
+        (list->tail = node->prev)->next = NULL;
     else
-    	list->tail = list->head = NULL;
+        list->tail = list->head = NULL;
 
-  node->next = node->prev = NULL;
+    node->next = node->prev = NULL;
 
-  item = node-> this;
-  free(node);
-  return item;
+    item = node-> this;
+    free(node);
+    return item;
+}
+
+Item pop_tail2(List* list){
+    Item item = list -> tail -> this;
+    ListNode* aux = list -> tail -> prev;
+    if(aux == NULL){
+        free(list -> tail);
+        list->tail = NULL;
+        list->head = NULL;
+        return item;
+    }
+    aux -> next = NULL;
+    free(list -> tail);
+    list -> tail = aux;
+    return item;
+    }
+
+void print_list(List* list){
+    ListNode *aux;
+
+    aux = list->head;
+    while(aux!=NULL){
+        printf("(%d,%d) ", aux->this.cell, aux->this.num);
+        aux = aux->next;
+    }
+    printf("\n");
+    return;
 }
