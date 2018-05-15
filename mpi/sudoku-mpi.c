@@ -48,7 +48,7 @@ MPI_Request request_t;
 MPI_Status status_t;
 
 int main(int argc, char *argv[]){
-    int *sudoku, i;
+    int *sudoku, i, flag;
 
     if(argc == 2){
 
@@ -65,9 +65,9 @@ int main(int argc, char *argv[]){
                 if(i != id)
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
                 
-            MPI_Test(&request, &flag, &status);
+            MPI_Test(&request_t, &flag, &status_t);
             if(!flag)
-                MPI_Cancel(&request);
+                MPI_Cancel(&request_t);
             
         }else
             printf("[%d] no solution\n", id);
