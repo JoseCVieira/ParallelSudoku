@@ -53,13 +53,15 @@ int main(int argc, char *argv[]){
     if(argc == 2){
 
         sudoku = read_matrix(argv);
+        
+        printf("\n\n");
+        print_sudoku(sudoku);
+        printf("\n\n");
 
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
-         print_sudoku(sudoku);
-
         if(solve(sudoku)){
             print_sudoku(sudoku);
             
