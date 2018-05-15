@@ -196,7 +196,6 @@ int solve(int* sudoku){
                                 //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
-                                //print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
                                 flag_enter = 1;
@@ -324,12 +323,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
     int i;
     
-    /*for(i = 0; i < m_size; i++){
-        rows_mask[i]  = UNASSIGNED;
-        cols_mask[i]  = UNASSIGNED;
-        boxes_mask[i] = UNASSIGNED;
-    }*/
-    
     init_masks(sudoku, rows_mask, cols_mask, boxes_mask);
     
     i = v_size;
@@ -340,18 +333,10 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     }
 
     for(i = 0; i < cell; i++){
-        //if(i < cell){
-            if(cp_sudoku[i] > 0)
-                update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-           /* else if(cp_sudoku[i] == UNCHANGEABLE)
-                update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        }else{
-            if(sudoku[i] != UNASSIGNED)
-                update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        }*/
-    }
-        
-    print_sudoku(sudoku);
+        if(cp_sudoku[i] > 0)
+            update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+
+    /*print_sudoku(sudoku);
     printf("\n");
     print_sudoku(cp_sudoku);
     
@@ -369,7 +354,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < m_size; i++){
         printf("%d ", boxes_mask[i]);
     }
-    printf("\n");
+    printf("\n");*/
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
