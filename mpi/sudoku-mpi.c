@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
         }else
             printf("[%d] no solution\n", id);
         
-        printf("process %d => nr_it=%d, envios=%d\n", id, nr_it, envios, rececoes);
+        printf("process %d => nr_it=%d, envios=%d\n", id, nr_it, envios);
 
         MPI_Barrier(MPI_COMM_WORLD);
 
