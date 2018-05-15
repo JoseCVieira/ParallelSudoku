@@ -178,6 +178,7 @@ int solve(int* sudoku){
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        printf("[%d] tag=\n", id, status.MPI_TAG);
                         
                         //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         
