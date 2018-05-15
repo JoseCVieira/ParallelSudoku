@@ -329,6 +329,8 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
             update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
         
     print_sudoku(sudoku);
+    printf("\n");
+    print_sudoku(cp_sudoku);
     
     printf("\nrow\n");
     for(i = 0; i < m_size; i++){
@@ -344,6 +346,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < m_size; i++){
         printf("%d ", boxes_mask[i]);
     }
+    printf("\n");
     
     exit(0);
 }
