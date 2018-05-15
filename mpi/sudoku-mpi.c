@@ -29,7 +29,7 @@ void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
-void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell);
+void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int exists_in( int index, uint64_t* mask, int num);
 int* read_matrix(char *argv[]);
@@ -187,7 +187,7 @@ int solve(int* sudoku){
                                 
                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
-                                delete_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
+                                delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 //print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
@@ -306,7 +306,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     }
 }
 
-void delete_from(int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
+void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
     int i;
     
     for(i = 0; i < m_size; i++){
