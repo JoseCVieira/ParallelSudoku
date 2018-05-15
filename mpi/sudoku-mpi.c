@@ -91,14 +91,10 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1;
-    
-    MPI_Status status;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res;
     
     MPI_Request request;
-    MPI_Status status_i;
-    int r, flag;
-    
+    MPI_Status status;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -126,7 +122,7 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    MPI_Irecv(&r, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+    MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
     
     start_num = low_value;
     while(1){
@@ -165,11 +161,11 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     
                     if(i != id){
-                        MPI_Test(&request, &flag, &status_i);
+                        MPI_Test(&request, &flag, &status);
                         if(!flag)
                             MPI_Cancel(&request);
                         else
-                            MPI_Send(0, 1, MPI_INT, status_i.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
@@ -179,7 +175,7 @@ int solve(int* sudoku){
                         
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
-                        MPI_Irecv(&r, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                        MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -193,7 +189,7 @@ int solve(int* sudoku){
                                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
                                 //delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
