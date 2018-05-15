@@ -111,7 +111,6 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
     start_num = low_value;
     while(1){
         
@@ -173,7 +172,7 @@ int solve(int* sudoku){
                                         memcpy(&hyp_recv, number_buf, sizeof(Item));
                                         memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                         
-                                        //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                        printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                         delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                         
                                         insert_head(work, hyp_recv);
