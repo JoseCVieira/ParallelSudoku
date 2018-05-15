@@ -44,7 +44,7 @@ int id, p;
 int nr_it = 0, nb_sends = 0; //a eliminar
 
 int main(int argc, char *argv[]){
-    int *sudoku, i, flag;
+    int *sudoku, i, flag, recv;
     
     MPI_Request request_t;
     MPI_Status status_t;
