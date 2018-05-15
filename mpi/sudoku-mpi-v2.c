@@ -1,4 +1,4 @@
- #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -16,7 +16,6 @@
 #define TAG_HYP     1
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
-#define TAG_CP_SUD  4
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -41,7 +40,7 @@ int solve(int *sudoku);
 int r_size, m_size, v_size;
 int id, p;
 
-int nr_it = 0; //a eliminar
+int nr_it = 0, nb_sends = 0; //a eliminar
 
 int main(int argc, char *argv[]){
     int *sudoku, i, flag;
@@ -64,11 +63,9 @@ int main(int argc, char *argv[]){
         }else
             printf("[%d] no solution\n", id);
         
-        printf("process %d => nr_it=%d\n", id, nr_it);
+        printf("process %d => nr_it=%d, nb_sends = %d\n", id, nr_it, nb_sends);
 
         MPI_Barrier(MPI_COMM_WORLD);
-        
-        exit(0);
 
         fflush(stdout);
         MPI_Finalize();
@@ -83,7 +80,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res, insert = 1;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1;
     
     MPI_Request request;
     MPI_Status status;
@@ -114,8 +111,7 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-    
+    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, flag, &status);
     start_num = low_value;
     while(1){
         
@@ -149,50 +145,49 @@ int solve(int* sudoku){
                 insert = 0;
             
             if(!flag_enter){                
-                for(i = 0; i < p; i++){
+                for(i = id + 1; i != p; i++){
+                    if(i == p)
+                        i = 0;
+                    
                     if(i != id){
-                        /*MPI_Test(&request, &flag, &status);
-                        if(!flag)
-                            MPI_Cancel(&request);
-                        else
-                            if(status.MPI_TAG == TAG_EXIT)
-                                return 0;
-                            else
-                                MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
+                        
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        
-                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        MPI_Get_count(&status, MPI_INT, &number_amount);
-                        int* number_buf = (int*)malloc(number_amount * sizeof(int));
-                        
-                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        
-                        //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                        
-                        if(status.MPI_TAG == TAG_EXIT){
-                            printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
-                            start_pos = -1;
-                            free(number_buf);
-                            break;
-                        }else if(status.MPI_TAG == TAG_HYP){
-                            if(number_amount != 1){
-                                
-                                Item hyp_recv;
-                                memcpy(&hyp_recv, number_buf, sizeof(Item));
-                                memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
-                                
-                                //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
-                                delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
-                                
-                                insert_head(work, hyp_recv);
-                                flag_enter = 1;
-                                
+                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, flag, &status);
+                        if (flag){
+                            //MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                            MPI_Get_count(&status, MPI_INT, &number_amount);
+                            int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                            
+                            MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                            
+                            if(status.MPI_TAG == TAG_EXIT){
+                                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                                start_pos = -1;
                                 free(number_buf);
                                 break;
-                            }
+                            }else if(status.MPI_TAG == TAG_HYP){
+                                if(number_amount != 1){
+                                    
+                                    Item hyp_recv;
+                                    memcpy(&hyp_recv, number_buf, sizeof(Item));
+                                    memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
+                                    
+                                    //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                    delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
+                                    
+                                    insert_head(work, hyp_recv);
+                                    flag_enter = 1;
+                                    
+                                    free(number_buf);
+                                    break;
+                                }
+                            }else if(status.MPI_TAG == TAG_ASK_JOB)
+                                MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            
+                            free(number_buf);
                         }
-                        free(number_buf);
+                        
                     }
                 }
                 if(start_pos == -1)
@@ -221,19 +216,11 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     hyp = pop_head(work);
     int start_pos = hyp.cell;
 
-    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
-        if(id == 3)
-            printf("unsafe\n");
+    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
         return 0;
-    }
-    if(id == 3)
-        printf("safe\n");
 
     flag = -1;
-    while(1){
-        if(id == 3)
-            printf("safe\n");
-        
+    while(1){        
         if(flag){
             MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
             flag = 0;
@@ -253,6 +240,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    
+                    nb_sends++;
                     
                     free(send_msg);
                 }else
@@ -296,7 +285,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         }
                     }
                     
-                    //printf("[%d] out of work\n", id);
                     MPI_Test(&request, &flag, &status);
                     if(!flag)
                         MPI_Cancel(&request);
@@ -332,9 +320,6 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        
-    //print_sudoku(cp_sudoku);
-    //printf("\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
