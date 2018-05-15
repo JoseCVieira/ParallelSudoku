@@ -61,11 +61,11 @@ int main(int argc, char *argv[]){
         if(solve(sudoku)){
             print_sudoku(sudoku);
             
-            for(i = 0; i < p; i++)
+           /* for(i = 0; i < p; i++)
                 if(i != id)
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
                 
-            /*MPI_Test(&request_t, &flag, &status_t);
+            MPI_Test(&request_t, &flag, &status_t);
             if(!flag)
                 MPI_Cancel(&request_t);*/
             
