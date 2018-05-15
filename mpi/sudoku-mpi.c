@@ -327,6 +327,23 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
         else if(cp_sudoku[i] == UNCHANGEABLE)
             update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        
+    print_sudoku(sudoku);
+    
+    printf("\nrow\n");
+    for(i = 0; i < m_size; i++){
+        printf("%d", rows_mask[i]);
+    }
+    
+    printf("\ncol\n");
+    for(i = 0; i < m_size; i++){
+        printf("%d", cols_mask[i]);
+    }
+    
+    printf("\nbox\n");
+    for(i = 0; i < m_size; i++){
+        printf("%d", boxes_mask[i]);
+    }
             
 }
 
