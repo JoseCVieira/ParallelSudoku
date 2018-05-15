@@ -160,9 +160,10 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     if(i != id){
                         MPI_Test(&request, &flag, &status);
-                        if(!flag)
+                        if(!flag){
                             MPI_Cancel(&request);
-                        else{
+                            MPI_Test(&request, &flag, &status);
+                        }else{
                             if(status.MPI_TAG == TAG_EXIT)
                                 return 0;
                             else
