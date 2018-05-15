@@ -231,15 +231,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     hyp = pop_head(work);
     int start_pos = hyp.cell;
     
-    printf("pos = %d, val = %d\n", hyp.cell, hyp.num);
-
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         
         if(id == 3){
-            
+            printf("unsafe pos = %d, val = %d\n", hyp.cell, hyp.num);
             cont++;
             if(id == 3 && cont == 4){
-                printf("unsafe\n");
                 printf("\n");
                 print_sudoku(cp_sudoku);
                 
@@ -268,9 +265,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     }
     
     if(id == 3){
+        printf("safe pos = %d, val = %d\n", hyp.cell, hyp.num);
         cont++;
         if(id == 3 && cont == 4){
-            printf("safe\n");
             printf("\n");
             print_sudoku(cp_sudoku);
             
