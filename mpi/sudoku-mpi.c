@@ -226,6 +226,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     MPI_Status status;
     Item hyp;
     
+    int i;
+    
     hyp = pop_head(work);
     int start_pos = hyp.cell;
     
@@ -234,9 +236,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         
         if(id == 3){
-            int i;
+            
             cont++;
             if(id == 3 && cont == 4){
+                printf("unsafe\n");
                 printf("\n");
                 print_sudoku(cp_sudoku);
                 
@@ -263,6 +266,35 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         return 0;
         
     }
+    
+    if(id == 3){
+            cont++;
+            if(id == 3 && cont == 4){
+                printf("safe\n");
+                printf("\n");
+                print_sudoku(cp_sudoku);
+                
+                printf("\nrow\n");
+                for(i = 0; i < m_size; i++){
+                    printf("%d ", rows_mask[i]);
+                }
+                
+                printf("\ncol\n");
+                for(i = 0; i < m_size; i++){
+                    printf("%d ", cols_mask[i]);
+                }
+                
+                printf("\nbox\n");
+                for(i = 0; i < m_size; i++){
+                    printf("%d ", boxes_mask[i]);
+                }
+                printf("\n");
+                
+                exit(0);
+            
+            }
+        }
+        return 0;
 
     flag = -1;
     while(1){
@@ -322,15 +354,20 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 }
 
                 if(work->head == NULL){
-                    for(cell = v_size - 1; cell >= start_pos; cell--)
+                    for(cell = v_size - 1; cell >= start_pos; cell--){
                         if(cp_sudoku[cell] > 0){
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
-                        printf("[%d] out of work\n", id);
-                        MPI_Test(&request, &flag, &status);
-                        if(!flag)
-                            MPI_Cancel(&request);
+                    }
+                    
+                    printf("[%d] out of work\n", id);
+                    MPI_Test(&request, &flag, &status);
+                    if(!flag)
+                        MPI_Cancel(&request);
+                    
+                    list_remove(work, hyp);
+                    
                     return 0;
                 }else
                     break;

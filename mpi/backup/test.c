@@ -17,11 +17,18 @@ int main(void){
         print_list(work);
     }
     
-    for(i = 0; i < 40; i++){
+    /*for(i = 0; i < 40; i++){
         if(work->head != NULL){
             item = pop_head(work);
             print_list(work);
         }
+    }*/
+    
+    for(i = 20; i >= 0; i--){
+        item.cell = i;
+        item.num = i;
+        list_remove(work, item);
+        print_list(work);
     }
     
     return 0;

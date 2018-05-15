@@ -27,3 +27,4 @@ Item pop_head(List* list);
 Item pop_tail(List *list);
 Item pop_tail2(List* list);
 void print_list(List* list);
+void list_remove(List *list, Item this);
