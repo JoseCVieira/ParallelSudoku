@@ -41,7 +41,7 @@ int solve(int *sudoku);
 int r_size, m_size, v_size;
 int id, p;
 
-int nr_it = 0; //a eliminar
+int nr_it = 0, envios = 0; //a eliminar
 
 
 /*MPI_Request request_t;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
         }else
             printf("[%d] no solution\n", id);
         
-        printf("process %d => nr_it=%d\n", id, nr_it);
+        printf("process %d => nr_it=%d, envios=%d\n", id, nr_it, envios, rececoes);
 
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -251,6 +251,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    
+                    envios++;
                     
                     free(send_msg);
                 }else
