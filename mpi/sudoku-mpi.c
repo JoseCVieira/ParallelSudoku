@@ -122,7 +122,7 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+    MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
     
     start_num = low_value;
     while(1){
@@ -159,14 +159,15 @@ int solve(int* sudoku){
             if(!flag_enter){                
                 for(i = 0; i < p; i++){
                     if(i != id){
-                        /*MPI_Test(&request, &flag, &status);
+                        MPI_Test(&request, &flag, &status);
                         if(!flag)
                             MPI_Cancel(&request);
-                        else
+                        else{
                             if(status.MPI_TAG == TAG_EXIT)
                                 return 0;
                             else
-                                MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
+                                MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        }
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
@@ -176,7 +177,7 @@ int solve(int* sudoku){
                         
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
-                        //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                        MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
