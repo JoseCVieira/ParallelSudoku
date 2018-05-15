@@ -86,6 +86,11 @@ int solve(int* sudoku){
     int low_value, high_value, result, number_amount, flag_enter = 1;
     
     MPI_Status status;
+    
+    MPI_Request request;
+    MPI_Status status_i;
+    int r;
+    
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -112,6 +117,8 @@ int solve(int* sudoku){
 
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
+    
+    MPI_Irecv(&r, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
     
     start_num = low_value;
     while(1){
