@@ -157,9 +157,7 @@ int solve(int* sudoku){
                 insert = 0;
             
             if(!flag_enter){                
-                for(i = id + 1; i != p; i++){
-                    if(i == p)
-                        i = 0;
+                for(i = 0; i < p; i++){
                     
                     if(i != id){
                         /*MPI_Test(&request, &flag, &status);
@@ -207,6 +205,7 @@ int solve(int* sudoku){
                         free(number_buf);
                     }
                 }
+                
                 if(start_pos == -1)
                     break;
             }
