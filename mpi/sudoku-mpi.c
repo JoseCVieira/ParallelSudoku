@@ -89,7 +89,7 @@ int solve(int* sudoku){
     
     MPI_Request request;
     MPI_Status status_i;
-    int r;
+    int r, flag;
     
     Item hyp;
     
