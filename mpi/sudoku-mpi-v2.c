@@ -1,4 +1,4 @@
-#include <stdio.h>
+ #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -43,10 +43,6 @@ int id, p;
 
 int nr_it = 0; //a eliminar
 
-
-/*MPI_Request request_t;
-MPI_Status status_t;*/
-
 int main(int argc, char *argv[]){
     int *sudoku, i, flag;
 
@@ -64,10 +60,6 @@ int main(int argc, char *argv[]){
             for(i = 0; i < p; i++)
                 if(i != id)
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
-                
-            /*MPI_Test(&request_t, &flag, &status_t);
-            if(!flag)
-                MPI_Cancel(&request_t);*/
             
         }else
             printf("[%d] no solution\n", id);
@@ -75,6 +67,8 @@ int main(int argc, char *argv[]){
         printf("process %d => nr_it=%d\n", id, nr_it);
 
         MPI_Barrier(MPI_COMM_WORLD);
+        
+        exit(0);
 
         fflush(stdout);
         MPI_Finalize();
@@ -282,7 +276,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             
                             printf("[%d] SOLUTION\n", id);
                             
-                            //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                             MPI_Test(&request, &flag, &status);
                             if(!flag)
                                 MPI_Cancel(&request);
