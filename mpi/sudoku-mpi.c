@@ -156,8 +156,11 @@ int solve(int* sudoku){
             
             if(!flag_enter){
                 for(i = 0; i < p; i++){
-                    if(i != id){                        
+                    if(i != id){
+                        
+                        printf("[%d] ask data1\n", id);
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                        printf("[%d] ask data2\n", id);
                         
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         MPI_Get_count(&status, MPI_INT, &number_amount);
