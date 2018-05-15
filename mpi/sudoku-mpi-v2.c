@@ -161,6 +161,8 @@ int solve(int* sudoku){
                             
                         //MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         MPI_Get_count(&status, MPI_INT, &number_amount);
+                        printf("[%d] passou get count\n", id);
+                        
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
