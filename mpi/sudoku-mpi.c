@@ -43,12 +43,11 @@ int id, p;
 
 int nr_it = 0, nb_sends = 0; //a eliminar
 
-
-/*MPI_Request request_t;
-MPI_Status status_t;*/
-
 int main(int argc, char *argv[]){
     int *sudoku, i, flag;
+    
+    MPI_Request request_t;
+    MPI_Status status_t;
 
     if(argc == 2){
 
@@ -59,15 +58,18 @@ int main(int argc, char *argv[]){
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
         if(solve(sudoku)){
-            print_sudoku(sudoku);
             
+            MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
+            print_sudoku(sudoku);
+        
+        
             for(i = 0; i < p; i++)
                 if(i != id)
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
                 
-            /*MPI_Test(&request_t, &flag, &status_t);
+            MPI_Test(&request_t, &flag, &status_t);
             if(!flag)
-                MPI_Cancel(&request_t);*/
+                MPI_Cancel(&request_t);
             
         }else
             printf("[%d] no solution\n", id);
@@ -336,9 +338,6 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        
-    //print_sudoku(cp_sudoku);
-    //printf("\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
