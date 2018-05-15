@@ -57,6 +57,8 @@ int main(int argc, char *argv[]){
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
+        
+         print_sudoku(sudoku);
 
         if(solve(sudoku)){
             print_sudoku(sudoku);
@@ -227,10 +229,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         
-        
+        int i;
         cont++;
         if(id == 3 && cont == 2){
-            print_sudoku(sudoku);
             printf("\n");
             print_sudoku(cp_sudoku);
             
