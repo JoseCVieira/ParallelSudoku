@@ -309,11 +309,11 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
     int i;
     
-    for(i = 0; i < m_size; i++){
+    /*for(i = 0; i < m_size; i++){
         rows_mask[i]  = UNASSIGNED;
         cols_mask[i]  = UNASSIGNED;
         boxes_mask[i] = UNASSIGNED;
-    }
+    }*/
     
     i = v_size;
     while(i >= cell){
@@ -325,8 +325,8 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        else if(cp_sudoku[i] == UNCHANGEABLE)
-            update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        /*else if(cp_sudoku[i] == UNCHANGEABLE)
+            update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);*/
         
     print_sudoku(sudoku);
     printf("\n");
