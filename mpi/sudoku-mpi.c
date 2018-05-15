@@ -342,8 +342,8 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
         
-    print_sudoku(cp_sudoku);
-    printf("\n");
+    //print_sudoku(cp_sudoku);
+    //printf("\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
