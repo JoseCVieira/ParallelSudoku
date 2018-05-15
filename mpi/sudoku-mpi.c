@@ -186,7 +186,7 @@ int solve(int* sudoku){
                                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
                                 //insert_head(work, hyp_recv);
@@ -242,12 +242,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 if(work->head != NULL){
-                    //printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
-                    
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
-                    Item hyp_send;// = pop_head(work);
-                    memcpy(send_msg, &hyp, sizeof(Item));
+                    Item hyp_send = pop_head(work);
+                    memcpy(send_msg, &hyp_send, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
@@ -330,7 +328,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
 
-    /*print_sudoku(sudoku);
+    print_sudoku(sudoku);
     printf("\n");
     print_sudoku(cp_sudoku);
     
@@ -348,7 +346,9 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < m_size; i++){
         printf("%d ", boxes_mask[i]);
     }
-    printf("\n");*/
+    printf("\n");
+    
+    exit(0);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
