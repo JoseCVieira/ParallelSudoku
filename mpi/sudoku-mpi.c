@@ -43,6 +43,10 @@ int id, p;
 
 int nr_it = 0; //a eliminar
 
+
+MPI_Request request_t;
+MPI_Status status_t;
+
 int main(int argc, char *argv[]){
     int *sudoku, i;
 
@@ -133,6 +137,7 @@ int solve(int* sudoku){
             }
 
             if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
+                MPI_Irecv(&r, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                 for(i = 0; i < v_size; i++)
                     if(cp_sudoku[i] != UNCHANGEABLE)
                         sudoku[i] = cp_sudoku[i];
