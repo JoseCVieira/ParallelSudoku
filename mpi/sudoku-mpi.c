@@ -231,30 +231,32 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
 
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         
-        int i;
-        cont++;
-        if(id == 3 && cont == 2){
-            printf("\n");
-            print_sudoku(cp_sudoku);
+        if(id == 3){
+            int i;
+            cont++;
+            if(id == 3 && cont == 5){
+                printf("\n");
+                print_sudoku(cp_sudoku);
+                
+                printf("\nrow\n");
+                for(i = 0; i < m_size; i++){
+                    printf("%d ", rows_mask[i]);
+                }
+                
+                printf("\ncol\n");
+                for(i = 0; i < m_size; i++){
+                    printf("%d ", cols_mask[i]);
+                }
+                
+                printf("\nbox\n");
+                for(i = 0; i < m_size; i++){
+                    printf("%d ", boxes_mask[i]);
+                }
+                printf("\n");
+                
+                exit(0);
             
-            printf("\nrow\n");
-            for(i = 0; i < m_size; i++){
-                printf("%d ", rows_mask[i]);
             }
-            
-            printf("\ncol\n");
-            for(i = 0; i < m_size; i++){
-                printf("%d ", cols_mask[i]);
-            }
-            
-            printf("\nbox\n");
-            for(i = 0; i < m_size; i++){
-                printf("%d ", boxes_mask[i]);
-            }
-            printf("\n");
-            
-            exit(0);
-        
         }
         return 0;
         
