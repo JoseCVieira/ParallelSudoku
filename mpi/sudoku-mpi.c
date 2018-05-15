@@ -188,7 +188,7 @@ int solve(int* sudoku){
                                 //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
-                                //print_sudoku(cp_sudoku);
+                                print_sudoku(cp_sudoku);
                                 
                                 insert_head(work, hyp_recv);
                                 flag_enter = 1;
@@ -322,13 +322,19 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
         i--;
     }
 
-    for(i = 0; i < cell; i++)
-        if(cp_sudoku[i] > 0)
-            update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        else if(cp_sudoku[i] == UNCHANGEABLE)
-            update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+    for(i = 0; i < v_size; i++){
+        if(i < cell){
+            if(cp_sudoku[i] > 0)
+                update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+            else if(cp_sudoku[i] == UNCHANGEABLE)
+                update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        }else{
+            if(sudoku[i] != UNASSIGNED)
+                update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        }
+    }
         
-    print_sudoku(sudoku);
+    /*print_sudoku(sudoku);
     printf("\n");
     print_sudoku(cp_sudoku);
     
@@ -348,7 +354,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     }
     printf("\n");
     
-    exit(0);
+    exit(0);*/
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
