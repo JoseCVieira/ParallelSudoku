@@ -193,8 +193,8 @@ int solve(int* sudoku){
                                 printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
-                                //insert_head(work, hyp_recv);
-                                //flag_enter = 1;
+                                insert_head(work, hyp_recv);
+                                flag_enter = 1;
                                 
                                 free(number_buf);
                                 break;
@@ -234,7 +234,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         if(id == 3){
             int i;
             cont++;
-            if(id == 3 && cont == 5){
+            if(id == 3 && cont == 3){
                 printf("\n");
                 print_sudoku(cp_sudoku);
                 
