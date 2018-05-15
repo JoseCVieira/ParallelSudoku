@@ -44,9 +44,6 @@ int id, p;
 int nr_it = 0, nb_sends = 0; //a eliminar
 
 
-/*MPI_Request request_t;
-MPI_Status status_t;*/
-
 int main(int argc, char *argv[]){
     int *sudoku, i, flag;
 
@@ -64,10 +61,6 @@ int main(int argc, char *argv[]){
             for(i = 0; i < p; i++)
                 if(i != id)
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
-                
-            /*MPI_Test(&request_t, &flag, &status_t);
-            if(!flag)
-                MPI_Cancel(&request_t);*/
             
         }else
             printf("[%d] no solution\n", id);
@@ -188,14 +181,14 @@ int solve(int* sudoku){
                                 break;
                             }else
                                 no_work_cont ++;
-                        }/*else if(status.MPI_TAG == TAG_ASK_JOB)
-                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
+                        }else if(status.MPI_TAG == TAG_ASK_JOB)
+                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                         
                         free(number_buf);
                     }
                     
-                    /*if(no_work_cont == p-1)
-                        start_pos == -1;*/
+                    if(no_work_cont == p-1)
+                        start_pos == -1;
                 }
                 if(start_pos == -1)
                     break;
@@ -271,8 +264,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             cp_sudoku[cell] = val;
                             
                             printf("[%d] SOLUTION\n", id);
-                            
-                            //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                             MPI_Test(&request, &flag, &status);
                             if(!flag)
                                 MPI_Cancel(&request);
@@ -329,9 +320,6 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        
-    //print_sudoku(cp_sudoku);
-    //printf("\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
