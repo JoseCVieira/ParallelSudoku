@@ -234,7 +234,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         return 0;
 
     flag = -1;
-    while(1){        
+    while(1){
         if(flag){
             MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
             flag = 0;
@@ -246,10 +246,10 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
-                if(work->head != NULL){
+                if(work->tail != NULL){
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
-                    Item hyp_send = pop_head(work);
+                    Item hyp_send = pop_tail(work);
                     memcpy(send_msg, &hyp_send, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
@@ -336,9 +336,6 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
-        
-    //print_sudoku(cp_sudoku);
-    //printf("\n");
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
