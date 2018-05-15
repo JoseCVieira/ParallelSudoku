@@ -162,7 +162,7 @@ int solve(int* sudoku){
                         MPI_Test(&request, &flag, &status);
                         if(!flag){
                             MPI_Cancel(&request);
-                            MPI_Test(&request, &flag, &status);
+                            MPI_Request_free(&request);
                         }else{
                             if(status.MPI_TAG == TAG_EXIT)
                                 return 0;
