@@ -111,7 +111,7 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, flag, &status);
+    MPI_IProbe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, flag, &status);
     start_num = low_value;
     while(1){
         
