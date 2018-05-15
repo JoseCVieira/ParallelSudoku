@@ -69,10 +69,10 @@ int main(int argc, char *argv[]){
             if(!flag)
                 MPI_Cancel(&request_t);*/
             
-        }else
+        }/*else
             printf("[%d] no solution\n", id);
         
-        printf("process %d => nr_it=%d, nb_sends = %d\n", id, nr_it, nb_sends);
+        printf("process %d => nr_it=%d, nb_sends = %d\n", id, nr_it, nb_sends);*/
 
         MPI_Barrier(MPI_COMM_WORLD);
 
