@@ -198,7 +198,7 @@ int solve(int* sudoku){
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
                                 insert_head(work, hyp_recv);
-                                flag_enter = 1;
+                                //flag_enter = 1;
                                 free(number_buf);
                                 break;
                             }
