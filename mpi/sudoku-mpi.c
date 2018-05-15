@@ -53,10 +53,6 @@ int main(int argc, char *argv[]){
     if(argc == 2){
 
         sudoku = read_matrix(argv);
-        
-        printf("\n\n");
-        print_sudoku(sudoku);
-        printf("\n\n");
 
         MPI_Init (&argc, &argv);
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
@@ -334,6 +330,9 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+        
+    print_sudoku(cp_sudoku);
+    printf(\n);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
