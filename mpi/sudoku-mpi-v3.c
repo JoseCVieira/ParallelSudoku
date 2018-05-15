@@ -188,14 +188,14 @@ int solve(int* sudoku){
                                 break;
                             }else
                                 no_work_cont ++;
-                        }else if(status.MPI_TAG == TAG_ASK_JOB)
-                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        }/*else if(status.MPI_TAG == TAG_ASK_JOB)
+                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
                         
                         free(number_buf);
                     }
                     
-                    if(no_work_cont == p-1)
-                        start_pos == -1;
+                    /*if(no_work_cont == p-1)
+                        start_pos == -1;*/
                 }
                 if(start_pos == -1)
                     break;
