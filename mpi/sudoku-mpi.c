@@ -166,7 +166,9 @@ int solve(int* sudoku){
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
+                        printf("[%d] recv data1\n", id);
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        printf("[%d] recv data2\n", id);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -189,8 +191,8 @@ int solve(int* sudoku){
                                 free(number_buf);
                                 break;
                             }
-                        }else if(status.MPI_TAG == TAG_ASK_JOB)
-                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        }/*else if(status.MPI_TAG == TAG_ASK_JOB)
+                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
                         
                         free(number_buf);
                     }
@@ -252,8 +254,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     nb_sends++;
                     
                     free(send_msg);
-                }else
-                    MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                }/*else
+                    MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
             }
         }
 
