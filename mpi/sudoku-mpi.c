@@ -225,12 +225,12 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 return -1;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
-                if(work->tail != NULL){
+                if(work->head != NULL){
                     printf("[%d] process = %d asked for a job\n", id, status.MPI_SOURCE);
                     
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
-                    Item hyp_send = pop_tail(work);                    
+                    Item hyp_send = pop_head(work);                    
                     memcpy(send_msg, &hyp_send, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
