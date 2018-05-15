@@ -95,7 +95,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res, aux = 1;
     
     MPI_Request request;
     MPI_Status status;
@@ -134,7 +134,7 @@ int solve(int* sudoku){
         if(flag_enter){
             flag_enter = 0;
             
-            if(start_pos != high_value){
+            if(aux){
                 hyp.cell = start_pos;
                 hyp.num = start_num;
                 insert_head(work, hyp);
@@ -157,7 +157,8 @@ int solve(int* sudoku){
             if(start_num < high_value - 1){
                 flag_enter = 1;
                 start_num++;
-            }
+            }else
+                aux = 0;
             
             if(!flag_enter){                
                 for(i = 0; i < p; i++){
@@ -194,7 +195,6 @@ int solve(int* sudoku){
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
                                 insert_head(work, hyp_recv);
-                                print_list(work);
                                 flag_enter = 1;
                                 
                                 free(number_buf);
@@ -227,21 +227,15 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     MPI_Status status;
     Item hyp;
     
-    int i;
-    
-    if(id == 3)
-    print_list(work);
-    
     hyp = pop_head(work);
     int start_pos = hyp.cell;
     
-    if(id == 3)
-    print_list(work);
-    
+    printf("pos = %d, val = %d\n", hyp.cell, hyp.num);
+
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         
         if(id == 3){
-            printf("unsafe pos = %d, val = %d\n", hyp.cell, hyp.num);
+            int i;
             cont++;
             if(id == 3 && cont == 4){
                 printf("\n");
@@ -269,34 +263,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         }
         return 0;
         
-    }
-    
-    if(id == 3){
-        printf("safe pos = %d, val = %d\n", hyp.cell, hyp.num);
-        cont++;
-        if(id == 3 && cont == 4){
-            printf("\n");
-            print_sudoku(cp_sudoku);
-            
-            printf("\nrow\n");
-            for(i = 0; i < m_size; i++){
-                printf("%d ", rows_mask[i]);
-            }
-            
-            printf("\ncol\n");
-            for(i = 0; i < m_size; i++){
-                printf("%d ", cols_mask[i]);
-            }
-            
-            printf("\nbox\n");
-            for(i = 0; i < m_size; i++){
-                printf("%d ", boxes_mask[i]);
-            }
-            printf("\n");
-            
-            exit(0);
-        
-        }
     }
 
     flag = -1;
@@ -368,15 +334,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     MPI_Test(&request, &flag, &status);
                     if(!flag)
                         MPI_Cancel(&request);
-                    
-                    list_remove(work, hyp);
-                    
-                    
-                    if(id == 3)
-                    print_list(work);
-                    if(id == 3)
-                    print_list(work);
-                    
                     return 0;
                 }else
                     break;
