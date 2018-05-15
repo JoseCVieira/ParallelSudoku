@@ -250,9 +250,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                     
                     Item hyp_send;// = pop_head(work);
-                    hyp_send.cell = 123;
-                    hyp_send.num = 123;
-                    memcpy(send_msg, &hyp_send, sizeof(Item));
+                    memcpy(send_msg, &hyp, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
