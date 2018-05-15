@@ -41,7 +41,7 @@ int solve(int *sudoku);
 int r_size, m_size, v_size;
 int id, p;
 
-int nr_it = 0, cont = 0; //a eliminar
+int nr_it = 0; //a eliminar
 
 
 /*MPI_Request request_t;
@@ -229,41 +229,9 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
     
     hyp = pop_head(work);
     int start_pos = hyp.cell;
-    
-    printf("pos = %d, val = %d\n", hyp.cell, hyp.num);
 
-    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
-        
-        if(id == 3){
-            int i;
-            cont++;
-            if(id == 3 && cont == 4){
-                printf("\n");
-                print_sudoku(cp_sudoku);
-                
-                printf("\nrow\n");
-                for(i = 0; i < m_size; i++){
-                    printf("%d ", rows_mask[i]);
-                }
-                
-                printf("\ncol\n");
-                for(i = 0; i < m_size; i++){
-                    printf("%d ", cols_mask[i]);
-                }
-                
-                printf("\nbox\n");
-                for(i = 0; i < m_size; i++){
-                    printf("%d ", boxes_mask[i]);
-                }
-                printf("\n");
-                
-                exit(0);
-            
-            }
-        }
+    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
         return 0;
-        
-    }
 
     flag = -1;
     while(1){
