@@ -68,21 +68,6 @@ Item pop_tail(List *list) {
     return item;
 }
 
-Item pop_tail2(List* list){
-    Item item = list -> tail -> this;
-    ListNode* aux = list -> tail -> prev;
-    if(aux == NULL){
-        free(list -> tail);
-        list->tail = NULL;
-        list->head = NULL;
-        return item;
-    }
-    aux -> next = NULL;
-    free(list -> tail);
-    list -> tail = aux;
-    return item;
-    }
-
 void print_list(List* list){
     ListNode *aux;
 
