@@ -122,8 +122,6 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-    
     start_num = low_value;
     while(1){
         
@@ -156,19 +154,9 @@ int solve(int* sudoku){
             }else
                 insert = 0;
             
-            if(!flag_enter){                
+            if(!flag_enter){
                 for(i = 0; i < p; i++){
-                    
-                    if(i != id){
-                        /*MPI_Test(&request, &flag, &status);
-                        if(!flag)
-                            MPI_Cancel(&request);
-                        else
-                            if(status.MPI_TAG == TAG_EXIT)
-                                return 0;
-                            else
-                                MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);*/
-                        
+                    if(i != id){                        
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -176,8 +164,6 @@ int solve(int* sudoku){
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
                         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        
-                        //MPI_Irecv(&res, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -191,7 +177,7 @@ int solve(int* sudoku){
                                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                                 
-                                //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                                 delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
                                 
                                 insert_head(work, hyp_recv);
@@ -301,7 +287,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         }
                     }
                     
-                    //printf("[%d] out of work\n", id);
+                    printf("[%d] out of work\n", id);
                     MPI_Test(&request, &flag, &status);
                     if(!flag)
                         MPI_Cancel(&request);
