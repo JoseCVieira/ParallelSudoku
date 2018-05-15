@@ -160,7 +160,7 @@ int solve(int* sudoku){
             }
             
             if(!flag_enter){
-                printf("[%d] 123out of work\n", id);
+                //printf("[%d] 123out of work\n", id);
                 
                 for(i = 0; i < p; i++){
                     
