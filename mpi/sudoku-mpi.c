@@ -95,7 +95,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res, aux = 1;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res, insert = 1;
     
     MPI_Request request;
     MPI_Status status;
@@ -134,7 +134,7 @@ int solve(int* sudoku){
         if(flag_enter){
             flag_enter = 0;
             
-            if(start_pos != high_value){
+            if(insert){
                 hyp.cell = start_pos;
                 hyp.num = start_num;
                 insert_head(work, hyp);
@@ -158,7 +158,7 @@ int solve(int* sudoku){
                 flag_enter = 1;
                 start_num++;
             }else
-                aux = 0;
+                insert = 0;
             
             if(!flag_enter){                
                 for(i = 0; i < p; i++){
