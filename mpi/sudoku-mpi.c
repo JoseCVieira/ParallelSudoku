@@ -234,7 +234,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
         if(id == 3){
             int i;
             cont++;
-            if(id == 3 && cont == 3){
+            if(id == 3 && cont == 4){
                 printf("\n");
                 print_sudoku(cp_sudoku);
                 
