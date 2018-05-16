@@ -25,11 +25,11 @@
 #define BLOCK_LOW(id, p, n) ((id)*(n)/(p))
 #define BLOCK_HIGH(id, p, n) (BLOCK_LOW((id)+1,p,n)-1)
 
-void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
-int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
-void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
-int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int last);
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell);
+void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
+void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
+int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int exists_in( int index, uint64_t* mask, int num);
 int* read_matrix(char *argv[]);
@@ -38,8 +38,7 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
-int r_size, m_size, v_size;
-int id, p;
+int r_size, m_size, v_size, id, p;
 
 int nr_it = 0, nb_sends = 0; //a eliminar
 
@@ -80,9 +79,7 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job, flag, data;
-    
+    int i, start_pos, start_num, last_pos, low_value, high_value, last = 0, flag_start = 0, solved = 0;
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -90,7 +87,6 @@ int solve(int* sudoku){
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
-
     int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
     List *work = init_list();
 
@@ -113,121 +109,27 @@ int solve(int* sudoku){
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
     start_num = low_value;
+    
     while(1){
-        
-        if(flag_enter){
-            flag_enter = 0;
-            
-            if(insert){
-                hyp.cell = start_pos;
-                hyp.num = start_num;
-                insert_head(work, hyp);
-            }
+        hyp.cell = start_pos;
+        hyp.num = start_num;
+        insert_head(work, hyp);
 
-            solved = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
-            if(solved == 1){
-                for(i = 0; i < v_size; i++)
-                    if(cp_sudoku[i] != UNCHANGEABLE)
-                        sudoku[i] = cp_sudoku[i];
-                break;
-            }else if(solved == -1)
-                break;
-        }
+        solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos, last);
+        if(solved == 1){
+            for(i = 0; i < v_size; i++)
+                if(cp_sudoku[i] != UNCHANGEABLE)
+                    sudoku[i] = cp_sudoku[i];
+            break;
+        }else if(solved == -1)
+            break;
         
-            
-        if(start_num < high_value - 1){
-            flag_enter = 1;
-            start_num++;            
-        }else{
-            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-            insert = 0;
-        }
-        
-        if(!flag_enter){
-            no_job = 0;
-            for(i = 0; i < p; i++){
-                if(i == id)
-                    continue;
-                
-                MPI_Test(&request, &flag, &status);
-                if(!flag) MPI_Cancel(&request);
-                else{
-                    flag = 0;
-                    printf("[%d] recbeu 1 pedido trabalho\n", id);
-                    Item item;
-                    item.cell = -1;
-                    item.num = -1;
-                    MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    printf("[%d] enviou 1 pedido trabalho\n", id);
-                }
-                    
-                MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                MPI_Get_count(&status, MPI_INT, &number_amount);
-                int* number_buf = (int*)malloc(number_amount * sizeof(int));
-                MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                      
-                if(status.MPI_TAG == TAG_EXIT){
-                    printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
-                    start_pos = -1;
-                    free(number_buf);
-                    break;
-                }else if(status.MPI_TAG == TAG_HYP){
-                    if(number_amount != 2){
-                        
-                        Item hyp_recv;
-                        memcpy(&hyp_recv, number_buf, sizeof(Item));
-                        memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
-                        
-                        printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
-                        delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
-                        
-                        insert_head(work, hyp_recv);
-                        //flag_enter = 1;
-                        
-                        free(number_buf);
-                        
-                        MPI_Test(&request, &flag, &status);
-                        if(!flag) MPI_Cancel(&request);
-                        else{
-                            flag = 0;
-                            printf("[%d] recbeu 1 pedido trabalho\n", id);
-                            Item item;
-                            item.cell = -1;
-                            item.num = -1;
-                            MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                            printf("[%d] enviou 1 pedido trabalho\n", id);
-                        }
-                        
-                        break;
-                    }else{
-                        printf("[%d] recv no work from  %d\n", id, status.MPI_SOURCE);
-                        if(++no_job == /*p-*/2){
-                            while(1){
-                                sleep(1);
-                                printf("[%d] no more job\n", id);
-                            }
-                        }
-                    }
-                    
-                }else if(status.MPI_TAG == TAG_ASK_JOB){
-                    printf("[%d] recbeu 1 pedido trabalho\n", id);
-                    Item item;
-                    item.cell = -1;
-                    item.num = -1;
-                    MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    printf("[%d] enviou 1 pedido trabalho\n", id);
-                }
-                
-                free(number_buf);
-            }
-            
-            if(start_pos == -1)
-                break;
-        }
+        if(start_num < high_value - 1)
+            start_num++;
+        else
+            last = 1;
     }
-
+    
     free(work);
     free(r_mask_array);
     free(c_mask_array);
@@ -238,9 +140,94 @@ int solve(int* sudoku){
         return 1;
     return 0;
 }
+/*
+no_job = 0;
+for(i = 0; i < p; i++){
+    if(i == id)
+        continue;
+    
+    MPI_Test(&request, &flag, &status);
+    if(!flag) MPI_Cancel(&request);
+    else{
+        flag = 0;
+        printf("[%d] recbeu 1 pedido trabalho\n", id);
+        Item item;
+        item.cell = -1;
+        item.num = -1;
+        MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+        printf("[%d] enviou 1 pedido trabalho\n", id);
+    }
+        
+    MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    MPI_Get_count(&status, MPI_INT, &number_amount);
+    int* number_buf = (int*)malloc(number_amount * sizeof(int));
+    MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+            
+    if(status.MPI_TAG == TAG_EXIT){
+        printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+        start_pos = -1;
+        free(number_buf);
+        break;
+    }else if(status.MPI_TAG == TAG_HYP){
+        if(number_amount != 2){
+            
+            Item hyp_recv;
+            memcpy(&hyp_recv, number_buf, sizeof(Item));
+            memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
+            
+            printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+            delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
+            
+            insert_head(work, hyp_recv);
+            //flag_enter = 1;
+            
+            free(number_buf);
+            
+            MPI_Test(&request, &flag, &status);
+            if(!flag) MPI_Cancel(&request);
+            else{
+                flag = 0;
+                printf("[%d] recbeu 1 pedido trabalho\n", id);
+                Item item;
+                item.cell = -1;
+                item.num = -1;
+                MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                printf("[%d] enviou 1 pedido trabalho\n", id);
+            }
+            
+            break;
+        }else{
+            printf("[%d] recv no work from  %d\n", id, status.MPI_SOURCE);
+            if(++no_job == /*p-*/2){
+                while(1){
+                    sleep(1);
+                    printf("[%d] no more job\n", id);
+                }
+            }
+        }
+        
+    }else if(status.MPI_TAG == TAG_ASK_JOB){
+        printf("[%d] recbeu 1 pedido trabalho\n", id);
+        Item item;
+        item.cell = -1;
+        item.num = -1;
+        MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+        printf("[%d] enviou 1 pedido trabalho\n", id);
+    }
+    
+    free(number_buf);
+}
 
-int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
+if(start_pos == -1)
+    break;*/
+
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int last) {
     int cell, val, recv, flag;
+    
+    int number_amount, no_job, flag, data;
+    
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -334,10 +321,18 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                         }
                     }
                     
-                    printf("[%d] out of work\n", id);
-                    MPI_Test(&request, &flag, &status);
-                    if(!flag) MPI_Cancel(&request);
-                    return 0;
+                    if(!last){
+                        printf("[%d] out of work\n", id);
+                        MPI_Test(&request, &flag, &status);
+                        if(!flag) MPI_Cancel(&request);
+                        return 0;
+                    }else{
+                        while(1){
+                            sleep(1);
+                            printf("[%d] last\n", id);
+                        }
+                    }
+                    
                 }else
                     break;
             }
