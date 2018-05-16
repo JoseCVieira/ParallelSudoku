@@ -171,7 +171,6 @@ int solve(int* sudoku){
                 MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                       
                 if(status.MPI_TAG == TAG_EXIT){
-                    
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                     start_pos = -1;
                     free(number_buf);
@@ -190,6 +189,19 @@ int solve(int* sudoku){
                         //flag_enter = 1;
                         
                         free(number_buf);
+                        
+                        MPI_Test(&request, &flag, &status);
+                        if(!flag) MPI_Cancel(&request);
+                        else{
+                            flag = 0;
+                            printf("[%d] recbeu 1 pedido trabalho\n", id);
+                            Item item;
+                            item.cell = -1;
+                            item.num = -1;
+                            MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            printf("[%d] enviou 1 pedido trabalho\n", id);
+                        }
+                        
                         break;
                     }else{
                         printf("[%d] recv no work from  %d\n", id, status.MPI_SOURCE);
