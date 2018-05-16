@@ -81,15 +81,11 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job, flag;
+    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job, flag, data;
     
     MPI_Request request;
     MPI_Status status;
     Item hyp;
-    
-    MPI_Request request_t;
-    MPI_Status status_t;
-    int data;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -148,21 +144,21 @@ int solve(int* sudoku){
         }
         
         if(!flag_enter){
-            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
+            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
             no_job = 0;
             for(i = 0; i < p; i++){
                 if(i == id)
                     continue;
                 
-                MPI_Test(&request_t, &flag, &status_t);
-                if(!flag) MPI_Cancel(&request_t);
+                MPI_Test(&request, &flag, &status);
+                if(!flag) MPI_Cancel(&request);
                 else{
                     flag = 0;
                     printf("[%d] recbeu 1 pedido trabalho\n", id);
                     Item item;
                     item.cell = -1;
                     item.num = -1;
-                    MPI_Send(&item, 2, MPI_INT, status_t.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     printf("[%d] enviou 1 pedido trabalho\n", id);
                 }
                     
@@ -171,7 +167,7 @@ int solve(int* sudoku){
                 MPI_Get_count(&status, MPI_INT, &number_amount);
                 int* number_buf = (int*)malloc(number_amount * sizeof(int));
                 MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
+                MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                       
                 if(status.MPI_TAG == TAG_EXIT){
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -193,15 +189,15 @@ int solve(int* sudoku){
                         
                         free(number_buf);
                         
-                        MPI_Test(&request_t, &flag, &status_t);
-                        if(!flag) MPI_Cancel(&request_t);
+                        MPI_Test(&request, &flag, &status);
+                        if(!flag) MPI_Cancel(&request);
                         else{
                             flag = 0;
                             printf("[%d] recbeu 1 pedido trabalho\n", id);
                             Item item;
                             item.cell = -1;
                             item.num = -1;
-                            MPI_Send(&item, 2, MPI_INT, status_t.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                             printf("[%d] enviou 1 pedido trabalho\n", id);
                         }
                         
