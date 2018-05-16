@@ -155,6 +155,8 @@ int solve(int* sudoku){
                 insert = 0;
             
             if(!flag_enter){
+                flag = 0;
+                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                 no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
@@ -164,7 +166,9 @@ int solve(int* sudoku){
                         MPI_Wait(&request, &status);
                         printf("[%d] ask data2\n", id);
                         
-                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        while(!flag)
+                            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+                        
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
