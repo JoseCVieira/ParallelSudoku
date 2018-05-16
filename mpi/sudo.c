@@ -193,10 +193,11 @@ int solve(int* sudoku){
                                 free(number_buf);
                                 break;
                             }else{
-                                no_job++;
-                                while(1){
-                                    sleep(1);
-                                    printf("[%d] no more job\n", id);
+                                if(++no_job == p-1){
+                                    while(1){
+                                        sleep(1);
+                                        printf("[%d] no more job\n", id);
+                                    }
                                 }
                             }
                             
@@ -281,8 +282,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                          if(cell == last_pos){
                             cp_sudoku[cell] = val;
-                            
-                            printf("[%d] SOLUTION\n", id);
                             
                             while(1){
                                 sleep(1);
