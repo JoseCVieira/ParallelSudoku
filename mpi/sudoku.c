@@ -108,14 +108,13 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    MPI_Barrier(MPI_COMM_WORLD);
-    
     start_num = low_value;    
     while(1){
         hyp.cell = start_pos;
         hyp.num = start_num;
         insert_head(work, hyp);
 
+        printf("[%d] cell = %d, val = %d\n", id, start_pos, start_num);
         solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos, last);
         if(solved == 1){
             for(i = 0; i < v_size; i++)
