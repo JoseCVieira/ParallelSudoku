@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job;
+    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job, recvv, flag;
     
     MPI_Request request;
     MPI_Status status;
@@ -149,6 +149,11 @@ int solve(int* sudoku){
             for(i = 0; i < p; i++){
                 if(i == id)
                     continue;
+                
+                flag = 0;
+                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                MPI_Test(&request, &flag, &status);
+                if(!flag) MPI_Cancel(&request);
                     
                 MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                 
@@ -157,7 +162,7 @@ int solve(int* sudoku){
                 MPI_Get_count(&status, MPI_INT, &number_amount);
                 int* number_buf = (int*)malloc(number_amount * sizeof(int));
                 MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                
+                               
                 if(status.MPI_TAG == TAG_EXIT){
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                     start_pos = -1;
