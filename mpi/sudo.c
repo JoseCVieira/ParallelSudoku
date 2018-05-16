@@ -157,7 +157,7 @@ int solve(int* sudoku){
                     if(i != id){
                         
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        MPI_Wait(&request, &status);
+                        //MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
                         MPI_Test(&request, &flag, &status);
