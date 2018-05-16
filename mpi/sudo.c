@@ -137,10 +137,10 @@ int solve(int* sudoku){
                 break;
             }else if(result == -1)
                 break;
-            else{
+            /*else{
                 MPI_Irecv(&pedido, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 flag = 0;
-            }
+            }*/
         }
 
         if(result != 1){
@@ -156,11 +156,11 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     if(i != id){
                         
-                        //MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        //MPI_Wait(&request, &status);
+                        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                        MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
-                        /*MPI_Test(&request, &flag, &status);
+                        MPI_Test(&request, &flag, &status);
                         if(flag){
                             printf("[%d] recbeu 1 pedido trabalho\n", id);
                             Item item;
@@ -179,7 +179,7 @@ int solve(int* sudoku){
                         
                         
                         MPI_Irecv(&pedido, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                        flag = 0;*/
+                        flag = 0;
                         
                         printf("[%d] recv data\n", id);
                         
