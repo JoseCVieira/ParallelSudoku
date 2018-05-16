@@ -160,7 +160,7 @@ int solve(int* sudoku){
                         //MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
-                        MPI_Test(&request, &flag, &status);
+                        /*MPI_Test(&request, &flag, &status);
                         if(flag){
                             printf("[%d] recbeu 1 pedido trabalho\n", id);
                             Item item;
@@ -179,7 +179,7 @@ int solve(int* sudoku){
                         
                         
                         MPI_Irecv(&pedido, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                        flag = 0;
+                        flag = 0;*/
                         
                         printf("[%d] recv data\n", id);
                         
