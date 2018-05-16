@@ -157,6 +157,7 @@ int solve(int* sudoku){
                 MPI_Test(&request, &flag, &status);
                 if(!flag) MPI_Cancel(&request);
                 else{
+                    flag = 0;
                     printf("[%d] recbeu 1 pedido trabalho\n", id);
                     Item item;
                     item.cell = -1;
