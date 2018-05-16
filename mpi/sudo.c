@@ -186,7 +186,7 @@ int solve(int* sudoku){
                     if(status.MPI_TAG == TAG_EXIT){
                         printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                         start_pos = -1;
-                        free(number_buf);
+                        //free(number_buf);
                         break;
                     }else if(status.MPI_TAG == TAG_HYP){
                         if(number_amount != 2){
@@ -201,7 +201,7 @@ int solve(int* sudoku){
                             insert_head(work, hyp_recv);
                             //flag_enter = 1;
                             
-                            free(number_buf);
+                            //free(number_buf);
                             break;
                         }else{
                             printf("[%d] recv no work from  %d\n", id, status.MPI_SOURCE);
