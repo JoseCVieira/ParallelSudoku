@@ -142,6 +142,19 @@ int solve(int* sudoku){
         if(start_num < high_value - 1){
             flag_enter = 1;
             start_num++;
+            
+            MPI_Test(&request_t, &flag, &status_t);
+            if(!flag) MPI_Cancel(&request_t);
+            else{
+                flag = 0;
+                printf("[%d] recbeu 1 pedido trabalho\n", id);
+                Item item;
+                item.cell = -1;
+                item.num = -1;
+                MPI_Send(&item, 2, MPI_INT, status_t.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                printf("[%d] enviou 1 pedido trabalho\n", id);
+            }
+            
         }else
             insert = 0;
         
