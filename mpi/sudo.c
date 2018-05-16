@@ -153,8 +153,7 @@ int solve(int* sudoku){
                 no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
-                        MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request);
-                        MPI_Wait(&request, &status);
+                        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         printf("[%d] ask data to %d\n", id, i);
                         
                         while(!flag)
