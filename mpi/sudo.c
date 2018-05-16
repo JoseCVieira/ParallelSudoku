@@ -137,11 +137,10 @@ int solve(int* sudoku){
                 break;
             }else if(result == -1)
                 break;
-            else{
-                number_amount = 1;
-                MPI_Irecv(&pedido, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+           /* else{
+                MPI_Irecv(&pedido, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 flag = 0;
-            }
+            }*/
         }
 
         if(result != 1){
@@ -161,7 +160,7 @@ int solve(int* sudoku){
                         //MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
-                        MPI_Test(&request, &flag, &status);
+                        /*MPI_Test(&request, &flag, &status);
                         if(flag){
                             flag = 0;
                             printf("[%d] recbeu 1 pedido trabalho\n", id);
@@ -170,7 +169,7 @@ int solve(int* sudoku){
                             item.num = -1;
                             MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                             printf("[%d] enviou 1 pedido trabalho\n", id);
-                        }/*else
+                        }else
                             MPI_Cancel(&request);*/
                         
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
