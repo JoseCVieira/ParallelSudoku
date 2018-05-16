@@ -135,6 +135,8 @@ int solve(int* sudoku){
                 break;
             }else if(solved == -1)
                 break;
+            else
+                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
         }
         
             
@@ -150,7 +152,7 @@ int solve(int* sudoku){
                 if(i == id)
                     continue;
                 
-                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                //MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 MPI_Test(&request, &flag, &status);
                 if(!flag) MPI_Cancel(&request);
                 else{
@@ -169,16 +171,14 @@ int solve(int* sudoku){
                 int* number_buf = (int*)malloc(number_amount * sizeof(int));
                 MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                 
-                //MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                
                 if(status.MPI_TAG == TAG_EXIT){
-                    MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                     start_pos = -1;
                     free(number_buf);
                     break;
                 }else if(status.MPI_TAG == TAG_HYP){
-                    MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                     if(number_amount != 2){
                         
                         Item hyp_recv;
@@ -204,7 +204,6 @@ int solve(int* sudoku){
                     }
                     
                 }else if(status.MPI_TAG == TAG_ASK_JOB){
-                    MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                     printf("[%d] recbeu 1 pedido trabalho\n", id);
                     Item item;
                     item.cell = -1;
