@@ -202,8 +202,12 @@ int solve(int* sudoku){
                                 }
                             }
                             
-                        }else if(status.MPI_TAG == TAG_ASK_JOB)
-                            MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        }else if(status.MPI_TAG == TAG_ASK_JOB){
+                            Item item;
+                            item.cell = -1;
+                            item.num = -1;
+                            MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        }
                         
                         free(number_buf);
                     }
