@@ -295,8 +295,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                                     flag = 0;
                                 }
                                 
-                                /*MPI_Test(&request, &flag, &status);
-                                if(flag){
+                                MPI_Test(&request, &flag, &status);
+                                /*if(flag){
                                     if(status.MPI_TAG == TAG_ASK_JOB){
                                         MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                                     }
