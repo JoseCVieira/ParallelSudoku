@@ -139,7 +139,7 @@ int solve(int* sudoku){
                 break;
             else{
                 number_amount = 1;
-                MPI_Irecv(&pedido, &number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                MPI_Irecv(&pedido, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 flag = 0;
             }
         }
@@ -180,7 +180,7 @@ int solve(int* sudoku){
                         //MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         
-                        MPI_Irecv(&number_buf, &number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                        MPI_Irecv(&number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         
                         while(!flag){
                         MPI_Test(&request, &flag, &status);
