@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, ;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, no_job;
     
     MPI_Request request;
     MPI_Status status;
