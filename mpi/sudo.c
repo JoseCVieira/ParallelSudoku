@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, no_job;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, no_job, aaa;
     
     MPI_Request request;
     MPI_Status status;
@@ -148,6 +148,7 @@ int solve(int* sudoku){
                 insert = 0;
             
             if(!flag_enter){
+                MPI_Irecv(&aaa, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 flag = 0;
                 no_job = 0;
                 for(i = 0; i < p; i++){
@@ -162,7 +163,8 @@ int solve(int* sudoku){
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
-                        MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        //MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         printf("[%d] recv data\n", id);
                         
                         if(status.MPI_TAG == TAG_EXIT){
