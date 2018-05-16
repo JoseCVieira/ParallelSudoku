@@ -136,6 +136,8 @@ int solve(int* sudoku){
                 break;
             }else if(solved == -1)
                 break;
+            
+            MPI_Irecv(&data_t, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
         }
         
             
@@ -351,9 +353,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     
                     printf("[%d] out of work\n", id);
                     MPI_Test(&request, &flag, &status);
-                    MPI_Irecv(&data_t, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
-                    if(!flag)
-                        MPI_Cancel(&request);
+                    if(!flag) MPI_Cancel(&request);
                     return 0;
                 }else
                     break;
