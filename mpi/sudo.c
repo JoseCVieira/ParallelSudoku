@@ -194,11 +194,9 @@ int solve(int* sudoku){
                                 break;
                             }else{
                                 no_job++;
-                                if(no_job == p-1){
-                                    while(1){
-                                        sleep(1);
-                                        printf("[%d] no more job\n", id);
-                                    }
+                                while(1){
+                                    sleep(1);
+                                    printf("[%d] no more job\n", id);
                                 }
                             }
                             
