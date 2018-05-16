@@ -235,9 +235,17 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     hyp = pop_head(work);
     int start_pos = hyp.cell;
 
-    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
-        return 0;
-
+    if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
+        if(!last)
+            return 0;
+        else{
+            while(1){
+                sleep(1);
+                printf("[%d] last\n", id);
+            }
+        }
+    }
+        
     flag = -1;
     while(1){        
         if(flag){
