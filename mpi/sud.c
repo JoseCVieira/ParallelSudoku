@@ -45,6 +45,7 @@ int nr_it = 0, nb_sends = 0; //a eliminar
 
 MPI_Request request_t;
 MPI_Status status_t;
+int data_t;
 
 int main(int argc, char *argv[]){
     int *sudoku, i;
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job, recvv, flag;
+    int low_value, high_value, number_amount, flag_enter = 1, insert = 1, no_job, flag;
     
     MPI_Request request;
     MPI_Status status;
@@ -167,7 +168,7 @@ int solve(int* sudoku){
                 MPI_Get_count(&status, MPI_INT, &number_amount);
                 int* number_buf = (int*)malloc(number_amount * sizeof(int));
                 MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
+                MPI_Irecv(&data_t, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                       
                 if(status.MPI_TAG == TAG_EXIT){
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -336,9 +337,8 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     }
                     
                     printf("[%d] out of work\n", id);
-                    int recvv;
-                    MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                     MPI_Test(&request, &flag, &status);
+                    MPI_Irecv(&data_t, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                     if(!flag)
                         MPI_Cancel(&request);
                     return 0;
