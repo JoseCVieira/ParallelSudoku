@@ -136,29 +136,16 @@ int solve(int* sudoku){
                 break;
             }else if(solved == -1)
                 break;
-            
-            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
         }
         
             
         if(start_num < high_value - 1){
             flag_enter = 1;
-            start_num++;
-            
-            MPI_Test(&request_t, &flag, &status_t);
-            if(!flag) MPI_Cancel(&request_t);
-            else{
-                flag = 0;
-                printf("[%d] recbeu 1 pedido trabalho\n", id);
-                Item item;
-                item.cell = -1;
-                item.num = -1;
-                MPI_Send(&item, 2, MPI_INT, status_t.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                printf("[%d] enviou 1 pedido trabalho\n", id);
-            }
-            
-        }else
+            start_num++;            
+        }else{
+            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
             insert = 0;
+        }
         
         if(!flag_enter){
             no_job = 0;
