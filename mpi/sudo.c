@@ -160,7 +160,8 @@ int solve(int* sudoku){
                     if(i != id){
                         
                         printf("[%d] ask data1\n", id);
-                        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                        MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request);
+                        MPI_Wait(&request, &status);
                         printf("[%d] ask data2\n", id);
                         
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
