@@ -143,11 +143,12 @@ int solve(int* sudoku){
             flag_enter = 1;
             start_num++;            
         }else{
-            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
+            
             insert = 0;
         }
         
         if(!flag_enter){
+            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
             no_job = 0;
             for(i = 0; i < p; i++){
                 if(i == id)
