@@ -58,18 +58,11 @@ int main(int argc, char *argv[]){
         MPI_Comm_size (MPI_COMM_WORLD, &p);
         
         if(solve(sudoku)){
-            
-            //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
             print_sudoku(sudoku);
-        
         
             for(i = 0; i < p; i++)
                 if(i != id)
                     MPI_Send(&i, 1, MPI_INT, i, TAG_EXIT, MPI_COMM_WORLD);
-                
-            /*MPI_Test(&request_t, &flag, &status_t);
-            if(!flag)
-                MPI_Cancel(&request_t);*/
             
         }else
             printf("[%d] no solution\n", id);
@@ -207,10 +200,12 @@ int solve(int* sudoku){
                             }
                             
                         }else if(status.MPI_TAG == TAG_ASK_JOB){
+                            printf("[%d] recbeu 1 pedido trabalho\n", id);
                             Item item;
                             item.cell = -1;
                             item.num = -1;
                             MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            printf("[%d] enviou 1 pedido trabalho\n", id);
                         }
                         
                         free(number_buf);
@@ -266,9 +261,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                     memcpy(send_msg, &hyp, sizeof(Item));
                     memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                     
-                    printf("[%d] send data1\n", id);
                     MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    printf("[%d] send data2\n", id);
                     
                     nb_sends++;
                     
@@ -311,7 +304,6 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                                 }
                             }
                             
-                            //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
                             MPI_Test(&request, &flag, &status);
                             if(!flag)
                                 MPI_Cancel(&request);
