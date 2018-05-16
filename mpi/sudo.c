@@ -290,7 +290,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                                 sleep(1);
                                 printf("[%d] terminou\n", id);
                                 
-                                MPI_Test(&request, &flag, &status);
+                                /*MPI_Test(&request, &flag, &status);
                                 if(flag){
                                     if(status.MPI_TAG == TAG_ASK_JOB){
                                         MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
@@ -301,7 +301,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                                 if(flag){
                                     MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                     flag = 0;
-                                }
+                                }*/
                             }
                             
                             //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
