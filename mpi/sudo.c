@@ -157,8 +157,7 @@ int solve(int* sudoku){
                         MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
-                        while(!flag)
-                            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                         
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
