@@ -149,15 +149,12 @@ int solve(int* sudoku){
             
             if(!flag_enter){
                 flag = 0;
-                //MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
-                        
-                        printf("[%d] ask data to %d\n", id, i);
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request);
                         MPI_Wait(&request, &status);
-                        printf("[%d] passou ask data to %d\n", id, i);
+                        printf("[%d] ask data to %d\n", id, i);
                         
                         while(!flag)
                             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
@@ -165,9 +162,8 @@ int solve(int* sudoku){
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
-                        printf("[%d] recv data1\n", id);
                         MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                        printf("[%d] recv data2\n", id);
+                        printf("[%d] recv data\n", id);
                         
                         if(status.MPI_TAG == TAG_EXIT){
                             printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
@@ -190,6 +186,7 @@ int solve(int* sudoku){
                                 free(number_buf);
                                 break;
                             }else{
+                                printf("[%d] recv no work from  %d\n", id, status.MPI_SOURCE);
                                 if(++no_job == p-1){
                                     while(1){
                                         sleep(1);
