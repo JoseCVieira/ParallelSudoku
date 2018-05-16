@@ -200,7 +200,7 @@ for(i = 0; i < p; i++){
             break;
         }else{
             printf("[%d] recv no work from  %d\n", id, status.MPI_SOURCE);
-            if(++no_job == /*p-*/2){
+            if(++no_job == /*p-*//*2){
                 while(1){
                     sleep(1);
                     printf("[%d] no more job\n", id);
