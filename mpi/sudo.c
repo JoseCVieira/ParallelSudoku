@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, no_job, aaa;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, no_job;
     
     MPI_Request request;
     MPI_Status status;
@@ -127,7 +127,7 @@ int solve(int* sudoku){
                 insert_head(work, hyp);
             }
 
-            if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1) {
+            if((result = solve_from(cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos)) == 1){
                 for(i = 0; i < v_size; i++)
                     if(cp_sudoku[i] != UNCHANGEABLE)
                         sudoku[i] = cp_sudoku[i];
@@ -151,7 +151,7 @@ int solve(int* sudoku){
                 no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
-                        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                        //MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                         printf("[%d] ask data to %d\n", id, i);
                         
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
