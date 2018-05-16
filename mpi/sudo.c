@@ -148,13 +148,10 @@ int solve(int* sudoku){
                 insert = 0;
             
             if(!flag_enter){
-                //MPI_Irecv(&aaa, 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                flag = 0;
                 no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                        MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
                         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
