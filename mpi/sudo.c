@@ -154,10 +154,10 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     if(i != id){
                         
-                        printf("[%d] ask data1\n", id);
+                        printf("[%d] ask data to %d\n", id, i);
                         MPI_Isend(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD, &request);
                         MPI_Wait(&request, &status);
-                        printf("[%d] ask data2\n", id);
+                        printf("[%d] passou ask data to %d\n", id, i);
                         
                         while(!flag)
                             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
