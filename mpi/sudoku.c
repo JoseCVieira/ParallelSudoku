@@ -108,8 +108,9 @@ int solve(int* sudoku){
     low_value = 1 + BLOCK_LOW(id, p, m_size);
     high_value = 2 + BLOCK_HIGH(id, p, m_size);
     
-    start_num = low_value;
+    MPI_Barrier(MPI_COMM_WORLD);
     
+    start_num = low_value;    
     while(1){
         hyp.cell = start_pos;
         hyp.num = start_num;
