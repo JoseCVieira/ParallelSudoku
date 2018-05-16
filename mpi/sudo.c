@@ -154,6 +154,7 @@ int solve(int* sudoku){
                 for(i = 0; i < p; i++){
                     if(i != id){
                         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                        MPI_Wait(&request, &status);
                         printf("[%d] ask data to %d\n", id, i);
                         
                         while(!flag)
@@ -162,8 +163,10 @@ int solve(int* sudoku){
                         MPI_Get_count(&status, MPI_INT, &number_amount);
                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                         
-                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        //MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                        //if(!flag)
+                        //MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        //while(!flag)
+                        MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         printf("[%d] recv data\n", id);
                         
                         if(status.MPI_TAG == TAG_EXIT){
