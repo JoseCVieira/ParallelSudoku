@@ -149,7 +149,7 @@ int solve(int* sudoku){
             
             if(!flag_enter){
                 flag = 0;
-                MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                //MPI_Irecv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
