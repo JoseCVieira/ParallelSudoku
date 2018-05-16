@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, flag_start = 0, solved = 0, start_pos, start_num, last_pos;
-    int low_value, high_value, result, number_amount, flag_enter = 1, flag, res, insert = 1;
+    int low_value, high_value, result, number_amount, flag_enter = 1, flag, insert = 1, ;
     
     MPI_Request request;
     MPI_Status status;
@@ -155,6 +155,7 @@ int solve(int* sudoku){
                 insert = 0;
             
             if(!flag_enter){
+                no_job = 0;
                 for(i = 0; i < p; i++){
                     if(i != id){
                         
@@ -191,7 +192,16 @@ int solve(int* sudoku){
                                 
                                 free(number_buf);
                                 break;
+                            }else{
+                                no_job++;
+                                if(no_job == p-1){
+                                    while(1){
+                                        sleep(1);
+                                        printf("[%d] no more job\n", id);
+                                    }
+                                }
                             }
+                            
                         }else if(status.MPI_TAG == TAG_ASK_JOB)
                             MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                         
@@ -278,7 +288,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                             
                             while(1){
                                 sleep(1);
-                                printf("terminou\n");
+                                printf("[%d] terminou\n", id);
                             }
                             
                             //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request_t);
