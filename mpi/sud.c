@@ -135,6 +135,10 @@ int solve(int* sudoku){
                 break;
             }else if(solved == -1)
                 break;
+            else{
+                flag = 0;
+                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+            }
         }
         
             
@@ -150,10 +154,16 @@ int solve(int* sudoku){
                 if(i == id)
                     continue;
                 
-                flag = 0;
-                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 MPI_Test(&request, &flag, &status);
                 if(!flag) MPI_Cancel(&request);
+                else{
+                    printf("[%d] recbeu 1 pedido trabalho\n", id);
+                    Item item;
+                    item.cell = -1;
+                    item.num = -1;
+                    MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    printf("[%d] enviou 1 pedido trabalho\n", id);
+                }
                     
                 MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                 
@@ -162,6 +172,8 @@ int solve(int* sudoku){
                 MPI_Get_count(&status, MPI_INT, &number_amount);
                 int* number_buf = (int*)malloc(number_amount * sizeof(int));
                 MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                
+                MPI_Irecv(&recvv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                
                 if(status.MPI_TAG == TAG_EXIT){
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
