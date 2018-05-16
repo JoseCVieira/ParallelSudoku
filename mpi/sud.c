@@ -154,7 +154,7 @@ int solve(int* sudoku){
                 
                 MPI_Test(&request, &flag, &status);
                 if(!flag) MPI_Cancel(&request);
-                else{
+                /*else{
                     flag = 0;
                     printf("[%d] recbeu 1 pedido trabalho\n", id);
                     Item item;
@@ -162,7 +162,7 @@ int solve(int* sudoku){
                     item.num = -1;
                     MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     printf("[%d] enviou 1 pedido trabalho\n", id);
-                }
+                }*/
                     
                 MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
                 MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
