@@ -38,8 +38,6 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
-void terminate(int *request, int *status);
-
 int r_size, m_size, v_size, id, p;
 
 int nr_it = 0, nb_sends = 0; //a eliminar
@@ -81,7 +79,7 @@ int main(int argc, char *argv[]){
 }
 
 int solve(int* sudoku){
-    int i, start_pos, last_pos, low_value, high_value, flag_start = 0, solved = 0;
+    int i, last_pos, flag_start = 0, solved = 0;
     MPI_Request request;
     MPI_Status status;
     Item hyp;
@@ -99,18 +97,24 @@ int solve(int* sudoku){
             cp_sudoku[i] = UNASSIGNED;
             if(!flag_start){
                 flag_start = 1;
-                start_pos = i;
+                hyp.cell = i;
             }
             last_pos = i;
         }
     }
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
+    
+     
+    for(i = 1 + BLOCK_LOW(id, p, m_size); i < 2 + BLOCK_HIGH(id, p, m_size); i++){
+        hyp.num = i;
+        insert_head(work, hyp);
+    }
+    
+    print_list(work);
+    exit(0);
 
-    low_value = 1 + BLOCK_LOW(id, p, m_size);
-    high_value = 2 + BLOCK_HIGH(id, p, m_size);
-
-    solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos, low_value, high_value, start_pos);
+    solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
     
     if(solved)
         for(i = 0; i < v_size; i++)
@@ -349,10 +353,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             }
                         }
                         
-                        
                         //if(start_num == high_value){
-                        terminate(&request, &status);
-                            /*while(1){
+                            while(1){
                                 sleep(1);
                                 printf("[%d] terminou 3\n", id);
                                 
@@ -362,7 +364,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                     MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                                     MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                 }
-                            }*/
+                            }
                         //}
                         
                     }else
@@ -380,23 +382,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
         }
     }
-}
-
-void terminate(int *request, int *status){
-    int flag = 0;
-    
-    while(1){
-        sleep(1);
-        printf("[%d] terminou\n", id);
-        
-        MPI_Test(&request, &flag, &status);
-        if(flag){
-            flag = 0;
-            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-        }
-    }
-    
 }
 
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
