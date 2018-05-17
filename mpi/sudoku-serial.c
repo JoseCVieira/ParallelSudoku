@@ -128,6 +128,17 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     Item hyp, no_hyp = invalid_hyp();
     
     while(1){
+        while(work->head == NULL){
+            sleep(1);
+            printf("[%d] No solution\n", id);
+            flag = 0;
+            while(!flag)
+                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            MPI_Get_count(&status, MPI_INT, &number_amount);
+            MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+        }
+        
         while(work->head != NULL){
             hyp = pop_head(work);
             int start_pos = hyp.cell;
@@ -248,17 +259,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 break;
             }
             free(number_buf);
-        }
-        
-        while(/*work->head == NULL*/1){
-            sleep(1);
-            printf("[%d] No solution\n", id);
-            flag = 0;
-            while(!flag)
-                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-            MPI_Get_count(&status, MPI_INT, &number_amount);
-            MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
         }
     }
 }
