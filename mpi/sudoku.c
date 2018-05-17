@@ -213,8 +213,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     int number_amount, data;
     
-    int ;
-    
     MPI_Request request;
     MPI_Status status;
     Item hyp, no_hyp;
