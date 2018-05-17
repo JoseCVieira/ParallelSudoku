@@ -28,7 +28,7 @@
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
-int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int exists_in( int index, uint64_t* mask, int num);
 int* read_matrix(char *argv[]);
@@ -121,7 +121,7 @@ int solve(int* sudoku){
     return 0;
 }
 
-int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
     int cell, val, flag = 1, *recv, number_amount;
     MPI_Request request, req_send;
     MPI_Status status, status_send;
@@ -222,7 +222,7 @@ int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_
                                         }else{
                                             memcpy(&hyp_recv, recv, sizeof(Item));
                                             memcpy(cp_sudoku, (recv+2), v_size*sizeof(int));
-                                            delete_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, hyp_recv.cell);
+                                            delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
                                             //insert_head(work, hyp_recv);
                                             start_num = hyp_recv.num;
                                             start_pos = hyp_recv.cell;
