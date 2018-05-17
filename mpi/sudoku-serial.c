@@ -43,6 +43,7 @@ Item invalid_hyp(void);
 
 int r_size, m_size, v_size, id, p;
 int nr_it = 0, nb_sends = 0; //a eliminar
+int token = 0;
 
 int main(int argc, char *argv[]){
     int* sudoku;
@@ -122,7 +123,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int i, cell, val, number_amount, f_break = 0, flag = 0, token = 0;
+    int i, cell, val, number_amount, f_break = 0, flag = 0;
     
     MPI_Request request;
     MPI_Status status;
