@@ -126,7 +126,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     MPI_Request request, req_send;
     MPI_Status status, status_send;
     int *recv_buf, *send_msg;	
-    Item hyp;
+    Item hyp, hyp_recv;
 
     hyp = pop_head(work);
     int start_pos = hyp.cell;
@@ -223,11 +223,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                             memcpy(&hyp_recv, recv, sizeof(Item));
                                             memcpy(cp_sudoku, (recv+2), v_size*sizeof(int));
                                             delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
-                                            //insert_head(work, hyp_recv);
-                                            start_num = hyp_recv.num;
-                                            start_pos = hyp_recv.cell;
+                                            insert_head(work, hyp_recv);
                                             //printf("[%d] - DONE receiving\n" ,id);
-                                            flag_done = 1;
                                         }
                                         break;
                                         
