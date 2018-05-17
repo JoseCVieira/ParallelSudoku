@@ -17,6 +17,7 @@
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
 #define TAG_CP_SUD  4
+#define TAG_NO_SOL  5
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -158,6 +159,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    }else if(status.MPI_TAG == TAG_NO_SOL){
+                        send_ring(&id, TAG_NO_SOL, -1);
+                        return 0;
                     }
                 }
             
@@ -239,13 +243,18 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }else if(status.MPI_TAG == TAG_EXIT){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
+            }else if(status.MPI_TAG == TAG_NO_SOL){
+                send_ring(&id, TAG_NO_SOL, -1);
+                return 0;
             }
             
             free(number_buf);
         }
         
-        if(i == id)
+        if(i == id){
+            send_ring(&id, TAG_NO_SOL, -1);
             return 0;
+        }
     }
 }
 
