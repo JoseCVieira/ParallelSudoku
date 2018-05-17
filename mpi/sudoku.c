@@ -114,7 +114,7 @@ int solve(int* sudoku){
     print_list(work);
     exit(0);
 
-    solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
+    //solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
     
     if(solved)
         for(i = 0; i < v_size; i++)
@@ -213,7 +213,7 @@ for(i = 0; i < p; i++){
 
 if(start_pos == -1)
     break;*/
-
+/*
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int i, start_num, cell, val, recv, flag;
     
@@ -383,7 +383,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
     }
 }
-
+*/
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
     int i;
     
