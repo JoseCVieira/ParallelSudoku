@@ -224,9 +224,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     }
     
     printf("[%d] will terminate\n", id);  
-    for(i = 0; i < p; i++){
-        if(i == id)
-            continue;
+    for(i = id+1; i != id; i++){
+        if(i == p-1)
+            i = 0;
 
         MPI_Test(&request, &flag, &status);
         if(flag){
