@@ -130,7 +130,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
     MPI_Barrier(MPI_COMM_WORLD);
     
-    while(1){
+    //while(1){
     while(work->head != NULL){
         hyp = pop_head(work);
         int start_pos = hyp.cell;
@@ -225,8 +225,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     printf("[%d] will terminate\n", id);  
     for(i = id+1; i != id; i++){
-        if(i == p)
-            i = 0;
+        if(i == p) i = 0;
 
         MPI_Test(&request, &flag, &status);
         if(flag){
@@ -244,26 +243,24 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
         
-        if(status.MPI_TAG == TAG_HYP){
-            if(number_amount != 2){
-                Item hyp_recv;
-                memcpy(&hyp_recv, number_buf, sizeof(Item));
-                memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
-                
-                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
-                delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
-                
-                insert_head(work, hyp_recv);
-                free(number_buf);
-                break;
-            }
+        if(status.MPI_TAG == TAG_HYP && number_amount != 2){
+            Item hyp_recv;
+            memcpy(&hyp_recv, number_buf, sizeof(Item));
+            memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
+            
+            printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+            delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
+            
+            insert_head(work, hyp_recv);
+            free(number_buf);
+            break;
         }
         free(number_buf);
     }
         
-    if(work->head == NULL)
+    /*if(work->head == NULL)
         break;
-    }
+    }*/
     
     while(1){
         sleep(1);
