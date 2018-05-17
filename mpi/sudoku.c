@@ -213,9 +213,14 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     int number_amount, data;
     
+    int ;
+    
     MPI_Request request;
     MPI_Status status;
-    Item hyp;
+    Item hyp, no_hyp;
+    
+    no_hyp.cell = -1;
+    no_hyp.num = -1;
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
@@ -237,12 +242,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     if(!flag) MPI_Cancel(&request);
                     else{
                         flag = 0;
-                        printf("[%d] recbeu 1 pedido trabalho\n", id);
-                        Item item;
-                        item.cell = -1;
-                        item.num = -1;
-                        MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                        printf("[%d] enviou 1 pedido trabalho\n", id);
+                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }
                         
                     MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
@@ -290,12 +290,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         free(send_msg);
                     }else{
                         flag = 0;
-                        printf("[%d] recbeu 1 pedido trabalho\n", id);
-                        Item item;
-                        item.cell = -1;
-                        item.num = -1;
-                        MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                        printf("[%d] enviou 1 pedido trabalho\n", id);
+                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }
                 }
             }
