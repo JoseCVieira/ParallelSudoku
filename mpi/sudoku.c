@@ -240,10 +240,13 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
 
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         if(!last){
+            
+            printf("[%d] sair1\n", id);
             MPI_Test(&request, &flag, &status);
             if(!flag) MPI_Cancel(&request);
-            return 0;
             
+            printf("[%d] sair2\n", id);
+            return 0;
         }else{
             printf("[%d] procurar trabalho\n", id);
             for(i = 0; i < p; i++){
