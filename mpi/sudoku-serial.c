@@ -32,6 +32,7 @@ void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int exists_in( int index, uint64_t* mask, int num);
+void send_ring(void *msg, int tag, int dest);
 int* read_matrix(char *argv[]);
 void print_sudoku(int *sudoku);
 int int_to_mask(int num);
@@ -157,6 +158,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    }else if(status.MPI_TAG == TAG_EXIT){
+                        send_ring(&id, TAG_EXIT. -1);
+                        return 0;
                     }
                 }
             
@@ -173,13 +177,13 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                                 if(cell == last_pos){
                                     cp_sudoku[cell] = val;
-                                    //return 1;
+                                    send_ring(&id, TAG_EXIT. -1);
+                                    return 1;
                                     
-                                    while(1){
-                                        sleep(1);
-                                        printf("[%d] Solution\n", id);
                                             
-                                        flag = 0;
+                                        
+                                        
+                                        /*flag = 0;
                                         while(!flag && status.MPI_TAG != -1)
                                             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                                         
@@ -188,8 +192,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                         int* number_buf = (int*)malloc(number_amount * sizeof(int));
                                         MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                                         MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                        free(number_buf);
-                                    }
+                                        free(number_buf);*/
                                 }
                                 
                                 hyp.cell = cell;
@@ -294,6 +297,17 @@ Item invalid_hyp(void){
     item.cell = -1;
     item.num = -1;
     return item;
+}
+
+void send_ring(void *msg, int tag, int dest ){
+    int msg_send[2];
+    msg_send[0] =*((int*) msg);
+    msg_send[1] = dest;
+    
+    if(id == p-1)
+        MPI_Send(msg_send, 2, MPI_INT, 0, tag, MPI_COMM_WORLD);
+    else
+        MPI_Send(msg_send, 2, MPI_INT, id+1, tag, MPI_COMM_WORLD);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
