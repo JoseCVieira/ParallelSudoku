@@ -252,7 +252,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     MPI_Send(&send_msg, 1, MPI_INT, i, TAG_NO_SOL, MPI_COMM_WORLD);
             }else{
                 MPI_Irecv(&send_msg, 1, MPI_INT, 0, TAG_NO_SOL, MPI_COMM_WORLD, &request);
-                MPI_Wait(&request, &status)
+                MPI_Wait(&request, &status);
             }
             return 0;
         }
