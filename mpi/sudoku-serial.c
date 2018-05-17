@@ -265,7 +265,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             for(i = 0; i < p-1; i++){
                 printf("[%d] vai sari\n", id);
                 int abc;
-                MPI_Recv(abc, 1, MPI_INT, status.MPI_SOURCE, TAG_ASK_JOB, MPI_COMM_WORLD, &status);
+                MPI_Recv(&abc, 1, MPI_INT, status.MPI_SOURCE, TAG_ASK_JOB, MPI_COMM_WORLD, &status);
                 MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             }
             return 0;
