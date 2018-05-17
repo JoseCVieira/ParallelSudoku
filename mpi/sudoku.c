@@ -224,41 +224,41 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
     flag = 0;
 
-    for(start_num = low_value; start_num < high_value; start_num++){
-        hyp.cell = start_pos;
-        hyp.num = start_num;
-        if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
-            if(start_num != high_value-1)
-                continue;
-            else{
-                printf("[%d] procurar trabalho\n", id);
-                for(i = 0; i < p; i++){
-                    if(i == id)
-                        continue;
-                    
-                    MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-                    
-                    MPI_Test(&request, &flag, &status);
-                    if(!flag) MPI_Cancel(&request);
-                    else{
-                        flag = 0;
-                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+    start_num = low_value - 1;
+    while(1){
+        if(start_num < high_value - 1){
+            start_num++;
+            hyp.cell = start_pos;
+            hyp.num = start_num;
+        
+            if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
+                if(start_num == high_value - 1){
+                    printf("[%d] procurar trabalho\n", id);
+                    for(i = 0; i < p; i++){
+                        if(i == id)
+                            continue;
+                        
+                        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                        
+                        MPI_Test(&request, &flag, &status);
+                        if(!flag) MPI_Cancel(&request);
+                        else{
+                            flag = 0;
+                            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        }
+                        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Get_count(&status, MPI_INT, &number_amount);
+                        int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                        MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                        
                     }
                     
-                    MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                    MPI_Get_count(&status, MPI_INT, &number_amount);
-                    int* number_buf = (int*)malloc(number_amount * sizeof(int));
-                    MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                    MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                    
+                    while(1){
+                        sleep(1);
+                        printf("[%d] last\n", id);
+                    }
                 }
-                
-                while(1){
-                    sleep(1);
-                    printf("[%d] last\n", id);
-                }
-                
-                
             }
         }
     
