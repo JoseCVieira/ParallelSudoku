@@ -222,11 +222,11 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
     }
     
-    printf("[%d] will terminate\n", id);  
+    //printf("[%d] will terminate\n", id);  
     for(i = id+1; i != id; i++){
         if(i == p) i = 0;
         
-        printf("[%d] asking to = %d\n", id, i);
+        //printf("[%d] asking to = %d\n", id, i);
         MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
         flag = 0;
         while(!flag)
@@ -240,7 +240,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             memcpy(&hyp_recv, number_buf, sizeof(Item));
             memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
             
-            printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+           // printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
             delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
             
             insert_head(work, hyp_recv);
