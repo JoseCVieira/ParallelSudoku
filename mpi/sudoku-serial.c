@@ -221,6 +221,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
         
         for(i = id+1; i != id; i++){
+            if(!possible_send[i])
+                continue;
             if(i == p) i = 0;
             
             //printf("[%d] asking to = %d\n", id, i);
