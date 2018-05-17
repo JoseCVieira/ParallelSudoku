@@ -80,8 +80,6 @@ int main(int argc, char *argv[]){
 
 int solve(int* sudoku){
     int i, last_pos, flag_start = 0, solved = 0;
-    MPI_Request request;
-    MPI_Status status;
     Item hyp;
     
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -105,14 +103,10 @@ int solve(int* sudoku){
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
     
-     
     for(i = 1 + BLOCK_LOW(id, p, m_size); i < 2 + BLOCK_HIGH(id, p, m_size); i++){
         hyp.num = i;
         insert_head(work, hyp);
     }
-    
-    print_list(work);
-    exit(0);
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
     
@@ -133,7 +127,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int i, start_num, cell, val, recv, flag = 0, number_amount, data;
+    int i, start_num, cell, val, recv, number_amount, flag = 0;
     
     MPI_Request request;
     MPI_Status status;
@@ -175,12 +169,24 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 if(flag){
                     flag = 0;
                     MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                    MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 }
             }
         }
-            
-        for(cell = hyp.cell + 1; cell < v_size; cell++){
+        
+        hyp = pop_head(work);
+        for(cell--; cell >= hyp.cell; cell--){
+            if(cp_sudoku[cell] > 0) {
+                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                cp_sudoku[cell] = UNASSIGNED;
+            }
+        }
+        
+        printf("[%d] cell = %d num = %d\n", id, hyp.cell, hyp.num);
+        print_list(work);
+        exit(0);
+        
+        for(cell = hyp.cell; cell < v_size; cell++){
             if(!cp_sudoku[cell]){
                 for(val = m_size; val >= 1; val--){
                     
@@ -190,14 +196,14 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             
                             while(1){
                                 sleep(1);
-                                printf("[%d] terminou 2\n", id);
+                                printf("[%d] solution\n", id);
                                 print_sudoku(cp_sudoku);
                                 
                                 MPI_Test(&request, &flag, &status);
                                 if(flag){
                                     flag = 0;
                                     MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                    MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                                    MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                 }
                             }
                             
@@ -228,19 +234,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         if(flag){
                             flag = 0;
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                            MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                         }
                     }
-                }else
-                    break;
-            }
-        }
-        
-        hyp = pop_head(work);
-        for(cell--; cell >= hyp.cell; cell--){
-            if(cp_sudoku[cell] > 0) {
-                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                cp_sudoku[cell] = UNASSIGNED;
+                }
             }
         }
         
