@@ -127,7 +127,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int i, start_num, cell, val, recv, number_amount, flag = 0;
+    int i, start_num, cell, val, recv, number_amount, start_pos, flag = 0;
     
     MPI_Request request;
     MPI_Status status;
@@ -175,6 +175,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
         
         hyp = pop_head(work);
+        start_pos = hyp.cell;
+        
         for(cell--; cell >= hyp.cell; cell--){
             if(cp_sudoku[cell] > 0) {
                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
