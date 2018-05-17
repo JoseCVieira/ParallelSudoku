@@ -114,7 +114,7 @@ int solve(int* sudoku){
         hyp.num = start_num;
         insert_head(work, hyp);
 
-        printf("[%d] aqui\n", id);
+        //printf("[%d] vai entrar\n", id);
         solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos, last);
         if(solved == 1){
             for(i = 0; i < v_size; i++)
@@ -242,11 +242,11 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         if(!last){
             
-            printf("[%d] sair1\n", id);
+            printf("[%d] vai sair 1\n", id);
             MPI_Test(&request, &flag, &status);
             if(!flag) MPI_Cancel(&request);
             
-            printf("[%d] sair2\n", id);
+            printf("[%d] vai sair 2\n", id);
             return 0;
         }else{
             printf("[%d] procurar trabalho\n", id);
