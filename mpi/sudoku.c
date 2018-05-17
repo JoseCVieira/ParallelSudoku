@@ -184,10 +184,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
         }
         
-        printf("[%d] cell = %d num = %d\n", id, hyp.cell, hyp.num);
-        print_list(work);
-        exit(0);
-        
         for(cell = hyp.cell; cell < v_size; cell++){
             if(!cp_sudoku[cell]){
                 for(val = m_size; val >= 1; val--){
