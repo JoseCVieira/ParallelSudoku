@@ -17,7 +17,6 @@
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
 #define TAG_CP_SUD  4
-#define TAG_NO_SOL  5
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -43,7 +42,6 @@ Item invalid_hyp(void);
 
 int r_size, m_size, v_size, id, p;
 int nr_it = 0, nb_sends = 0; //a eliminar
-int token = 0;
 
 int main(int argc, char *argv[]){
     int* sudoku;
@@ -160,11 +158,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    }else if(status.MPI_TAG == TAG_NO_SOL){
-                        
-                        token = *number_buf;
-                        printf("[%d] 3 token = %d\n", id, token);
-                        token++;
                     }
                 }
             
@@ -220,10 +213,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
         }
         
-        printf("[%d] 1 token = %d\n", id, token);
-        if(token == p-1)
-            return 0;
-        
         for(i = id+1; i != id; i++){
             if(i == p) i = 0;
             
@@ -248,28 +237,15 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 free(number_buf);
                 break;
             }else if(status.MPI_TAG == TAG_EXIT){
-                //printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
-            }else if(status.MPI_TAG == TAG_NO_SOL){
-                
-                token = number_buf[0];
-                printf("[%d] 2 token = %d, number_amount = %d\n", id, token, number_amount);
-                token++;
             }
             
             free(number_buf);
         }
         
-        if(i == id){
-            for(i = 0; i < p-1; i++){
-                printf("[%d] vai sari\n", id);
-                int abc;
-                MPI_Recv(&abc, 1, MPI_INT, status.MPI_SOURCE, TAG_ASK_JOB, MPI_COMM_WORLD, &status);
-                MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-            }
+        if(i == id)
             return 0;
-        }
     }
 }
 
