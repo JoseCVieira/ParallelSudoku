@@ -258,8 +258,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         free(number_buf);
     }
         
-    if(work->head != NULL)
-        continue;
+    /*if(work->head != NULL)
+        continue;*/
 
     while(1){
         sleep(1);
