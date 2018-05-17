@@ -213,19 +213,20 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     int number_amount, data;
     
+    int start_num;
+    
     MPI_Request request;
     MPI_Status status;
     Item hyp;
-    
-    hyp = pop_head(work);
-    int start_pos = hyp.cell;
-    
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
     flag = 0;
 
-    for(i = low_value; i < high_value; i++){
+    for(start_num = low_value; start_num < high_value; start_num++){
+
+    hyp.cell = start_pos;
+    hyp.cell = start_num;
     
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
         if(i != high_value-1)
