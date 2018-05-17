@@ -104,12 +104,10 @@ int solve(int* sudoku){
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
-    if(solved){
+    if(solved)
         for(i = 0; i < v_size; i++)
             if(cp_sudoku[i] != UNCHANGEABLE)
                 sudoku[i] = cp_sudoku[i];
-            send_ring(&id, TAG_EXIT, -1);
-    }
     
     free(work);
     free(r_mask_array);
@@ -161,10 +159,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    }/*else if(status.MPI_TAG == TAG_EXIT){
-                        
-                        
-                    }*/
+                    }
                 }
             
                 update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -176,7 +171,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
 
                     if(!cp_sudoku[cell]){
                         for(val = m_size; val >= 1; val--){
-                            
                             if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                                 if(cell == last_pos){
                                     cp_sudoku[cell] = val;
@@ -254,6 +248,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             flag = 0;
             while(!flag && status.MPI_TAG != -1)
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            
+            if(status.MPI_TAG == TAG_EXIT){
+                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                send_ring(&id, TAG_EXIT, -1);
+                return 0;
+            }
             
             MPI_Get_count(&status, MPI_INT, &number_amount);
             int* number_buf = (int*)malloc(number_amount * sizeof(int));
