@@ -125,60 +125,68 @@ int solve(int* sudoku){
     return 0;
 }
 
-int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
-    int cell, val;
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
+    int cell, val, f_break = 0;
     Item hyp;
-
+    
     while(work->head != NULL){
         hyp = pop_head(work);
         int start_pos = hyp.cell;
-        if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
-            continue;
-        
-        update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
-        cp_sudoku[hyp.cell] = hyp.num;
-        
-        nr_it ++;
-        
-        for(cell = hyp.cell + 1; cell < v_size; cell++){
 
-            if(!cp_sudoku[cell]){
-                for(val = m_size; val >= 1; val--){
-                    
-                    if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
-                         if(cell == last_pos){
-                            cp_sudoku[cell] = val;
-                            return 1;
-                         }
+        if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
+            continue
+
+        while(1){
+            update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
+            cp_sudoku[hyp.cell] = hyp.num;
+            
+            nr_it ++;
+            
+            for(cell = hyp.cell + 1; cell < v_size; cell++){
+
+                if(!cp_sudoku[cell]){
+                    for(val = m_size; val >= 1; val--){
                         
-                        hyp.cell = cell;
-                        hyp.num = val;
-                        insert_head(work, hyp);
-                    }
-                }
-                    
-                if(work->head == NULL){
-                    for(cell = v_size - 1; cell >= start_pos; cell--)
-                        if(cp_sudoku[cell] > 0){
-                            rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                            cp_sudoku[cell] = UNASSIGNED;
+                        if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
+                            if(cell == last_pos){
+                                cp_sudoku[cell] = val;
+                                return 1;
+                            }
+                            
+                            hyp.cell = cell;
+                            hyp.num = val;
+                            insert_head(work, hyp);
                         }
-                    return 0;
-                }else
-                    break;
+                    }
+                        
+                    if(work->head == NULL){
+                        for(cell = v_size - 1; cell >= start_pos; cell--)
+                            if(cp_sudoku[cell] > 0){
+                                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                                cp_sudoku[cell] = UNASSIGNED;
+                            }
+                        f_break = 1;
+                        break;
+                    }else
+                        break;
+                }
             }
-        }
-        
-        hyp = pop_head(work);
-        
-        for(cell--; cell >= hyp.cell; cell--){
-            if(cp_sudoku[cell] > 0) {
-                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                cp_sudoku[cell] = UNASSIGNED;
+            
+            if(f_break){
+                f_break = 0;
+                break;
+            }
+            
+            hyp = pop_head(work);
+            
+            for(cell--; cell >= hyp.cell; cell--){
+                if(cp_sudoku[cell] > 0) {
+                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                    cp_sudoku[cell] = UNASSIGNED;
+                }
             }
         }
     }
-    return 0;
 }
 
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
