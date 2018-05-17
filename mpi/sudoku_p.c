@@ -121,7 +121,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int cell, val, *recv, number_amount, f_break = 0, flag = 1, *send_msg;
+    int cell, val, *recv, *send_msg, number_amount, flag, f_break = 0;
 
     MPI_Status status;
     Item hyp, hyp_recv;
@@ -146,8 +146,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 for(val = m_size; val >= 1; val--){
                     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val))
                         continue;
+                    
                     if(cell == last_pos){ //termination
-                        printf("[%d] SOLUTION\n");
+                        printf("[%d] SOLUTION\n", id);
                         cp_sudoku[cell] = val;
                         send_ring(&id, TAG_EXIT, -1);
                         return 1;
@@ -159,56 +160,56 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 
                     flag = 0;
                     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-                    if(flag && status.MPI_TAG != -1){
-                        MPI_Get_count(&status, MPI_INT, &number_amount);
-                        recv = (int *) malloc(number_amount*sizeof(int));
+                    if(!flag || status.MPI_TAG == -1)
+                        continue;
                         
-                        MPI_Recv(recv, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                        flag = 0;
+                    MPI_Get_count(&status, MPI_INT, &number_amount);
+                    recv = (int *) malloc(number_amount*sizeof(int));
                     
-                        //printf("[%d] received msg with tag %d from %d originated in %d with size %d\n", id,status.MPI_TAG, status.MPI_SOURCE, recv[1], number_amount);
-                        switch(status.MPI_TAG){
-                            case TAG_EXIT:
-                                send_ring(&id, TAG_EXIT, -1);
-                                return 0;
-                                break;
-                                
-                            case TAG_ASK_JOB:
-                                if(id != recv[1]){
-                                    if(work->tail != NULL)
-                                        send_ring(&id, TAG_HAVE_JOB, recv[1]);
-                                    else
-                                        send_ring(&recv[0], TAG_ASK_JOB, recv[1]);
-                                }else
-                                    return 0;
-                                break;
-                                
-                            case TAG_HAVE_JOB:
-                                if(id == recv[1])
-                                    MPI_Send(recv, 2, MPI_INT, recv[0], TAG_HYP, MPI_COMM_WORLD);
+                    MPI_Recv(recv, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                
+                    //printf("[%d] received msg with tag %d from %d originated in %d with size %d\n", id,status.MPI_TAG, status.MPI_SOURCE, recv[1], number_amount);
+                    switch(status.MPI_TAG){
+                        case TAG_EXIT:
+                            send_ring(&id, TAG_EXIT, -1);
+                            return 0;
+                            break;
+                            
+                        case TAG_ASK_JOB:
+                            if(id != recv[1]){
+                                if(work->tail != NULL)
+                                    send_ring(&id, TAG_HAVE_JOB, recv[1]);
                                 else
-                                    send_ring(&recv[0], TAG_HAVE_JOB, recv[1]);
-                                break;
-                                
-                            case TAG_HYP:
-                                if(id != recv[1]){
-                                    send_msg = (int*)malloc((v_size+2)*sizeof(int));
-                                    Item hyp_send = pop_tail(work);
-                                    memcpy(send_msg, &hyp_send, sizeof(Item));
-                                    memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
-                                    MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                }else{
-                                    memcpy(&hyp_recv, recv, sizeof(Item));
-                                    memcpy(cp_sudoku, (recv+2), v_size*sizeof(int));
-                                    delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
-                                    insert_head(work, hyp_recv);
-                                }
-                                break;
-                                
-                            default:
-                                printf("[%d] undefined behaviour from %d\n", id, recv[1]);
-                                break;
-                        }
+                                    send_ring(&recv[0], TAG_ASK_JOB, recv[1]);
+                            }else
+                                return 0;
+                            break;
+                            
+                        case TAG_HAVE_JOB:
+                            if(id == recv[1])
+                                MPI_Send(recv, 2, MPI_INT, recv[0], TAG_HYP, MPI_COMM_WORLD);
+                            else
+                                send_ring(&recv[0], TAG_HAVE_JOB, recv[1]);
+                            break;
+                            
+                        case TAG_HYP:
+                            if(id != recv[1]){
+                                send_msg = (int*)malloc((v_size+2)*sizeof(int));
+                                Item hyp_send = pop_tail(work);
+                                memcpy(send_msg, &hyp_send, sizeof(Item));
+                                memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
+                                MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            }else{
+                                memcpy(&hyp_recv, recv, sizeof(Item));
+                                memcpy(cp_sudoku, (recv+2), v_size*sizeof(int));
+                                delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
+                                insert_head(work, hyp_recv);
+                            }
+                            break;
+                            
+                        default:
+                            printf("[%d] undefined behaviour from %d\n", id, recv[1]);
+                            break;
                     }
                 }                
                     
