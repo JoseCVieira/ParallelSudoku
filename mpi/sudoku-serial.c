@@ -253,6 +253,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
         
         if(i == id){
+            printf("[%d]\n", id);
             send_ring_no_sol(&id, TAG_NO_SOL, -1, possible_send);
             return 0;
         }
