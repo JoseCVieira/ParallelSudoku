@@ -236,14 +236,15 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     if(i == id)
                         continue;
                     
+                    MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                    
                     MPI_Test(&request, &flag, &status);
                     if(!flag) MPI_Cancel(&request);
                     else{
                         flag = 0;
                         MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }
-                        
-                    MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                    
                     MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     MPI_Get_count(&status, MPI_INT, &number_amount);
                     int* number_buf = (int*)malloc(number_amount * sizeof(int));
