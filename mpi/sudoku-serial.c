@@ -145,7 +145,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     
                     if(status.MPI_TAG == TAG_EXIT){
-                        printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                        //printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                         send_ring(&id, TAG_EXIT, -1);
                         return 0;
                     }else if(status.MPI_TAG == TAG_ASK_JOB){
@@ -216,7 +216,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         for(i = id+1; i != id; i++){
             if(i == p) i = 0;
             
-            printf("[%d] asking to = %d\n", id, i);
+            //printf("[%d] asking to = %d\n", id, i);
             MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
             flag = 0;
             while(!flag && status.MPI_TAG != -1)
@@ -230,14 +230,14 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                 
-                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                //printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
                 delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
                 
                 insert_head(work, hyp_recv);
                 free(number_buf);
                 break;
             }else if(status.MPI_TAG == TAG_EXIT){
-                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                //printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }
