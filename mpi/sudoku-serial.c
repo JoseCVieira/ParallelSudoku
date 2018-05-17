@@ -146,7 +146,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     
                     if(status.MPI_TAG == TAG_EXIT){
                         printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
-                        return -1;
+                        send_ring(&id, TAG_EXIT, -1);
+                        return 0;
                     }else if(status.MPI_TAG == TAG_ASK_JOB){
                         if(work->head != NULL){
                             Item hyp_send = pop_head(work);
@@ -158,10 +159,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    }else if(status.MPI_TAG == TAG_EXIT){
-                        send_ring(&id, TAG_EXIT, -1);
-                        return 0;
-                    }
+                    }/*else if(status.MPI_TAG == TAG_EXIT){
+                        
+                        
+                    }*/
                 }
             
                 update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -179,20 +180,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                     cp_sudoku[cell] = val;
                                     send_ring(&id, TAG_EXIT, -1);
                                     return 1;
-                                    
-                                            
-                                        
-                                        
-                                        /*flag = 0;
-                                        while(!flag && status.MPI_TAG != -1)
-                                            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-                                        
-                                        flag = 0;
-                                        MPI_Get_count(&status, MPI_INT, &number_amount);
-                                        int* number_buf = (int*)malloc(number_amount * sizeof(int));
-                                        MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                        free(number_buf);*/
                                 }
                                 
                                 hyp.cell = cell;
