@@ -223,7 +223,7 @@ if(start_pos == -1)
     break;*/
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int last) {
-    int cell, val, recv, flag;
+    int i, cell, val, recv, flag;
     
     int number_amount, no_job, data;
     
