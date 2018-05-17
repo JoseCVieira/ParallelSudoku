@@ -163,7 +163,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         if(work->head == NULL){
             while(1){
                 sleep(1);
-                printf("[%d] terminou 3\n", id);
+                printf("[%d] no work\n", id);
                 
                 MPI_Test(&request, &flag, &status);
                 if(flag){
@@ -177,10 +177,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         hyp = pop_head(work);
         start_pos = hyp.cell;
         
-        for(cell--; cell >= hyp.cell; cell--){
-            if(cp_sudoku[cell] > 0) {
-                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                cp_sudoku[cell] = UNASSIGNED;
+        for(i--; i >= hyp.cell; i--){
+            if(cp_sudoku[i] > 0) {
+                rm_num_masks(cp_sudoku[i],  ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
+                cp_sudoku[i] = UNASSIGNED;
             }
         }
         
