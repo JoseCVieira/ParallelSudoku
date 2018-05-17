@@ -173,7 +173,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                                 if(cell == last_pos){
                                     cp_sudoku[cell] = val;
-                                    return 1;
+                                    //return 1;
                                     
                                     while(1){
                                         sleep(1);
