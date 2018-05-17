@@ -272,14 +272,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
     
     
-        while(1){
-            if(flag){
-                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                flag = 0;
-            }
-            
+        while(1){            
             MPI_Test(&request, &flag, &status);
             if(flag){
+                flag = 0;
+                MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+
                 if(status.MPI_TAG == TAG_EXIT){
                     printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                     return -1;
@@ -296,10 +294,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         nb_sends++;
                         
                         free(send_msg);
-                    }else{
-                        flag = 0;
+                    }else
                         MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    }
                 }
             }
 
