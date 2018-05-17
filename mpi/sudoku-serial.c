@@ -304,6 +304,8 @@ void send_ring_no_sol(void *msg, int tag, int dest, int *possible_send){
         if(possible_send[i])
             break;
     }
+    if(i == id)
+        return;
     
     if(i == p-1)
         MPI_Send(msg_send, 2, MPI_INT, 0, tag, MPI_COMM_WORLD);
