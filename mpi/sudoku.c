@@ -264,11 +264,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 
                 
             }
-        }
+        }else
+            break;
     }
     
     
-        while(1){
+    while(1){
             if(flag){
                 MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 flag = 0;
