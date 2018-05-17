@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
         
         printf("nr_it=%d\n", nr_it);
         
-         MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 
         fflush(stdout);
         MPI_Finalize();
@@ -103,9 +103,9 @@ int solve(int* sudoku){
         insert_head(work, hyp);
     }
     
-    print_list(work);
+    /*print_list(work);
     MPI_Barrier(MPI_COMM_WORLD);
-    return 0;
+    return 0;*/
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
