@@ -124,7 +124,7 @@ int solve(int* sudoku){
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
     int i, cell, val, number_amount, f_break = 0, flag = 0;
-    int possible_send[p];
+    int possible_send[p], it;
     
     for(i = 0; i < p; i++)
         possible_send[i] = 1;
@@ -164,8 +164,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    }else if(status.MPI_TAG == TAG_NO_SOL)
-                        possible_send[status.MPI_SOURCE] = 0;
+                    }else if(status.MPI_TAG == TAG_NO_SOL){
+                        for(it = number_buf[1]; it < status.MPI_SOURCE; it++){
+                            if(it == p) it = 0;
+                                possible_send[status.MPI_SOURCE] = 0;
+                        }
+                    }
                 }
             
                 update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -248,8 +252,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }else if(status.MPI_TAG == TAG_EXIT){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
-            }else if(status.MPI_TAG == TAG_NO_SOL)
-                possible_send[status.MPI_SOURCE] = 0;
+            }else if(status.MPI_TAG == TAG_NO_SOL){
+                for(it = number_buf[1]; it < status.MPI_SOURCE; it++){
+                    if(it == p) it = 0;
+                        possible_send[status.MPI_SOURCE] = 0;
+                }
+            }
             
             free(number_buf);
         }
