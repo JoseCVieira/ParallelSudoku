@@ -53,12 +53,12 @@ int main(int argc, char *argv[]){
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
 
-        if(solve(sudoku))
+        if(solve(sudoku)){
+            printf("[%d]nr_it=%d\n", id, nr_it);
             print_sudoku(sudoku);
-        else
-            printf("No solution\n");
+        }else
+            printf("[%d] No solution, nr_it\n", id, nr_it);
         
-        printf("nr_it=%d\n", nr_it);
         
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -102,10 +102,6 @@ int solve(int* sudoku){
         hyp.num = i;
         insert_head(work, hyp);
     }
-    
-    /*print_list(work);
-    MPI_Barrier(MPI_COMM_WORLD);
-    return 0;*/
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
