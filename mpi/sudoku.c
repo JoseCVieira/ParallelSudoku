@@ -209,11 +209,11 @@ if(start_pos == -1)
     break;*/
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int low_value, int high_value, int start_pos) {
-    int i, cell, val, recv, flag;
+    int i, start_num, cell, val, recv, flag;
     
     int number_amount, data;
     
-    int start_num;
+    int ;
     
     MPI_Request request;
     MPI_Status status;
@@ -224,11 +224,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     flag = 0;
 
     for(start_num = low_value; start_num < high_value; start_num++){
-
         hyp.cell = start_pos;
         hyp.num = start_num;
-        printf("[%d] cell = \n", id);
-        
         if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
             if(start_num != high_value-1)
                 continue;
@@ -299,7 +296,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         Item item;
                         item.cell = -1;
                         item.num = -1;
-                        MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                        MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                         printf("[%d] enviou 1 pedido trabalho\n", id);
                     }
                 }
