@@ -93,6 +93,7 @@ int solve(int* sudoku){
         insert_head(work, hyp);
     }
     
+    printf("aqui\n");
     print_list(work);
     exit(0);
 
