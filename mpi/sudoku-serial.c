@@ -173,7 +173,18 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                             if(cell == last_pos){
                                 cp_sudoku[cell] = val;
-                                return 1;
+                                //return 1;
+                                
+                                while(1){
+                                    sleep(1);
+                                    printf("[%d] No solution\n", id);        
+                                    MPI_Test(&request, &flag, &status);
+                                    if(flag){
+                                        flag = 0;
+                                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                                        MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                                    }
+                                }
                             }
                             
                             hyp.cell = cell;
