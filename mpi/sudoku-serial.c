@@ -92,9 +92,12 @@ int solve(int* sudoku){
         hyp.num = i;
         insert_head(work, hyp);
     }
+    
+    print_list(work);
+    exit(0);
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
-    
+
     if(solved)
         for(i = 0; i < v_size; i++)
             if(cp_sudoku[i] != UNCHANGEABLE)
