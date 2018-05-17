@@ -145,10 +145,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             cp_sudoku[hyp.cell] = hyp.num;
             
             nr_it ++;
-            if(nr_it ==100000){
+            /*if(nr_it ==100000){
                 printf("[%d] Running... POS:%d, VAL:%d\n", id, hyp.cell, hyp.num);
                 nr_it = 0;
-            }
+            }*/
             for(cell = hyp.cell + 1; cell < v_size; cell++){
 
                 if(!cp_sudoku[cell]){
