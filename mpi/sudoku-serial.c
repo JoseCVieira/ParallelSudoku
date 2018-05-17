@@ -173,9 +173,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                                 if(cell == last_pos){
                                     cp_sudoku[cell] = val;
-                                    //return 1;
+                                    return 1;
                                     
-                                    while(1){
+                                    /*while(1){
                                         sleep(1);
                                         printf("[%d] Solution\n", id);
                                             
@@ -189,7 +189,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                         MPI_Recv(number_buf, number_amount, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                                         MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                                         free(number_buf);
-                                    }
+                                    }*/
                                 }
                                 
                                 hyp.cell = cell;
@@ -204,7 +204,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                     rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                                     cp_sudoku[cell] = UNASSIGNED;
                                 }
-                            f_break = 1;
+                            f_break = 1;turn 0;
                             break;
                         }else
                             break;
