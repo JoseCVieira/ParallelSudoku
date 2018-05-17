@@ -32,6 +32,7 @@ void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
+void send_ring_no_sol(void *msg, int tag, int dest, int *possible_send);
 int exists_in( int index, uint64_t* mask, int num);
 void send_ring(void *msg, int tag, int dest);
 int* read_matrix(char *argv[]);
@@ -123,6 +124,10 @@ int solve(int* sudoku){
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
     int i, cell, val, number_amount, f_break = 0, flag = 0;
+    int possible_send[p];
+    
+    for(i = 0; i < p; i++)
+        possible_send[i] = 1;
     
     MPI_Request request;
     MPI_Status status;
@@ -159,10 +164,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                    }else if(status.MPI_TAG == TAG_NO_SOL){
-                        send_ring(&id, TAG_NO_SOL, -1);
-                        return 0;
-                    }
+                    }else if(status.MPI_TAG == TAG_NO_SOL)
+                        possible_send[status.MPI_SOURCE] = 0;
                 }
             
                 update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
@@ -243,16 +246,14 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }else if(status.MPI_TAG == TAG_EXIT){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
-            }else if(status.MPI_TAG == TAG_NO_SOL){
-                send_ring(&id, TAG_NO_SOL, -1);
-                return 0;
-            }
+            }else if(status.MPI_TAG == TAG_NO_SOL)
+                possible_send[status.MPI_SOURCE] = 0;
             
             free(number_buf);
         }
         
         if(i == id){
-            send_ring(&id, TAG_NO_SOL, -1);
+            send_ring_no_sol(&id, TAG_NO_SOL, -1, possible_send);
             return 0;
         }
     }
@@ -291,6 +292,23 @@ void send_ring(void *msg, int tag, int dest){
         MPI_Send(msg_send, 2, MPI_INT, 0, tag, MPI_COMM_WORLD);
     else
         MPI_Send(msg_send, 2, MPI_INT, id+1, tag, MPI_COMM_WORLD);
+}
+
+void send_ring_no_sol(void *msg, int tag, int dest, int *possible_send){
+    int i, msg_send[2];
+    msg_send[0] =*((int*) msg);
+    msg_send[1] = dest;
+    
+    for(i = id+1; i != id; i++){
+        if(i == p) i = 0;
+        if(possible_send[i])
+            break;
+    }
+    
+    if(i == p-1)
+        MPI_Send(msg_send, 2, MPI_INT, 0, tag, MPI_COMM_WORLD);
+    else
+        MPI_Send(msg_send, 2, MPI_INT, i+1, tag, MPI_COMM_WORLD);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
