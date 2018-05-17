@@ -111,7 +111,7 @@ int solve(int* sudoku){
     return 0;
 }
 
-int solve_from(int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int cell, val;
     Item hyp;
 
