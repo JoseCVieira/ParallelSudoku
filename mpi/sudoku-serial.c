@@ -223,46 +223,44 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
     }
     
-        printf("[%d] will terminate\n", id);  
-        for(i = 0; i < p; i++){
-            if(i == id)
-                continue;
-            
-            MPI_Test(&request, &flag, &status);
-            if(flag){
-                flag = 0;
-                MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-            }else
-                MPI_Cancel(&request);
-            
-            MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-            MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            MPI_Get_count(&status, MPI_INT, &number_amount);
-            int* number_buf = (int*)malloc(number_amount * sizeof(int));
-            MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            
-            if(status.MPI_TAG == TAG_HYP){
-                if(number_amount != 2){
-                    Item hyp_recv;
-                    memcpy(&hyp_recv, number_buf, sizeof(Item));
-                    memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
-                    
-                    printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
-                    delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
-                    
-                    insert_head(work, hyp_recv);
-                    MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                    free(number_buf);
-                    break;
-                }
-            }
-            
-            MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-            free(number_buf);
-        }
+    printf("[%d] will terminate\n", id);  
+    for(i = 0; i < p; i++){
+        if(i == id)
+            continue;
         
-        if(work->head == NULL)
-            break;
+        MPI_Test(&request, &flag, &status);
+        if(flag){
+            flag = 0;
+            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+        }else
+            MPI_Cancel(&request);
+        
+        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+        MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Get_count(&status, MPI_INT, &number_amount);
+        int* number_buf = (int*)malloc(number_amount * sizeof(int));
+        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+        
+        if(status.MPI_TAG == TAG_HYP){
+            if(number_amount != 2){
+                Item hyp_recv;
+                memcpy(&hyp_recv, number_buf, sizeof(Item));
+                memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
+                
+                printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
+                
+                insert_head(work, hyp_recv);
+                free(number_buf);
+                break;
+            }
+        }
+        free(number_buf);
+    }
+        
+    if(work->head == NULL)
+        break;
     }
     
     while(1){
