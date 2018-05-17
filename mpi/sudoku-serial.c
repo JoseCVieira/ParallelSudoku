@@ -149,8 +149,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         send_ring(&id, TAG_EXIT, -1);
                         return 0;
                     }else if(status.MPI_TAG == TAG_ASK_JOB){
-                        if(work->head != NULL){
-                            Item hyp_send = pop_head(work);
+                        if(work->tail != NULL){
+                            Item hyp_send = pop_tail(work);
                             int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                             memcpy(send_msg, &hyp_send, sizeof(Item));
                             memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
