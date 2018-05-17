@@ -230,6 +230,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             start_num++;
             hyp.cell = start_pos;
             hyp.num = start_num;
+            
+            printf("[%d] cell=%d, num=%d\n", id, hyp.cell, hyp.num);
         
             if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
                 if(start_num == high_value - 1){
