@@ -58,6 +58,8 @@ int main(int argc, char *argv[]){
     }else
         printf("invalid input arguments.\n");
     
+    
+    MPI_Barrier(MPI_COMM_WORLD);
     free(sudoku);    
 
     return 0;
@@ -95,7 +97,7 @@ int solve(int* sudoku){
     
     print_list(work);
     MPI_Barrier(MPI_COMM_WORLD);
-    exit(0);
+    return 0;
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
