@@ -211,6 +211,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
     }
     
+    printf("[%d] will terminate\n", id);  
     for(i = 0; i < p; i++){
         if(i == id)
             continue;
@@ -232,7 +233,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     while(1){
         sleep(1);
-        printf("[%d] solution\n", id);        
+        printf("[%d] No solution\n", id);        
         MPI_Test(&request, &flag, &status);
         if(flag){
             flag = 0;
