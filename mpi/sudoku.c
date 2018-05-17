@@ -271,6 +271,13 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                 
             }
+            
+            while(1){
+                sleep(1);
+                printf("[%d] last\n", id);
+            }
+            
+            
         }
     }
     
