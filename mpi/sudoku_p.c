@@ -122,7 +122,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int cell, val, flag = 1, *recv, number_amount;
+    int cell, val, flag = 1, *recv, number_amount, f_break = 0;
     MPI_Request request, req_send;
     MPI_Status status, status_send;
     int *recv_buf, *send_msg;	
@@ -243,10 +243,16 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                                 cp_sudoku[cell] = UNASSIGNED;
                             }
-                        return 0;
+                        f_break = 1;
+                        break;
                     }else
                         break;
                 }
+            }
+            
+            if(f_break){
+                f_break = 0;
+                break;
             }
             
             hyp = pop_head(work);
