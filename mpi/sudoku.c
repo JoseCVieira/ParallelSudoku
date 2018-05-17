@@ -225,7 +225,7 @@ if(start_pos == -1)
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int last) {
     int i, cell, val, recv, flag;
     
-    int number_amount, no_job, data;
+    int number_amount, data;
     
     MPI_Request request;
     MPI_Status status;
@@ -246,7 +246,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             if(!flag) MPI_Cancel(&request);
             
         }else{
-            no_job = 0;
+            printf("[%d] procurar trabalho\n", id);
             for(i = 0; i < p; i++){
                 if(i == id)
                     continue;
