@@ -25,7 +25,7 @@
 #define BLOCK_LOW(id, p, n) ((id)*(n)/(p))
 #define BLOCK_HIGH(id, p, n) (BLOCK_LOW((id)+1,p,n)-1)
 
-int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int low_value, int high_value, int start_pos);
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos);
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell);
 void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols_mask, uint64_t *boxes_mask);
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
@@ -214,7 +214,7 @@ for(i = 0; i < p; i++){
 if(start_pos == -1)
     break;*/
 
-int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos, int low_value, int high_value, int start_pos) {
+int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos) {
     int i, start_num, cell, val, recv, flag;
     
     int number_amount, data;
