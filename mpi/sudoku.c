@@ -230,7 +230,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         printf("[%d] cell = \n", id);
         
         if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
-            if(i != high_value-1)
+            if(start_num != high_value-1)
                 continue;
             else{
                 printf("[%d] procurar trabalho\n", id);
