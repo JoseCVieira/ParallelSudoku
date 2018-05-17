@@ -323,16 +323,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                     
                                     MPI_Test(&request, &flag, &status);
                                     if(flag){
-                                        MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                         flag = 0;
-                                        if(status.MPI_TAG == TAG_ASK_JOB){
-                                            printf("[%d] recbeu pedido trabalho\n", id);
-                                            Item item;
-                                            item.cell = -1;
-                                            item.num = -1;
-                                            MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                            printf("[%d] enviou pedido trabalho\n", id);
-                                        }
+                                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                                        MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                     }
                                 }
                                 
@@ -356,15 +349,17 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             }
                         }
                         
-                        if(!last){
-                            printf("[%d] out of work\n", id);
-                            MPI_Test(&request, &flag, &status);
-                            if(!flag) MPI_Cancel(&request);
-                            return 0;
-                        }else{
+                        if(start_num == high_value){
                             while(1){
                                 sleep(1);
-                                printf("[%d] last\n", id);
+                                printf("[%d] terminou\n", id);
+                                
+                                MPI_Test(&request, &flag, &status);
+                                if(flag){
+                                    flag = 0;
+                                    MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                                    MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                                }
                             }
                         }
                         
@@ -373,14 +368,17 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 }
             }
             
-            hyp = pop_head(work);
-            
-            for(cell--; cell >= hyp.cell; cell--){
-                if(cp_sudoku[cell] > 0) {
-                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                    cp_sudoku[cell] = UNASSIGNED;
+            if(work->head != NULL){
+                hyp = pop_head(work);
+                
+                for(cell--; cell >= hyp.cell; cell--){
+                    if(cp_sudoku[cell] > 0) {
+                        rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                        cp_sudoku[cell] = UNASSIGNED;
+                    }
                 }
-            }
+            }else
+                break;
         }
     }
 }
