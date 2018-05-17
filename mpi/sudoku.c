@@ -114,7 +114,6 @@ int solve(int* sudoku){
         hyp.num = start_num;
         insert_head(work, hyp);
 
-        printf("[%d] cell = %d, val = %d\n", id, start_pos, start_num);
         solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos, last);
         if(solved == 1){
             for(i = 0; i < v_size; i++)
@@ -234,20 +233,49 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     hyp = pop_head(work);
     int start_pos = hyp.cell;
+    
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+    flag = 0;
 
     if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num)){
-        if(!last)
+        if(!last){
             return 0;
-        else{
-            while(1){
-                sleep(1);
-                printf("[%d] last\n", id);
+            
+            MPI_Test(&request, &flag, &status);
+            if(!flag) MPI_Cancel(&request);
+            
+        }else{
+            no_job = 0;
+            for(i = 0; i < p; i++){
+                if(i == id)
+                    continue;
+                
+                MPI_Test(&request, &flag, &status);
+                if(!flag) MPI_Cancel(&request);
+                else{
+                    flag = 0;
+                    printf("[%d] recbeu 1 pedido trabalho\n", id);
+                    Item item;
+                    item.cell = -1;
+                    item.num = -1;
+                    MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    printf("[%d] enviou 1 pedido trabalho\n", id);
+                }
+                    
+                MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                MPI_Get_count(&status, MPI_INT, &number_amount);
+                int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+                
             }
         }
     }
-        
-    flag = -1;
-    while(1){        
+    
+    
+    while(1){
         if(flag){
             MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
             flag = 0;
@@ -271,12 +299,19 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     nb_sends++;
                     
                     free(send_msg);
-                }else
-                    MPI_Send(0, 1, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                }else{
+                    flag = 0;
+                    printf("[%d] recbeu 1 pedido trabalho\n", id);
+                    Item item;
+                    item.cell = -1;
+                    item.num = -1;
+                    MPI_Send(&item, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    printf("[%d] enviou 1 pedido trabalho\n", id);
+                }
             }
         }
 
-        update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
+        /*update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
         cp_sudoku[hyp.cell] = hyp.num;
         
         nr_it ++;
@@ -353,7 +388,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                 cp_sudoku[cell] = UNASSIGNED;
             }
-        }
+        }*/
     }
 }
 
