@@ -32,7 +32,6 @@ void update_masks(int num, int row, int col, uint64_t *rows_mask, uint64_t *cols
 void rm_num_masks(int num, int row, int col, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
 int is_safe_num( uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int row, int col, int num);
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask);
-void send_ring_no_sol(void *msg, int tag, int dest, int *possible_send);
 int exists_in( int index, uint64_t* mask, int num);
 void send_ring(void *msg, int tag, int dest);
 int* read_matrix(char *argv[]);
@@ -124,9 +123,6 @@ int solve(int* sudoku){
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
     int i, cell, val, number_amount, f_break = 0, flag = 0;
-    
-    for(i = 0; i < p; i++)
-        possible_send[i] = 1;
     
     MPI_Request request;
     MPI_Status status;
@@ -220,8 +216,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         
         for(i = id+1; i != id; i++){
             if(i == p) i = 0;
-            if(!possible_send[i])
-                continue;
             
             //printf("[%d] asking to = %d\n", id, i);
             MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
@@ -297,25 +291,6 @@ void send_ring(void *msg, int tag, int dest){
         MPI_Send(msg_send, 2, MPI_INT, 0, tag, MPI_COMM_WORLD);
     else
         MPI_Send(msg_send, 2, MPI_INT, id+1, tag, MPI_COMM_WORLD);
-}
-
-void send_ring_no_sol(void *msg, int tag, int dest, int *possible_send){
-    int i, msg_send[2];
-    msg_send[0] =*((int*) msg);
-    msg_send[1] = dest;
-    
-    for(i = id+1; i != id; i++){
-        if(i == p) i = 0;
-        if(possible_send[i])
-            break;
-    }
-    if(i == id)
-        return;
-    
-    if(i == p-1)
-        MPI_Send(msg_send, 2, MPI_INT, 0, tag, MPI_COMM_WORLD);
-    else
-        MPI_Send(msg_send, 2, MPI_INT, i+1, tag, MPI_COMM_WORLD);
 }
 
 int exists_in(int index, uint64_t* mask, int num) {
