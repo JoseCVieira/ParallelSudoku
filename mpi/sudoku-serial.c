@@ -67,8 +67,6 @@ int solve(int* sudoku){
     int i, last_pos, flag_start = 0, solved = 0;
     Item hyp;
     
-    printf("aqui\n");
-    
     uint64_t *r_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *c_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
     uint64_t *b_mask_array = (uint64_t*) malloc(m_size * sizeof(uint64_t));
@@ -95,8 +93,8 @@ int solve(int* sudoku){
         insert_head(work, hyp);
     }
     
-    printf("aqui\n");
     print_list(work);
+    MPI_Barrier(MPI_COMM_WORLD);
     exit(0);
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
