@@ -238,7 +238,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 insert_head(work, hyp_recv);
                 free(number_buf);
                 break;
-            }else if(status.MPI_TAG == TAG_HYP && number_amount != 2){
+            }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
                 no_sol_count++;
             }else if(status.MPI_TAG == TAG_EXIT || (no_sol_count == p-1 && !id)){
                 send_ring(&id, TAG_EXIT, -1);
