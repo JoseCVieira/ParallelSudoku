@@ -120,29 +120,13 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int cell, val, f_break = 0, flag = 0;
-    int i, recv, number_amount;
+    int i, cell, val, number_amount, f_break = 0, flag = 0;
     
     MPI_Request request;
     MPI_Status status;
     Item hyp, no_hyp = invalid_hyp();
     
     while(1){
-        while(work->head == NULL){
-            printf("aqui\n");
-            sleep(1);
-            printf("[%d] No solution\n", id);
-            flag = 0;
-            while(!flag)
-                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-            
-            MPI_Get_count(&status, MPI_INT, &number_amount);
-            int* number_buf = (int*)malloc(number_amount * sizeof(int));
-            MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-            free(number_buf);
-        }
-        
         while(work->head != NULL){
             hyp = pop_head(work);
             int start_pos = hyp.cell;
@@ -266,6 +250,20 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 free(number_buf);
                 break;
             }
+            free(number_buf);
+        }
+        
+        while(work->head == NULL){
+            sleep(1);
+            printf("[%d] No solution\n", id);
+            flag = 0;
+            while(!flag)
+                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            
+            MPI_Get_count(&status, MPI_INT, &number_amount);
+            int* number_buf = (int*)malloc(number_amount * sizeof(int));
+            MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             free(number_buf);
         }
     }
