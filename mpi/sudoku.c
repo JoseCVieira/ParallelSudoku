@@ -38,6 +38,8 @@ int int_to_mask(int num);
 int new_mask( int size);
 int solve(int *sudoku);
 
+void terminate(int *request, int *status);
+
 int r_size, m_size, v_size, id, p;
 
 int nr_it = 0, nb_sends = 0; //a eliminar
@@ -347,8 +349,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             }
                         }
                         
+                        
                         //if(start_num == high_value){
-                            while(1){
+                        terminate(&request, &status);
+                            /*while(1){
                                 sleep(1);
                                 printf("[%d] terminou 3\n", id);
                                 
@@ -358,7 +362,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                     MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                                     MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
                                 }
-                            }
+                            }*/
                         //}
                         
                     }else
@@ -376,6 +380,23 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
         }
     }
+}
+
+void terminate(int *request, int *status){
+    int flag = 0;
+    
+    while(1){
+        sleep(1);
+        printf("[%d] terminou\n", id);
+        
+        MPI_Test(&request, &flag, &status);
+        if(flag){
+            flag = 0;
+            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+            MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
+        }
+    }
+    
 }
 
 void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, int cell){
