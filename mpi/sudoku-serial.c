@@ -258,7 +258,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         free(number_buf);
     }
     
-    while(work->head == NULL){
+    while(/*work->head == NULL*/1){
         sleep(1);
         printf("[%d] No solution\n", id);        
         MPI_Test(&request, &flag, &status);
