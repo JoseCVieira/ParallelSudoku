@@ -150,15 +150,14 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             
                             hyp.cell = cell;
                             hyp.num = val;
-                            insert_head(work, hyp);			
+                            insert_head(work, hyp);
                         
                             flag = 0;
                             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                             if(flag && status.MPI_TAG != -1){
-                                
                                 MPI_Get_count(&status, MPI_INT, &number_amount);
                                 recv = (int *) malloc(number_amount*sizeof(int));
-                                //printf("here%d\n",number_amount);
+                                
                                 MPI_Recv(recv, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                                 flag = 0;
                             
@@ -168,68 +167,56 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                         send_ring(&id, TAG_EXIT, -1);
                                         return 0;
                                         break;
-                                
+                                        
                                     case TAG_ASK_JOB:
-                                        //printf("[%d] proc %d asked for a job\n", id, recv[1]);
                                         if(id != recv[1]){
-                                            if(work->tail != NULL){
-                                                //printf("[%d] I have work to %d\n", id, recv[1]);
+                                            if(work->tail != NULL)
                                                 send_ring(&id, TAG_HAVE_JOB, recv[1]);
-                                            }else{
-                                                //printf("[%d] I dont have work to %d, sending forward",id, recv[1]);
+                                            else
                                                 send_ring(&recv[0], TAG_ASK_JOB, recv[1]);
-                                            }
                                         }else
                                             return 0;
                                         break;
+                                        
                                     case TAG_HAVE_JOB:
-                                        if(id == recv[1]){
-                                            //printf("[%d] received control\n", id);
+                                        if(id == recv[1])
                                             MPI_Send(recv, 2, MPI_INT, recv[0], TAG_HYP, MPI_COMM_WORLD);
-                                        }else{
-                                            //printf("[%d] forwarding control from %d\n", id, recv[1]);
+                                        else
                                             send_ring(&recv[0], TAG_HAVE_JOB, recv[1]);
-                                        }
                                         break;
                                         
                                     case TAG_HYP:
-                                        if(id != recv[1]){
-                                            //printf("[%d] received initiation to %d\n", id, recv[1]);
+                                        if(id != recv[1])
                                             send_msg = (int*)malloc((v_size+2)*sizeof(int));
                                             Item hyp_send = pop_tail(work);
                                             memcpy(send_msg, &hyp_send, sizeof(Item));
                                             memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                                             MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                            //printf("[%d] transfer to %d done\n", id, recv[1]);
-                                        }else{
+                                        else
                                             memcpy(&hyp_recv, recv, sizeof(Item));
                                             memcpy(cp_sudoku, (recv+2), v_size*sizeof(int));
                                             delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
                                             insert_head(work, hyp_recv);
-                                            //printf("[%d] - DONE receiving\n" ,id);
-                                        }
                                         break;
                                         
                                     default:
                                         printf("[%d] undefined behaviour from %d\n", id, recv[1]);
                                         break;
                                 }
-
-                                
                             }
                         }
                     }                
                         
                     if(work->head == NULL){
-                        for(cell = v_size - 1; cell >= start_pos; cell--){
+                        for(cell = v_size - 1; cell >= start_pos; cell--)
                             if(cp_sudoku[cell] > 0){
                                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                                 cp_sudoku[cell] = UNASSIGNED;
                             }
-                        }
                         f_break = 1;
-                    }
-                    break;
+                        break;
+                    }else
+                        break;
                 }
             }
             
