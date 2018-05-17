@@ -240,6 +240,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 break;
             }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
                 no_sol_count++;
+                printf("no_sol_count = %d\n", no_sol_count);
             }else if(status.MPI_TAG == TAG_EXIT){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
