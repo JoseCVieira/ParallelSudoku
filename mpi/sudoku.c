@@ -260,12 +260,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     while(1){
                         sleep(1);
                         printf("[%d] terminou\n", id);
-                        MPI_Test(&request, &flag, &status);
+                        /*MPI_Test(&request, &flag, &status);
                         if(flag) 
                             flag = 0;
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                             MPI_Irecv(&data, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
-                        }
+                        }*/
                     }
             }else
                 break;
