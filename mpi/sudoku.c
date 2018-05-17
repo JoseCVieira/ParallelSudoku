@@ -317,6 +317,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                 while(1){
                                     sleep(1);
                                     printf("[%d] terminou 2\n", id);
+                                    print_sudoku(cp_sudoku);
                                     
                                     MPI_Test(&request, &flag, &status);
                                     if(flag){
