@@ -122,7 +122,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int i, cell, val, number_amount, f_break = 0, flag = 0;
+    int i, cell, val, number_amount, f_break = 0, flag = 0, no_sol_count = 0;
     
     MPI_Request request;
     MPI_Status status;
@@ -214,6 +214,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
         }
         
+        no_sol_count = 0;
         for(i = id+1; i != id; i++){
             if(i == p) i = 0;
             
@@ -237,7 +238,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 insert_head(work, hyp_recv);
                 free(number_buf);
                 break;
-            }else if(status.MPI_TAG == TAG_EXIT){
+            }else if(status.MPI_TAG == TAG_HYP && number_amount != 2){
+                no_sol_count++;
+            }else if(status.MPI_TAG == TAG_EXIT || (no_sol_count == p-1 && !id)){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }
@@ -245,7 +248,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             free(number_buf);
         }
         
-        if(i == id){
+        /*if(i == id){
             int send_msg;
             if(!id){
                 for(i = 1; i <p; i++)
@@ -255,7 +258,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 MPI_Wait(&request, &status);
             }
             return 0;
-        }
+        }*/
     }
 }
 
