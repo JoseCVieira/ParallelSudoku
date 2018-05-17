@@ -186,17 +186,18 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                         break;
                                         
                                     case TAG_HYP:
-                                        if(id != recv[1])
+                                        if(id != recv[1]){
                                             send_msg = (int*)malloc((v_size+2)*sizeof(int));
                                             Item hyp_send = pop_tail(work);
                                             memcpy(send_msg, &hyp_send, sizeof(Item));
                                             memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
                                             MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                        else
+                                        }else{
                                             memcpy(&hyp_recv, recv, sizeof(Item));
                                             memcpy(cp_sudoku, (recv+2), v_size*sizeof(int));
                                             delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
                                             insert_head(work, hyp_recv);
+                                        }
                                         break;
                                         
                                     default:
