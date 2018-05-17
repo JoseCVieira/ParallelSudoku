@@ -104,10 +104,12 @@ int solve(int* sudoku){
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
-    if(solved)
+    if(solved){
         for(i = 0; i < v_size; i++)
             if(cp_sudoku[i] != UNCHANGEABLE)
                 sudoku[i] = cp_sudoku[i];
+            send_ring(&id, TAG_EXIT, -1);
+    }
     
     free(work);
     free(r_mask_array);
