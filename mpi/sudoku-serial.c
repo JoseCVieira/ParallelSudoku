@@ -48,6 +48,10 @@ int main(int argc, char *argv[]){
 
     if(argc == 2){
         sudoku = read_matrix(argv);
+        
+        MPI_Init (&argc, &argv);
+        MPI_Comm_rank (MPI_COMM_WORLD, &id);
+        MPI_Comm_size (MPI_COMM_WORLD, &p);
 
         if(solve(sudoku))
             print_sudoku(sudoku);
@@ -55,11 +59,15 @@ int main(int argc, char *argv[]){
             printf("No solution\n");
         
         printf("nr_it=%d\n", nr_it);
+        
+         MPI_Barrier(MPI_COMM_WORLD);
+
+        fflush(stdout);
+        MPI_Finalize();
+        
     }else
         printf("invalid input arguments.\n");
-    
-    
-    MPI_Barrier(MPI_COMM_WORLD);
+
     free(sudoku);    
 
     return 0;
