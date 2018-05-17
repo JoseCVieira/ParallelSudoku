@@ -181,12 +181,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                 hyp.cell = cell;
                                 hyp.num = val;
                                 insert_head(work, hyp);
-                            }else{
-                                if(cell == last_pos){
-                                    cp_sudoku[cell] = val;
-                                    send_ring(&id, TAG_EXIT, -1);
-                                    return 0;
-                                }
                             }
                                 
                         }
@@ -253,8 +247,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
         
         if(i == id){
-            int* number_buf = (int*)malloc(2*sizeof(int));
-            MPI_Recv(number_buf, 2, MPI_INT, MPI_ANY_SOURCE, TAG_EXIT, MPI_COMM_WORLD, &status);
+            int abc = 0;
+            MPI_Bcast(&abc, 1, MPI_INT, id, MPI_COMM_WORLD);
             return 0;
         }
     }
