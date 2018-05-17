@@ -159,7 +159,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }else if(status.MPI_TAG == TAG_EXIT){
-                        send_ring(&id, TAG_EXIT. -1);
+                        send_ring(&id, TAG_EXIT, -1);
                         return 0;
                     }
                 }
@@ -177,7 +177,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                                 if(cell == last_pos){
                                     cp_sudoku[cell] = val;
-                                    send_ring(&id, TAG_EXIT. -1);
+                                    send_ring(&id, TAG_EXIT, -1);
                                     return 1;
                                     
                                             
@@ -299,7 +299,7 @@ Item invalid_hyp(void){
     return item;
 }
 
-void send_ring(void *msg, int tag, int dest ){
+void send_ring(void *msg, int tag, int dest){
     int msg_send[2];
     msg_send[0] =*((int*) msg);
     msg_send[1] = dest;
