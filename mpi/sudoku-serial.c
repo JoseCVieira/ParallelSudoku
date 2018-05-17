@@ -251,7 +251,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }else if(status.MPI_TAG == TAG_NO_SOL){
-                printf("[%d] 2 token = %d\n", id, token);
+                printf("[%d] 2 token = %d, number_amount = %d\n", id, token, number_amount);
                 token = *number_buf;
                 token++;
             }
