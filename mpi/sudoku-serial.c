@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
             printf("[%d]nr_it=%d\n", id, nr_it);
             print_sudoku(sudoku);
         }else
-            printf("[%d] No solution, nr_it\n", id, nr_it);
+            printf("[%d] No solution, nr_it=%d\n", id, nr_it);
         
         
         MPI_Barrier(MPI_COMM_WORLD);
