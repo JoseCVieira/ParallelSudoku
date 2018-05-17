@@ -168,7 +168,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     
                     MPI_Recv(recv, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                 
-                    //printf("[%d] received msg with tag %d from %d originated in %d with size %d\n", id,status.MPI_TAG, status.MPI_SOURCE, recv[1], number_amount);
+                    printf("[%d] received msg with tag %d from %d originated in %d with size %d\n", id,status.MPI_TAG, status.MPI_SOURCE, recv[1], number_amount);
                     switch(status.MPI_TAG){
                         case TAG_EXIT:
                             send_ring(&id, TAG_EXIT, -1);
