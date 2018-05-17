@@ -17,6 +17,7 @@
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
 #define TAG_CP_SUD  4
+#define TAG_NO_SOL  5
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -121,7 +122,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int i, cell, val, number_amount, f_break = 0, flag = 0;
+    int i, cell, val, number_amount, f_break = 0, flag = 0, token = 0;
     
     MPI_Request request;
     MPI_Status status;
@@ -139,7 +140,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                 if(flag && status.MPI_TAG != -1){
                     flag = 0;
-                    MPI_Get_count(&status, MPI_INT, &number_amount);
                     MPI_Get_count(&status, MPI_INT, &number_amount);
                     int* number_buf = (int*)malloc(number_amount * sizeof(int));
                     MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -159,6 +159,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    }else if(status.MPI_TAG == TAG_NO_SOL){
+                        token = number_buf[0];
+                        token++;
                     }
                 }
             
@@ -213,7 +216,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 }
             }
         }
-         
+        
+        if(token == p-1)
+            return 0;
+        
         for(i = id+1; i != id; i++){
             if(i == p) i = 0;
             
@@ -241,14 +247,16 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 //printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
+            }else if(status.MPI_TAG == TAG_NO_SOL){
+                token = number_buf[0];
+                token++;
             }
             
             free(number_buf);
         }
         
         if(i == id){
-            int abc = 0;
-            MPI_Bcast(&abc, 1, MPI_INT, id, MPI_COMM_WORLD);
+            send_ring(&token, TAG_NO_SOL, -1);
             return 0;
         }
     }
