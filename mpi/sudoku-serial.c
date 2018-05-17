@@ -162,7 +162,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }else if(status.MPI_TAG == TAG_NO_SOL){
                         printf("3 token = %d\n", token);
-                        token = number_buf[0];
+                        token = *number_buf;
                         token++;
                     }
                 }
@@ -252,7 +252,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 return 0;
             }else if(status.MPI_TAG == TAG_NO_SOL){
                 printf("2 token = %d\n", token);
-                token = number_buf[0];
+                token = *number_buf;
                 token++;
             }
             
