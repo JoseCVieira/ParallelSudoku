@@ -141,7 +141,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             continue;
 
         while(1){
-            MPI_Test(&request, &flag, &status);
+            //MPI_Test(&request, &flag, &status);
             
             //MPI_Irecv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &request);
             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
