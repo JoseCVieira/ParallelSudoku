@@ -128,138 +128,138 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     Item hyp, no_hyp = invalid_hyp();
     
     while(1){
-    while(work->head != NULL){
-        hyp = pop_head(work);
-        int start_pos = hyp.cell;
+        while(work->head != NULL){
+            hyp = pop_head(work);
+            int start_pos = hyp.cell;
 
-        if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
-            continue;
+            if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
+                continue;
 
-        while(1){
-            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-            if(flag){
-                flag = 0;
-                MPI_Get_count(&status, MPI_INT, &number_amount);
-                MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                
-                if(status.MPI_TAG == TAG_EXIT){
-                    printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
-                    return -1;
-                }else if(status.MPI_TAG == TAG_ASK_JOB){
-                    if(work->head != NULL){
-                        //Item hyp_send = pop_head(work);
-                        int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
-                        memcpy(send_msg, &hyp, sizeof(Item));
-                        memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
-                        MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                        nb_sends++;
-                        free(send_msg);
-                    }else
-                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                }
-            }
-        
-            update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
-            cp_sudoku[hyp.cell] = hyp.num;
-            
-            nr_it ++;
-            
-            for(cell = hyp.cell + 1; cell < v_size; cell++){
-
-                if(!cp_sudoku[cell]){
-                    for(val = m_size; val >= 1; val--){
-                        
-                        if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
-                            if(cell == last_pos){
-                                cp_sudoku[cell] = val;
-                                //return 1;
-                                
-                                while(1){
-                                    sleep(1);
-                                    printf("[%d] Solution\n", id);
-                                        
-                                    flag = 0;
-                                    while(!flag)
-                                        MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-                                    MPI_Get_count(&status, MPI_INT, &number_amount);
-                                    MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-                                    MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-                                }
-                            }
-                            
-                            hyp.cell = cell;
-                            hyp.num = val;
-                            insert_head(work, hyp);
-                        }
+            while(1){
+                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+                if(flag){
+                    flag = 0;
+                    MPI_Get_count(&status, MPI_INT, &number_amount);
+                    MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                    
+                    if(status.MPI_TAG == TAG_EXIT){
+                        printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                        return -1;
+                    }else if(status.MPI_TAG == TAG_ASK_JOB){
+                        if(work->head != NULL){
+                            //Item hyp_send = pop_head(work);
+                            int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
+                            memcpy(send_msg, &hyp, sizeof(Item));
+                            memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
+                            MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                            nb_sends++;
+                            free(send_msg);
+                        }else
+                            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }
-                        
-                    if(work->head == NULL){
-                        for(cell = v_size - 1; cell >= start_pos; cell--)
-                            if(cp_sudoku[cell] > 0){
-                                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                                cp_sudoku[cell] = UNASSIGNED;
+                }
+            
+                update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
+                cp_sudoku[hyp.cell] = hyp.num;
+                
+                nr_it ++;
+                
+                for(cell = hyp.cell + 1; cell < v_size; cell++){
+
+                    if(!cp_sudoku[cell]){
+                        for(val = m_size; val >= 1; val--){
+                            
+                            if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
+                                if(cell == last_pos){
+                                    cp_sudoku[cell] = val;
+                                    //return 1;
+                                    
+                                    while(1){
+                                        sleep(1);
+                                        printf("[%d] Solution\n", id);
+                                            
+                                        flag = 0;
+                                        while(!flag)
+                                            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+                                        MPI_Get_count(&status, MPI_INT, &number_amount);
+                                        MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                                        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                                    }
+                                }
+                                
+                                hyp.cell = cell;
+                                hyp.num = val;
+                                insert_head(work, hyp);
                             }
-                        f_break = 1;
-                        break;
-                    }else
-                        break;
+                        }
+                            
+                        if(work->head == NULL){
+                            for(cell = v_size - 1; cell >= start_pos; cell--)
+                                if(cp_sudoku[cell] > 0){
+                                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                                    cp_sudoku[cell] = UNASSIGNED;
+                                }
+                            f_break = 1;
+                            break;
+                        }else
+                            break;
+                    }
+                }
+                
+                if(f_break){
+                    f_break = 0;
+                    break;
+                }
+                
+                hyp = pop_head(work);
+                
+                for(cell--; cell >= hyp.cell; cell--){
+                    if(cp_sudoku[cell] > 0) {
+                        rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                        cp_sudoku[cell] = UNASSIGNED;
+                    }
                 }
             }
+        }
+        
+        //printf("[%d] will terminate\n", id);  
+        for(i = id+1; i != id; i++){
+            if(i == p) i = 0;
             
-            if(f_break){
-                f_break = 0;
+            //printf("[%d] asking to = %d\n", id, i);
+            MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+            flag = 0;
+            while(!flag)
+                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            MPI_Get_count(&status, MPI_INT, &number_amount);
+            int* number_buf = (int*)malloc(number_amount * sizeof(int));
+            MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            
+            if(status.MPI_TAG == TAG_HYP && number_amount != 2){
+                Item hyp_recv;
+                memcpy(&hyp_recv, number_buf, sizeof(Item));
+                memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
+                
+            // printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
+                delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
+                
+                insert_head(work, hyp_recv);
+                free(number_buf);
                 break;
             }
-            
-            hyp = pop_head(work);
-            
-            for(cell--; cell >= hyp.cell; cell--){
-                if(cp_sudoku[cell] > 0) {
-                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                    cp_sudoku[cell] = UNASSIGNED;
-                }
-            }
-        }
-    }
-    
-    //printf("[%d] will terminate\n", id);  
-    for(i = id+1; i != id; i++){
-        if(i == p) i = 0;
-        
-        //printf("[%d] asking to = %d\n", id, i);
-        MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-        flag = 0;
-        while(!flag)
-            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-        MPI_Get_count(&status, MPI_INT, &number_amount);
-        int* number_buf = (int*)malloc(number_amount * sizeof(int));
-        MPI_Recv(number_buf, number_amount, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        
-        if(status.MPI_TAG == TAG_HYP && number_amount != 2){
-            Item hyp_recv;
-            memcpy(&hyp_recv, number_buf, sizeof(Item));
-            memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
-            
-           // printf("[%d] received work size=%d, cell = %d, val = %d\n", id, number_amount, hyp_recv.cell, hyp_recv.num);
-            delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
-            
-            insert_head(work, hyp_recv);
             free(number_buf);
-            break;
         }
-        free(number_buf);
-    }
-    
-    while(work->head == NULL){
-        sleep(1);
-        printf("[%d] No solution\n", id);
-        flag = 0;
-        while(!flag)
-            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
-        MPI_Get_count(&status, MPI_INT, &number_amount);
-        MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
-    }
+        
+        while(/*work->head == NULL*/1){
+            sleep(1);
+            printf("[%d] No solution\n", id);
+            flag = 0;
+            while(!flag)
+                MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+            MPI_Get_count(&status, MPI_INT, &number_amount);
+            MPI_Recv(&recv, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+        }
     }
 }
 
