@@ -245,8 +245,11 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             free(number_buf);
         }
         
-        if(i == id)
+        if(i == id){
+            int* number_buf = (int*)malloc(2*sizeof(int));
+             MPI_Recv(number_buf, 2, MPI_INT, MPI_ANY_SOURCE, TAG_EXIT, MPI_COMM_WORLD, &status);
             return 0;
+        }
     }
 }
 
