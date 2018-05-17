@@ -262,6 +262,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
         
         if(i == id){
+            printf("[%d] vai sari\n", id);
             MPI_Barrier(MPI_COMM_WORLD);
             //if(id == token){
                 /*printf("[%d] vai sari\n", id);
