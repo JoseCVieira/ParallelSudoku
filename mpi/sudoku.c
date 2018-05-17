@@ -114,6 +114,7 @@ int solve(int* sudoku){
         hyp.num = start_num;
         insert_head(work, hyp);
 
+        printf("[%d] aqui\n", id);
         solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos, last);
         if(solved == 1){
             for(i = 0; i < v_size; i++)
