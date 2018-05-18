@@ -17,6 +17,7 @@
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
 #define TAG_CP_SUD  4
+#define TAG_NO_SOL  5
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -114,12 +115,16 @@ int solve(int* sudoku){
     free(c_mask_array);
     free(b_mask_array);
     free(cp_sudoku);
-
-    return solved;
+    
+    if(solved == 1)
+        return 1;
+    return 0;
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int i, cell, val, number_amount, f_break = 0, flag = 0, no_sol_count;
+
+    int i, cell, val, number_amount, f_break = 0, flag = 0, no_sol_count = 0;
+
     
     MPI_Request request;
     MPI_Status status;
@@ -137,7 +142,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                 if(flag && status.MPI_TAG != -1){
                     flag = 0;
-                    MPI_Get_count(&status, MPI_INT, &number_amount);
                     MPI_Get_count(&status, MPI_INT, &number_amount);
                     int* number_buf = (int*)malloc(number_amount * sizeof(int));
                     MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -211,10 +215,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 }
             }
         }
-
+        
         no_sol_count = 0;
-
-        for(i = id+1;; i++){
+        for(i = id+1; i != id; i++){
 
             if(i == p) i = 0;
             if(i == id) continue;
@@ -242,11 +245,15 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 insert_head(work, hyp_recv);
                 free(number_buf);
                 break;
-			}else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
-				no_sol_count++;
-
+            }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
+                no_sol_count++;
+                printf("no_sol_count = %d\n", no_sol_count);
             }else if(status.MPI_TAG == TAG_EXIT){
-                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                send_ring(&id, TAG_EXIT, -1);
+                return 0;
+            }
+            
+            if(no_sol_count == p-1 && !id){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }
@@ -261,6 +268,19 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
 
             free(number_buf);
         }
+
+        
+        /*if(i == id){
+            int send_msg;
+            if(!id){
+                for(i = 1; i <p; i++)
+                    MPI_Send(&send_msg, 1, MPI_INT, i, TAG_NO_SOL, MPI_COMM_WORLD);
+            }else{
+                MPI_Irecv(&send_msg, 1, MPI_INT, 0, TAG_NO_SOL, MPI_COMM_WORLD, &request);
+                MPI_Wait(&request, &status);
+            }
+            return 0;
+        }*/
     }
 }
 
