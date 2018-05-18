@@ -17,7 +17,6 @@
 #define TAG_HYP     1
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
-#define TAG_CP_SUD  4
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -169,7 +168,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 
                 nr_it ++;
                 
-                for(cell = hyp.cell + 1; cell < v_size; cell++){
+                for(cell = hyp.cell; cell < v_size; cell++){
                     if(cp_sudoku[cell])
                         continue;
                     for(val = m_size; val >= 1; val--){
@@ -253,7 +252,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
             
             if(no_sol_count == p-1 && id == 0){
-                printf("vai sair no_sol_count=%d\n", no_sol_count);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }
