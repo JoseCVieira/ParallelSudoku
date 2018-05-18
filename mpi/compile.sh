@@ -1,6 +1,7 @@
 #!/bin/bash
 
 mpicc -g -fopenmp -o sudoku-mpi sudoku-mpi.c list.c
+gcc -g  -o sudoku-serial sudoku-serial.c list.c
 
 if [ "$1" -eq 0 ]; then
     time ./sudoku-serial ../sudokus/$2
