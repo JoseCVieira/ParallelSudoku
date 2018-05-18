@@ -107,8 +107,6 @@ int solve(int* sudoku){
         hyp.num = i;
         insert_head(work, hyp);
     }
-    
-    print_list(work);
 
     // try to solve sudoku
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
