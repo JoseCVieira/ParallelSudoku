@@ -63,7 +63,11 @@ int main(int argc, char *argv[]){
         else if(total && result)
             print_sudoku(sudoku);
         
-        printf("nr_it=%d\n", nr_it);
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Allreduce(&nr_it, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        
+        if(!id)
+            printf("nr_it=%d\n", total);
 
         fflush(stdout);
         MPI_Finalize();
