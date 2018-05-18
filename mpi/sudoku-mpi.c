@@ -324,7 +324,6 @@ void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t*
         boxes_mask[i] = UNASSIGNED;
     }
 
-    #pragma omp parallel for
     for(i = 0; i < v_size; i++)
         if(sudoku[i])
             update_masks(sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
