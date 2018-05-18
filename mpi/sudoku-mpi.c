@@ -260,6 +260,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     possible_send[status.MPI_SOURCE] = 0;
                     send_ring(&id, TAG_NO_JOB, -1);
                 }
+                
+                free(number_buf);
             }
             
             if(no_sol_count == p-1 && id == 0){
@@ -267,7 +269,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 return 0;
             }
 
-            free(number_buf);
         }
     }
 }
