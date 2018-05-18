@@ -224,7 +224,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     }   
                 }
             }
-            break;
+            //break;
         }
 
         no_sol_count = 0;
