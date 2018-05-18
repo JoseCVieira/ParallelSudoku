@@ -41,6 +41,7 @@ int solve(int *sudoku);
 Item invalid_hyp(void);
 
 int r_size, m_size, v_size, id, p;
+int nr_it = 0;
 
 int main(int argc, char *argv[]){
     int* sudoku, result, total;
@@ -61,6 +62,12 @@ int main(int argc, char *argv[]){
             printf("No solution\n");
         else if(total && result)
             print_sudoku(sudoku);
+        
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Allreduce(&nr_it, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        
+        if(!id)
+            printf("nr_it=%d\n", total);
 
         fflush(stdout);
         MPI_Finalize();
@@ -145,6 +152,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 continue;
 
             while(1){
+                nr_it++;
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                 if(flag && status.MPI_TAG != -1){
                     flag = 0;
@@ -193,14 +201,14 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     break;
                 }
                 
-                if(work->len == len){
+                /*if(work->len == len){
                     for(cell = v_size - 1; cell >= start_pos; cell--)
                         if(cp_sudoku[cell] > 0){
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
                     break;
-                }
+                }*/
                 
                 hyp = pop_head(work);
                 
