@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <mpi.h>
-#include <omp.h>
 
 #include "list.h"
 
@@ -62,7 +61,7 @@ int main(int argc, char *argv[]){
         printf("[%d]nr_it=%d, nb_sends=%d\n", id, nr_it, nb_sends); //a eliminar
         
         if(!total && !id)
-            printf("No solution\n");
+            printf("[No solution\n");
         else if(total && result)
             print_sudoku(sudoku);
 
@@ -216,9 +215,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         }
 
         no_sol_count = 0;
-        
-        if(p == 1)
-            return 0;
 
         for(i = id+1;; i++){
             if(i == p) i = 0;
