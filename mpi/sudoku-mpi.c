@@ -161,8 +161,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     
                     if(status.MPI_TAG == TAG_EXIT){
-                        send_ring(&id, TAG_EXIT, -1);
                         printf("size=%d\n", work->len);
+                        send_ring(&id, TAG_EXIT, -1);
                         return 0;
                     }else if(status.MPI_TAG == TAG_ASK_JOB){
                         if(work->tail != NULL){
@@ -251,14 +251,15 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
                 no_sol_count++;
             }else if(status.MPI_TAG == TAG_EXIT){
-                send_ring(&id, TAG_EXIT, -1);
                 printf("size=%d\n", work->len);
+                send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             }
             
             if(no_sol_count == p-1 && id == 0){
+                printf("size=%d\n", work->len);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }
