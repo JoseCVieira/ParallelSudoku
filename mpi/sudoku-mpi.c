@@ -194,8 +194,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                                 cp_sudoku[cell] = UNASSIGNED;
                             }
                         f_break = 1;
-                    }
-                    break;
+                        break;
+                    }else
+                        return 0;
+                    
                 }
                 
                 if(f_break){
