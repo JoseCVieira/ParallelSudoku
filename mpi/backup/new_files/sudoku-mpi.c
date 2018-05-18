@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <mpi.h>
 
-#include "list.h"
+#include "../../list.h"
 
 #define UNASSIGNED 0
 #define UNCHANGEABLE -1
