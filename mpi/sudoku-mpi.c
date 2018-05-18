@@ -41,7 +41,6 @@ int solve(int *sudoku);
 Item invalid_hyp(void);
 
 int r_size, m_size, v_size, id, p;
-int nr_it = 0;
 
 int main(int argc, char *argv[]){
     int* sudoku, result, total;
@@ -62,12 +61,6 @@ int main(int argc, char *argv[]){
             printf("No solution\n");
         else if(total && result)
             print_sudoku(sudoku);
-        
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Allreduce(&nr_it, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        
-        if(!id)
-            printf("nr_it=%d\n", total);
 
         fflush(stdout);
         MPI_Finalize();
@@ -152,7 +145,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 continue;
 
             while(1){
-                nr_it++;
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
                 if(flag && status.MPI_TAG != -1){
                     flag = 0;
@@ -165,7 +157,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                         return 0;
                     }else if(status.MPI_TAG == TAG_ASK_JOB){
                         if(work->tail != NULL){
-                            if(--len < 0) len = 0;
                             Item hyp_send = pop_tail(work);
                             int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                             memcpy(send_msg, &hyp_send, sizeof(Item));
