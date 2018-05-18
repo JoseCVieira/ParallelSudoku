@@ -18,8 +18,6 @@
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
 
-
-
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
 #define BOX(row, col) r_size*(row/r_size)+col/r_size
