@@ -143,7 +143,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 if(flag && status.MPI_TAG != -1){
                     flag = 0;
                     MPI_Get_count(&status, MPI_INT, &number_amount);
-                    MPI_Get_count(&status, MPI_INT, &number_amount);
                     int* number_buf = (int*)malloc(number_amount * sizeof(int));
                     MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     
