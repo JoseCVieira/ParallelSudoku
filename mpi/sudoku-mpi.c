@@ -58,7 +58,7 @@ int main(int argc, char *argv[]){
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Allreduce(&result, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         
-        printf("[%d]nr_it=%d, nb_sends=%d\n", id, nr_it, nb_sends); //a eliminar
+        //printf("[%d]nr_it=%d, nb_sends=%d\n", id, nr_it, nb_sends); //a eliminar
         
         if(!total && !id)
             printf("No solution\n");
@@ -135,7 +135,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             len = work->len;
             int start_pos = hyp.cell;
             
-            printf("len=%d, it=%d\n", len, nr_it);
+            //printf("len=%d, it=%d\n", len, nr_it);
 
             if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
                 continue;
