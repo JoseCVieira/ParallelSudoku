@@ -100,7 +100,7 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int i, cell, val, number_amount, flag = 0, len;
+    int cell, val, len;
 
     Item hyp;
     
