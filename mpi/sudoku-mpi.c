@@ -166,34 +166,32 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 nr_it ++;
                 
                 for(cell = hyp.cell + 1; cell < v_size; cell++){
-
-                    if(!cp_sudoku[cell]){
-                        for(val = m_size; val >= 1; val--){
-                            if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
-                                if(cell == last_pos){
-                                    cp_sudoku[cell] = val;
-                                    send_ring(&id, TAG_EXIT, -1);
-                                    return 1;
-                                }
-                                
-                                hyp.cell = cell;
-                                hyp.num = val;
-                                insert_head(work, hyp);
+                    if(cp_sudoku[cell])
+                        continue;
+                    for(val = m_size; val >= 1; val--){
+                        if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
+                            if(cell == last_pos){
+                                cp_sudoku[cell] = val;
+                                send_ring(&id, TAG_EXIT, -1);
+                                return 1;
                             }
-                                
+                            
+                            hyp.cell = cell;
+                            hyp.num = val;
+                            insert_head(work, hyp);
                         }
                             
-                        if(work->head == NULL){
-                            for(cell = v_size - 1; cell >= start_pos; cell--)
-                                if(cp_sudoku[cell] > 0){
-                                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                                    cp_sudoku[cell] = UNASSIGNED;
-                                }
-                            f_break = 1;
-                            break;
-                        }else
-                            break;
                     }
+                        
+                    if(work->head == NULL){
+                        for(cell = v_size - 1; cell >= start_pos; cell--)
+                            if(cp_sudoku[cell] > 0){
+                                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                                cp_sudoku[cell] = UNASSIGNED;
+                            }
+                        f_break = 1;
+                    }
+                    break;
                 }
                 
                 if(f_break){
@@ -215,21 +213,18 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         no_sol_count = 0;
 
         for(i = id+1;; i++){
-
             if(i == p) i = 0;
             if(i == id) continue;
 
-            //printf("[%d] asking to = %d\n", id, i);
             MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
             flag = 0;
 
             while(!flag && status.MPI_TAG != -1)
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
            
-			MPI_Get_count(&status, MPI_INT, &number_amount);
+            MPI_Get_count(&status, MPI_INT, &number_amount);
             int* number_buf = (int*)malloc(number_amount * sizeof(int));
-           
-			MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             
             if(status.MPI_TAG == TAG_HYP && number_amount != 2){
                 Item hyp_recv;
@@ -242,22 +237,20 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 insert_head(work, hyp_recv);
                 free(number_buf);
                 break;
-			}else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
-				no_sol_count++;
-
+            }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
+                no_sol_count++;
             }else if(status.MPI_TAG == TAG_EXIT){
                 printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
-            }
-			else if(status.MPI_TAG == TAG_ASK_JOB){
-	            MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+            }else if(status.MPI_TAG == TAG_ASK_JOB){
+                MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             }
             
-			if(no_sol_count == p-1 && id == 0){
-				send_ring(&id, TAG_EXIT, -1);
-            	return 0;
-			}
+            if(no_sol_count == p-1 && id == 0){
+                send_ring(&id, TAG_EXIT, -1);
+                return 0;
+            }
 
             free(number_buf);
         }
