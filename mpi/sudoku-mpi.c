@@ -134,6 +134,8 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             hyp = pop_head(work);
             len = work->len;
             int start_pos = hyp.cell;
+            
+            printf("len=%d\n", len);
 
             if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
                 continue;
