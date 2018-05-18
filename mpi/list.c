@@ -52,20 +52,20 @@ Item pop_head(List* list){
 }
 
 Item pop_tail(List *list) {
-    Item item;	
+    Item item;
 
     ListNode *node = list->tail;
   
     if (--list->len)
-    	(list->tail = node->prev)->next = NULL;
+        (list->tail = node->prev)->next = NULL;
     else
-    	list->tail = list->head = NULL;
+        list->tail = list->head = NULL;
 
-  node->next = node->prev = NULL;
+    node->next = node->prev = NULL;
 
-  item = node-> this;
-  free(node);
-  return item;
+    item = node-> this;
+    free(node);
+    return item;
 }
 
 void print_list(List* list){
