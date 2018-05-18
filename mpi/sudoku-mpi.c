@@ -144,7 +144,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     
     while(1){
         while(work->head != NULL){
-            
             hyp = pop_head(work);
             len = work->len;
             int start_pos = hyp.cell;
@@ -203,12 +202,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     break;
                 }
                 
-                if(work->head == NULL){
-                    /*for(cell = v_size - 1; cell >= start_pos; cell--)
+                if(work->len == len){
+                    for(cell = v_size - 1; cell >= start_pos; cell--)
                         if(cp_sudoku[cell] > 0){
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
-                        }*/
+                        }
                     break;
                 }
                 
