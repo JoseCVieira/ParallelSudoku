@@ -187,16 +187,15 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             
                     }
                         
-                    if(work->head == NULL){
+                    if(work->size < 9){
                         for(cell = v_size - 1; cell >= start_pos; cell--)
                             if(cp_sudoku[cell] > 0){
                                 rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                                 cp_sudoku[cell] = UNASSIGNED;
                             }
                         f_break = 1;
-                        return 0;
-                    }else
-                        break;
+                    }
+                    break;
                 }
                 
                 if(f_break){
