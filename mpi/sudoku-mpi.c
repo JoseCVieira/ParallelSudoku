@@ -169,35 +169,37 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 nr_it ++;
                 
                 for(cell = hyp.cell + 1; cell < v_size; cell++){
-                    if(!cp_sudoku[cell]){
-                        for(val = m_size; val >= 1; val--){
-                            if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
-                                if(cell == last_pos){
-                                    cp_sudoku[cell] = val;
-                                    send_ring(&id, TAG_EXIT, -1);
-                                    return 1;
-                                }
-                                
-                                hyp.cell = cell;
-                                hyp.num = val;
-                                insert_head(work, hyp);
+                    if(cp_sudoku[cell])
+                        continue;
+                    for(val = m_size; val >= 1; val--){
+                        if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
+                            if(cell == last_pos){
+                                cp_sudoku[cell] = val;
+                                send_ring(&id, TAG_EXIT, -1);
+                                return 1;
                             }
-                                
+                            
+                            hyp.cell = cell;
+                            hyp.num = val;
+                            insert_head(work, hyp);
                         }
                             
-                        if(work->head == NULL){
-                            for(cell = v_size - 1; cell >= start_pos; cell--)
-                                if(cp_sudoku[cell] > 0){
-                                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                                    cp_sudoku[cell] = UNASSIGNED;
-                                }
-                            f_break = 1;
-                        }
-                        break;
                     }
+                        
+                    if(work->head == NULL){
+                        for(cell = v_size - 1; cell >= start_pos; cell--)
+                            if(cp_sudoku[cell] > 0){
+                                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                                cp_sudoku[cell] = UNASSIGNED;
+                            }
+                        f_break = 1;
+                    }
+                    break;
                 }
                 
                 if(f_break){
+                    if(p == 1)
+                        return 0;
                     f_break = 0;
                     break;
                 }
