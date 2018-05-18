@@ -56,10 +56,9 @@ int main(int argc, char *argv[]){
         result = solve(sudoku);
         
         MPI_Barrier(MPI_COMM_WORLD);
-        //MPI_Reduce(&result, &total, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Allreduce(&result, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         
-        printf("[%d]nr_it=%d\n", id, nr_it);
+        printf("[%d]nr_it=%d, nb_sends=%d\n", id, nr_it, nb_sends); //a eliminar
         
         if(!total && !id)
             printf("[No solution\n");
@@ -210,7 +209,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     if(cp_sudoku[cell] > 0) {
                         rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                         cp_sudoku[cell] = UNASSIGNED;
-                    }
+                    }   
                 }
             }
         }
