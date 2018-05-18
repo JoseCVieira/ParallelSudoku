@@ -17,8 +17,8 @@ elif [ "$1" -eq 5 ]; then
 elif [ "$1" -eq 6 ]; then
     time mpirun --host cpd-1,cpd-2,cpd-3,cpd-4,cpd-5,cpd-6,cpd-7 sudoku-mpi ../sudokus/$2
 elif [ "$1" -eq 7 ]; then
-    time mpirun --host cpd-1,cpd-2,cpd-3,cpd-4,cpd-5,cpd-6,cpd-7,cpd-8 sudoku-mpi ../sudokus/$2
+    time mpirun --host cpd-1,cpd-2,cpd-3,cpd-4,cpd-5,cpd-6,cpd-7 sudoku-mpi ../sudokus/$2
 elif [ "$1" -eq 8 ]; then
-    time mpirun --host cpd-1,cpd-2,cpd-3,cpd-4,cpd-5,cpd-6,cpd-7,cpd-8,cpd-9 sudoku-mpi ../sudokus/$2
+    time mpirun --host cpd-1,cpd-2,cpd-3,cpd-4,cpd-5,cpd-6,cpd-7,cpd-9 sudoku-mpi ../sudokus/$2
 fi
 ##mpirun -np $1 sudoku-mpi ../sudokus/$2
