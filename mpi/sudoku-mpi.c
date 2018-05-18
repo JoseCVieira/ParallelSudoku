@@ -17,6 +17,7 @@
 #define TAG_HYP     1
 #define TAG_EXIT    2
 #define TAG_ASK_JOB 3
+#define TAG_NO_JOB  4
 
 #define ROW(i) i/m_size
 #define COL(i) i%m_size
@@ -129,11 +130,14 @@ int solve(int* sudoku){
 }
 
 int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask, List* work, int last_pos){
-    int i, cell, val, number_amount, flag = 0, no_sol_count, len;
+    int i, cell, val, number_amount, flag = 0, no_sol_count, len, possible_send[p];
     
     MPI_Request request;
     MPI_Status status;
     Item hyp, no_hyp = invalid_hyp();
+    
+    for(i = 0; i < p; i++)
+        possible_send[i] = 1;
     
     while(1){
         while(work->head != NULL){
@@ -165,6 +169,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                             free(send_msg);
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                    }else if(status.MPI_TAG == TAG_NO_JOB){
+                        possible_send[status.MPI_SOURCE] = 0;
+                        send_ring(&id, TAG_NO_JOB, -1);
                     }
                     free(number_buf);
                 }
@@ -221,35 +228,42 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         for(i = id+1;; i++){
             if(i == p) i = 0;
             if(i == id) continue;
-
-            MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-
-            MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            MPI_Get_count(&status, MPI_INT, &number_amount);
-            int* number_buf = (int*)malloc(number_amount * sizeof(int));
-            MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             
-            if(status.MPI_TAG == TAG_HYP && number_amount != 2){
-                Item hyp_recv;
-                memcpy(&hyp_recv, number_buf, sizeof(Item));
-                memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
-                
-                delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
-                
-                insert_head(work, hyp_recv);
-                free(number_buf);
-                break;
-            }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
+            if(!possible_send[i]){
                 no_sol_count++;
-            }else if(status.MPI_TAG == TAG_EXIT){
-                send_ring(&id, TAG_EXIT, -1);
-                return 0;
-            }else if(status.MPI_TAG == TAG_ASK_JOB){
-                MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+            }else{
+                MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
+
+                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                MPI_Get_count(&status, MPI_INT, &number_amount);
+                int* number_buf = (int*)malloc(number_amount * sizeof(int));
+                MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                
+                if(status.MPI_TAG == TAG_HYP && number_amount != 2){
+                    Item hyp_recv;
+                    memcpy(&hyp_recv, number_buf, sizeof(Item));
+                    memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
+                    
+                    delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
+                    
+                    insert_head(work, hyp_recv);
+                    free(number_buf);
+                    break;
+                }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
+                    no_sol_count++;
+                }else if(status.MPI_TAG == TAG_EXIT){
+                    send_ring(&id, TAG_EXIT, -1);
+                    return 0;
+                }else if(status.MPI_TAG == TAG_ASK_JOB){
+                    MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
+                }else if(status.MPI_TAG == TAG_NO_JOB){
+                    possible_send[status.MPI_SOURCE] = 0;
+                    send_ring(&id, TAG_NO_JOB, -1);
+                }
             }
             
             if(no_sol_count == p-1 && id == 0){
-                send_ring(&id, TAG_EXIT, -1);
+                send_ring(&id, TAG_NO_JOB, -1);
                 return 0;
             }
 
