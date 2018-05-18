@@ -44,7 +44,7 @@ int r_size, m_size, v_size, id, p;
 int nr_it = 0, nb_sends = 0; //a eliminar
 
 int main(int argc, char *argv[]){
-    int* sudoku;
+    int* sudoku, result, total;
 
     if(argc == 2){
         sudoku = read_matrix(argv);
@@ -53,13 +53,18 @@ int main(int argc, char *argv[]){
         MPI_Comm_rank (MPI_COMM_WORLD, &id);
         MPI_Comm_size (MPI_COMM_WORLD, &p);
 
-        if(solve(sudoku)){
-            printf("[%d]nr_it=%d\n", id, nr_it);
-            print_sudoku(sudoku);
-        }else
-            printf("[%d] No solution, nr_it=%d\n", id, nr_it);
+        result = solve(sudoku);
         
         MPI_Barrier(MPI_COMM_WORLD);
+        //MPI_Reduce(&result, &total, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Allreduce(&result, &total, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        
+        printf("[%d]nr_it=%d\n", id, nr_it);
+        
+        if(!total && !id)
+            printf("[No solution\n");
+        else if(total && result)
+            print_sudoku(sudoku);
 
         fflush(stdout);
         MPI_Finalize();
@@ -240,7 +245,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
                 no_sol_count++;
             }else if(status.MPI_TAG == TAG_EXIT){
-                printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
+                //printf("[%d] process = %d asked to terminate\n", id, status.MPI_SOURCE);
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
             }else if(status.MPI_TAG == TAG_ASK_JOB){
@@ -347,7 +352,6 @@ int* read_matrix(char *argv[]) {
     char *line = NULL, aux[3];
     int i, j, k, l;
 
-    //verifies if the file was correctly opened
     if((fp = fopen(argv[1], "r+")) == NULL) {
         fprintf(stderr, "unable to open file %s\n", argv[1]);
         exit(1);
