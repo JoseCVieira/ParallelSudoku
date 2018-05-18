@@ -86,7 +86,7 @@ int solve(int* sudoku){
     int *cp_sudoku = (int*) malloc(v_size * sizeof(int));
     List *work = init_list();
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(i = 0; i < v_size; i++) {
         if(sudoku[i])
             cp_sudoku[i] = UNCHANGEABLE;
@@ -110,7 +110,7 @@ int solve(int* sudoku){
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
     if(solved){
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for(i = 0; i < v_size; i++)
             if(cp_sudoku[i] != UNCHANGEABLE)
                 sudoku[i] = cp_sudoku[i];
@@ -265,7 +265,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
     
     init_masks(sudoku, rows_mask, cols_mask, boxes_mask);
     
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(i = v_size; i >= cell; i--)
         if(cp_sudoku[i] > 0)
             cp_sudoku[i] = UNASSIGNED;
@@ -317,7 +317,7 @@ int int_to_mask(int num) {
 void init_masks(int* sudoku, uint64_t* rows_mask, uint64_t* cols_mask, uint64_t* boxes_mask) {
     int i;
 
-    #pragma omp parallel for
+   // #pragma omp parallel for
     for(i = 0; i < m_size; i++){
         rows_mask[i]  = UNASSIGNED;
         cols_mask[i]  = UNASSIGNED;
