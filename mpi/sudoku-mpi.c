@@ -171,11 +171,12 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 for(cell = hyp.cell + 1; cell < v_size; cell++){
                     if(cp_sudoku[cell])
                         continue;
+                    
                     for(val = m_size; val >= 1; val--){
                         if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
                             if(cell == last_pos){
                                 cp_sudoku[cell] = val;
-                                send_ring(&id, TAG_EXIT, -1);
+                                //send_ring(&id, TAG_EXIT, -1);
                                 return 1;
                             }
                             
@@ -198,8 +199,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 }
                 
                 if(f_break){
-                    if(p == 1)
-                        return 0;
                     f_break = 0;
                     break;
                 }
@@ -220,7 +219,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         if(p == 1)
             return 0;
 
-        for(i = id+1;; i++){
+        /*for(i = id+1;; i++){
             if(i == p) i = 0;
             if(i == id) continue;
 
@@ -258,7 +257,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             }
 
             free(number_buf);
-        }
+        }*/
     }
 }
 
