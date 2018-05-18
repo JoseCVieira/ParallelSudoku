@@ -31,6 +31,7 @@ int new_mask( int size);
 int solve(int *sudoku);
 
 int r_size, m_size, v_size;
+int nr_it=0;
 
 int main(int argc, char *argv[]){
     int* sudoku;
@@ -42,6 +43,8 @@ int main(int argc, char *argv[]){
             print_sudoku(sudoku);
         }else
             printf("No solution\n");
+        
+        printf("nr_it=%d\n", nr_it);
         
     }else
         printf("invalid input arguments.\n");
@@ -113,6 +116,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             continue;
 
         while(1){
+            nr_it++;
             update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
             cp_sudoku[hyp.cell] = hyp.num;
             
