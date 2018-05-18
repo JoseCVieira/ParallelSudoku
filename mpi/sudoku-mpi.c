@@ -168,33 +168,33 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 
                 nr_it ++;
                 
-                for(cell = hyp.cell; cell < v_size; cell++){
-                    if(cp_sudoku[cell])
-                        continue;
-                    for(val = m_size; val >= 1; val--){
-                        if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
-                            if(cell == last_pos){
-                                cp_sudoku[cell] = val;
-                                send_ring(&id, TAG_EXIT, -1);
-                                return 1;
+                for(cell = hyp.cell + 1; cell < v_size; cell++){
+                    if(!cp_sudoku[cell]){
+                        for(val = m_size; val >= 1; val--){
+                            if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
+                                if(cell == last_pos){
+                                    cp_sudoku[cell] = val;
+                                    send_ring(&id, TAG_EXIT, -1);
+                                    return 1;
+                                }
+                                
+                                hyp.cell = cell;
+                                hyp.num = val;
+                                insert_head(work, hyp);
                             }
-                            
-                            hyp.cell = cell;
-                            hyp.num = val;
-                            insert_head(work, hyp);
+                                
                         }
                             
+                        if(work->head == NULL){
+                            for(cell = v_size - 1; cell >= start_pos; cell--)
+                                if(cp_sudoku[cell] > 0){
+                                    rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
+                                    cp_sudoku[cell] = UNASSIGNED;
+                                }
+                            f_break = 1;
+                        }
+                        break;
                     }
-                        
-                    if(work->head == NULL){
-                        for(cell = v_size - 1; cell >= start_pos; cell--)
-                            if(cp_sudoku[cell] > 0){
-                                rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
-                                cp_sudoku[cell] = UNASSIGNED;
-                            }
-                        f_break = 1;
-                    }
-                    break;
                 }
                 
                 if(f_break){
@@ -223,7 +223,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             if(i == id) continue;
 
             MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
-            flag = 0;
 
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             MPI_Get_count(&status, MPI_INT, &number_amount);
