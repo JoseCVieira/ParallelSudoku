@@ -102,6 +102,7 @@ int solve(int* sudoku){
 
     init_masks(sudoku, r_mask_array, c_mask_array, b_mask_array);
     
+    #pragma omp parallel for
     for(i = 1 + BLOCK_LOW(id, p, m_size); i < 2 + BLOCK_HIGH(id, p, m_size); i++){
         hyp.num = i;
         insert_head(work, hyp);
@@ -109,10 +110,12 @@ int solve(int* sudoku){
 
     solved = solve_from(sudoku, cp_sudoku, r_mask_array, c_mask_array, b_mask_array, work, last_pos);
 
-    if(solved)
+    if(solved){
+        #pragma omp parallel for
         for(i = 0; i < v_size; i++)
             if(cp_sudoku[i] != UNCHANGEABLE)
                 sudoku[i] = cp_sudoku[i];
+    }
     
     free(work);
     free(r_mask_array);
@@ -270,6 +273,7 @@ void delete_from(int* sudoku, int *cp_sudoku, uint64_t* rows_mask, uint64_t* col
         i--;
     }
 
+    #pragma omp parallel for
     for(i = 0; i < cell; i++)
         if(cp_sudoku[i] > 0)
             update_masks(cp_sudoku[i], ROW(i), COL(i), rows_mask, cols_mask, boxes_mask);
