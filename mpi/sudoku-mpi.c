@@ -206,22 +206,27 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     break;
                 }
                 
-                if(work->len == len){
+                /*if(work->len == len){
                     for(cell = v_size - 1; cell >= start_pos; cell--)
                         if(cp_sudoku[cell] > 0){
                             rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                             cp_sudoku[cell] = UNASSIGNED;
                         }
                     break;
-                }
+                }*/
+                
+                if(work->head == NULL)
+                    break;
                 
                 hyp = pop_head(work);
                 for(cell--; cell >= hyp.cell; cell--){
                     if(cp_sudoku[cell] > 0) {
                         rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
                         cp_sudoku[cell] = UNASSIGNED;
-                    }   
+                    }
                 }
+                if(hyp.cell == start_pos)
+                    break;
             }
         }
 
