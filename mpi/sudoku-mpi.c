@@ -218,13 +218,9 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         if(p == 1)
             return 0;
 
-        for(i = id+1;;){
+        for(i = id+1;; i++){
             if(i == p) i = 0;
-            if(i == id){
-                i = id+1;
-                if(i == p) i = 0;
-                no_sol_count = 0;
-            }
+            if(i == id) continue;
 
             MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
 
@@ -234,7 +230,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             
             if(status.MPI_TAG == TAG_HYP && number_amount != 2){
-                i++;
                 Item hyp_recv;
                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
@@ -245,7 +240,6 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                 free(number_buf);
                 break;
             }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
-                i++;
                 no_sol_count++;
             }else if(status.MPI_TAG == TAG_EXIT){
                 send_ring(&id, TAG_EXIT, -1);
