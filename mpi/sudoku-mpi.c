@@ -222,6 +222,7 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
             if(i == p) i = 0;
             if(i == id){
                 i = id+1;
+                if(i == p) i = 0;
                 no_sol_count = 0;
             }
 
