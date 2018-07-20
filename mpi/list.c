@@ -50,3 +50,32 @@ Item pop_head(List* list){
     free(node);
     return item;
 }
+
+Item pop_tail(List *list) {
+    Item item;
+
+    ListNode *node = list->tail;
+  
+    if (--list->len)
+        (list->tail = node->prev)->next = NULL;
+    else
+        list->tail = list->head = NULL;
+
+    node->next = node->prev = NULL;
+
+    item = node-> this;
+    free(node);
+    return item;
+}
+
+void print_list(List* list){
+    ListNode *aux;
+
+    aux = list->head;
+    while(aux!=NULL){
+        printf("(%d,%d) ", aux->this.cell, aux->this.num);
+        aux = aux->next;
+    }
+    printf("\n");
+    return;
+}
