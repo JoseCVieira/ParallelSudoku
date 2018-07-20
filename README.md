@@ -31,3 +31,21 @@ In case no solution exists, the program prints "No solution".
 <p align="center">
   <img src="https://i.imgur.com/rjxcZSj.png" width="120" height="220">
 </p>
+
+### Contributors:
+
+	-Name: 		José Carlos Vieira
+	-e-mail:	josecarlosvieira@tecnico.ulisboa.pt
+	-Degree: 	MEEC
+	
+	-Name: 		Manuel Serra Nunes
+	-e-mail:	manuelserranunes@tecnico.ulisboa.pt
+	-Degree: 	MEEC
+  
+	-Name:		Pedro Esperança do Carmo
+	-e-mail:	pedro.carmo@tecnico.ulisboa.pt
+	-Degree:	MEEC
+
+### Institution:
+
+	-Instituto Superior Técnico, Universidade de Lisboa (2017/2018)
