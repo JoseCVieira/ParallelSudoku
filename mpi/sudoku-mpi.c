@@ -135,61 +135,101 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
     MPI_Status status;
     Item hyp, no_hyp = invalid_hyp();
     
+    //a while loop to get work from other processes when the list gets empty
     while(1){
+
+        //a while loop to get work from the work list
         while(work->head != NULL){
+
+            //pop an hypothesis from the work list
             hyp = pop_head(work);
             len = work->len;
             int start_pos = hyp.cell;
 
+            //if the number of the initial hypothesis is not valid skip this hypothesis
             if(!is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(hyp.cell), COL(hyp.cell), hyp.num))
                 continue;
 
+            //a while loop to solve the sudoku
             while(1){
+
+                //listen to incoming messages
                 MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status);
+                
+                //if a message has been received
                 if(flag && status.MPI_TAG != -1){
                     flag = 0;
+
+                    //find the size of the message and alocate a buffer fot the message
                     MPI_Get_count(&status, MPI_INT, &number_amount);
                     int* number_buf = (int*)malloc(number_amount * sizeof(int));
+
+                    //read the message to the allocated buffer
                     MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
                     
+                    //if the message is an exit signal forward the message in the ring and return
                     if(status.MPI_TAG == TAG_EXIT){
                         send_ring(&id, TAG_EXIT, -1);
                         return 0;
+
+                    //if the message is a job request
                     }else if(status.MPI_TAG == TAG_ASK_JOB){
+
+                        //and if there is work to give in the list
                         if(work->tail != NULL){
+
+                            //remove an hypothesis from the list
                             Item hyp_send = pop_tail(work);
+
+                            //concatenate the hypothesis with the sudoku and send it
                             int* send_msg = (int*)malloc((v_size+2)*sizeof(int));
                             memcpy(send_msg, &hyp_send, sizeof(Item));
                             memcpy((send_msg+2), cp_sudoku, v_size*sizeof(int));
+
+                            //send the message
                             MPI_Send(send_msg, (v_size+2), MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                             free(send_msg);
+                        
+                        //if there isn't work to do send an impossible hypothesis message
                         }else
                             MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
                     }
                     free(number_buf);
                 }
             
+                //update the masks and sudoku with the hypothesis removed from the list
                 update_masks(hyp.num, ROW(hyp.cell), COL(hyp.cell), rows_mask, cols_mask, boxes_mask);
                 cp_sudoku[hyp.cell] = hyp.num;
                 
+                //iterate cells of the sudoku
                 for(cell = hyp.cell + 1; cell < v_size; cell++){
+                    
+                    //if the cell has an unchangeable number skip the cell
                     if(cp_sudoku[cell])
                         continue;
                     
+                    //test numbers in the cell
                     for(val = m_size; val >= 1; val--){
+
+                        //if the current number is not valid in this cell skip the number
                         if(is_safe_num(rows_mask, cols_mask, boxes_mask, ROW(cell), COL(cell), val)){
+                            
+                            //if the cell is the last one and a valid number for it was found the sudoku has been solved
+                            //send an exit signal message to the ring of communication and return
                             if(cell == last_pos){
                                 cp_sudoku[cell] = val;
                                 send_ring(&id, TAG_EXIT, -1);
                                 return 1;
                             }
                             
+                            //insert the safe number for the cell as an hypothesis in the work list
                             hyp.cell = cell;
                             hyp.num = val;
                             insert_head(work, hyp);
                         }
                             
                     }
+
                     break;
                 }
                 
@@ -202,8 +242,10 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
                     break;
                 }
                 
+                //take a new hypothesis from the work list
                 hyp = pop_head(work);
                 
+                //clear the sudoku down to the point of that hypothesis
                 for(cell--; cell >= hyp.cell; cell--){
                     if(cp_sudoku[cell] > 0) {
                         rm_num_masks(cp_sudoku[cell],  ROW(cell), COL(cell), rows_mask, cols_mask, boxes_mask);
@@ -218,36 +260,57 @@ int solve_from(int* sudoku, int* cp_sudoku, uint64_t* rows_mask, uint64_t* cols_
         if(p == 1)
             return 0;
 
+        //cycle to ask other processes for work
         for(i = id+1;; i++){
+
             if(i == p) i = 0;
             if(i == id) continue;
 
+            //send a work request message to the ith process
             MPI_Send(&i, 1, MPI_INT, i, TAG_ASK_JOB, MPI_COMM_WORLD);
 
+            //wait for an incoming message from any process
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            
+            //find the size of the received message and allocate a buffer for the message
             MPI_Get_count(&status, MPI_INT, &number_amount);
             int* number_buf = (int*)malloc(number_amount * sizeof(int));
+            
+            //read the message to the allocated buffer
             MPI_Recv(number_buf, number_amount, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             
+            //if the message is a new hypothesis 
             if(status.MPI_TAG == TAG_HYP && number_amount != 2){
+
+                //take the hypothesis and sudoku information from the message
                 Item hyp_recv;
                 memcpy(&hyp_recv, number_buf, sizeof(Item));
                 memcpy(cp_sudoku, (number_buf+2), v_size*sizeof(int));
                 
+                //delete everything to the point of the received hypothesis
                 delete_from(sudoku, cp_sudoku, rows_mask, cols_mask, boxes_mask, hyp_recv.cell);
                 
+                //insert it in the work list
                 insert_head(work, hyp_recv);
                 free(number_buf);
+
                 break;
+
+            //if the message is an invalid hypothesis increase the number of processos without work
             }else if(status.MPI_TAG == TAG_HYP && number_amount == 2){
                 no_sol_count++;
+
+            //if the message is an exit signal forward the signal to the ring and return
             }else if(status.MPI_TAG == TAG_EXIT){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
+
+            //if the message is a request for work send a no work to give message
             }else if(status.MPI_TAG == TAG_ASK_JOB){
                 MPI_Send(&no_hyp, 2, MPI_INT, status.MPI_SOURCE, TAG_HYP, MPI_COMM_WORLD);
             }
             
+            //if all other processes had no work to give there is no solution to the sudoku
             if(no_sol_count == p-1 && id == 0){
                 send_ring(&id, TAG_EXIT, -1);
                 return 0;
